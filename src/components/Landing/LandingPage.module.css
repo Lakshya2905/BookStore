@@ -1,0 +1,660 @@
+/* BookHavenLanding.module.css */
+
+/* Container and Layout */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e5e5;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Header Styles */
+.header {
+  background: white;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topBar {
+  background: #1f2937;
+  color: white;
+  padding: 0.5rem 0;
+}
+
+.topBarContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.freeShipping,
+.customerService {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.authLinks {
+  display: flex;
+  gap: 1rem;
+}
+
+.authLinks span {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.authLinks span:hover {
+  color: #60a5fa;
+}
+
+.mainHeader {
+  padding: 1rem 0;
+}
+
+.headerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.logoIcon {
+  font-size: 2rem;
+}
+
+.logo h1 {
+  font-size: 1.875rem;
+  margin: 0;
+}
+
+.searchBar {
+  flex: 1;
+  max-width: 600px;
+  display: flex;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  border: 2px solid #e2e8f0;
+  transition: border-color 0.2s;
+}
+
+.searchBar:focus-within {
+  border-color: #3b82f6;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+}
+
+.searchButton {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0 0.375rem 0.375rem 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.searchButton:hover {
+  background: #2563eb;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.actionButton {
+  padding: 0.5rem;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.actionButton:hover {
+  background: #e2e8f0;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.mobileMenuButton {
+  display: none;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.navigation {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.navContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  gap: 2rem;
+}
+
+.navLink {
+  padding: 1rem 0;
+  text-decoration: none;
+  color: #374151;
+  font-weight: 500;
+  transition: color 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.navLink:hover,
+.navLink:first-child {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+}
+
+/* Main Content */
+.main {
+  padding: 2rem 0;
+}
+
+.sectionContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+}
+
+.sectionSubtitle {
+  color: #6b7280;
+  text-align: center;
+  margin: 0 0 2rem 0;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.viewAllButton {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.viewAllButton:hover {
+  background: #2563eb;
+}
+
+/* Genre Section */
+.genreSection {
+  margin-bottom: 4rem;
+}
+
+.genreGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.genreCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.genreCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.genreIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.genreTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.genreCount {
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Featured Books Section */
+.featuredSection {
+  margin-bottom: 4rem;
+}
+
+.bookGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.bookCard {
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.bookCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.bookImageContainer {
+  position: relative;
+  height: 250px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookPlaceholder {
+  font-size: 4rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.bookTag {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.bestseller {
+  background: #fbbf24;
+  color: #92400e;
+}
+
+.newRelease {
+  background: #3b82f6;
+  color: white;
+}
+
+.topRated {
+  background: #10b981;
+  color: white;
+}
+
+.sale {
+  background: #ef4444;
+  color: white;
+}
+
+.favoriteButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  padding: 0.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.favoriteButton:hover {
+  background: white;
+  color: #ef4444;
+}
+
+.bookInfo {
+  padding: 1.5rem;
+}
+
+.bookTitle {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.bookAuthor {
+  color: #6b7280;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+}
+
+.bookDescription {
+  color: #374151;
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.bookFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bookPrice {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: #3b82f6;
+}
+
+.bookCategory {
+  background: #f1f5f9;
+  color: #374151;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* All Books Section */
+.allBooksSection {
+  margin-bottom: 4rem;
+}
+
+.bookList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bookListItem {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.bookListItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.bookListImage {
+  position: relative;
+  width: 120px;
+  height: 160px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bookListImage .bookPlaceholder {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.bookListImage .bookTag {
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+}
+
+.bookListInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bookListTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.bookListAuthor {
+  color: #6b7280;
+  margin: 0 0 0.75rem 0;
+  font-weight: 500;
+}
+
+.bookListDescription {
+  color: #374151;
+  margin: 0 0 auto 0;
+  line-height: 1.5;
+}
+
+.bookListFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.bookListPrice {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #3b82f6;
+}
+
+.bookListCategory {
+  background: #f1f5f9;
+  color: #374151;
+  padding: 0.375rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .topBarContent {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .logo {
+    align-self: flex-start;
+  }
+
+  .searchBar {
+    order: 3;
+    max-width: none;
+    width: 100%;
+  }
+
+  .headerActions {
+    align-self: flex-end;
+    order: 2;
+    margin-top: -3rem;
+  }
+
+  .userInfo span {
+    display: none;
+  }
+
+  .mobileMenuButton {
+    display: block;
+  }
+
+  .navigation {
+    display: none;
+  }
+
+  .mobileMenuOpen {
+    display: block;
+  }
+
+  .navContent {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .navLink {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .genreGrid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .genreCard {
+    padding: 1.5rem;
+  }
+
+  .bookGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .sectionTitle {
+    text-align: left;
+  }
+
+  .sectionSubtitle {
+    text-align: left;
+  }
+
+  .bookListItem {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .bookListImage {
+    width: 100%;
+    height: 200px;
+  }
+
+  .bookListFooter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main {
+    padding: 1rem 0;
+  }
+
+  .sectionContent {
+    padding: 0 0.5rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .genreGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .bookCard {
+    margin: 0 0.5rem;
+  }
+}

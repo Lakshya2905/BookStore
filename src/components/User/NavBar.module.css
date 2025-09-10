@@ -1,0 +1,249 @@
+.header {
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.topBar {
+  background-color: #1e40af;
+  color: white;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.topBarContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.authLinks {
+  display: flex;
+  gap: 20px;
+}
+
+.authLink {
+  cursor: pointer;
+  text-decoration: underline;
+  transition: opacity 0.2s;
+}
+
+.authLink:hover {
+  opacity: 0.8;
+}
+
+.signedIn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.signOutBtn {
+  padding: 6px 12px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.mainHeader {
+  padding: 15px 0;
+}
+
+.headerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #1e40af;
+  text-decoration: none;
+}
+
+.logoIcon {
+  font-size: 28px;
+}
+
+.searchBar {
+  display: flex;
+  flex: 1;
+  max-width: 500px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  border-color: #1e40af;
+}
+
+.searchButton {
+  padding: 12px 20px;
+  background-color: #1e40af;
+  color: white;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.searchButton:hover {
+  background-color: #1d4ed8;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.actionButton {
+  padding: 10px;
+  background-color: transparent;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: #374151;
+}
+
+.actionButton:hover {
+  border-color: #1e40af;
+  color: #1e40af;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.signInButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.signInBtn {
+  padding: 8px 16px;
+  background-color: transparent;
+  color: #1e40af;
+  border: 2px solid #1e40af;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.signInBtn:hover {
+  background-color: #1e40af;
+  color: white;
+}
+
+.signUpBtn {
+  padding: 8px 16px;
+  background-color: #1e40af;
+  color: white;
+  border: 2px solid #1e40af;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.signUpBtn:hover {
+  background-color: #1d4ed8;
+}
+
+.mobileMenuButton {
+  display: none;
+  padding: 8px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #374151;
+}
+
+.navigation {
+  background-color: #f8fafc;
+  border-top: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.navContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  gap: 30px;
+}
+
+.navLink {
+  padding: 15px 0;
+  text-decoration: none;
+  color: #374151;
+  font-weight: 500;
+  font-size: 14px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.navLink:hover {
+  color: #1e40af;
+  border-bottom-color: #1e40af;
+}
+
+@media (max-width: 768px) {
+  .searchBar {
+    display: none;
+  }
+  .mobileMenuButton {
+    display: block;
+  }
+  .headerActions {
+    gap: 10px;
+  }
+}
