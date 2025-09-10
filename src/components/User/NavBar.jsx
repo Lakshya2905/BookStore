@@ -124,11 +124,14 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick, onSearch }) => {
           <Link to="/books" className={styles.navLink}>
             All Books
           </Link>
-          <Link to="/books?category=NEW_RELEASE" className={styles.navLink}>
+          <Link to="/books?tag=NEW_RELEASE" className={styles.navLink}>
             New Releases
           </Link>
-          <Link to="/books?category=BESTSELLER" className={styles.navLink}>
+          <Link to="/books?tag=BESTSELLER" className={styles.navLink}>
             Best Sellers
+          </Link>
+          <Link to="/books?tag=TOP_RATED" className={styles.navLink}>
+            Top Rated
           </Link>
           <a href="#categories" className={styles.navLink}>
             Categories
@@ -136,7 +139,7 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick, onSearch }) => {
           <a href="#authors" className={styles.navLink}>
             Authors
           </a>
-          <Link to="/books?category=SALE" className={styles.navLink}>
+          <Link to="/books?tag=SALE" className={styles.navLink}>
             Sale
           </Link>
         </div>
@@ -151,11 +154,14 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick, onSearch }) => {
           <Link to="/books" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
             All Books
           </Link>
-          <Link to="/books?category=NEW_RELEASE" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+          <Link to="/books?tag=NEW_RELEASE" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
             New Releases
           </Link>
-          <Link to="/books?category=BESTSELLER" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+          <Link to="/books?tag=BESTSELLER" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
             Best Sellers
+          </Link>
+          <Link to="/books?tag=TOP_RATED" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            Top Rated
           </Link>
           <a href="#categories" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
             Categories
@@ -163,7 +169,7 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick, onSearch }) => {
           <a href="#authors" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
             Authors
           </a>
-          <Link to="/books?category=SALE" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+          <Link to="/books?tag=SALE" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
             Sale
           </Link>
           
