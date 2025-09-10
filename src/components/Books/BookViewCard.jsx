@@ -26,33 +26,39 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
 
   // 🔍 Apply search + filters
   const filteredBooks = useMemo(() => {
-    let filtered = sourceBooks || [];
+  let filtered = sourceBooks || [];
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (book) =>
-          book.bookName?.toLowerCase().includes(query) ||
-          book.authorName?.toLowerCase().includes(query)
-      );
-    }
+  const searchTerm = (searchQuery || "").toLowerCase();
+  const categoryTerm = (categoryFilter || "").toLowerCase();
+  const tagTerm = (tagFilter || "").toLowerCase();
 
-    if (categoryFilter) {
-      filtered = filtered.filter(
-        (book) => book.bookCategory?.toLowerCase() === categoryFilter.toLowerCase()
-      );
-    }
+  if (searchTerm) {
+    filtered = filtered.filter(
+      (book) =>
+        book.bookName?.toLowerCase().includes(searchTerm) ||
+        book.authorName?.toLowerCase().includes(searchTerm) ||
+        book.category?.toLowerCase().includes(searchTerm) ||
+        (book.bookTags?.some(tag => tag.toLowerCase().includes(searchTerm)))
+    );
+  }
 
-    if (tagFilter) {
-      filtered = filtered.filter((book) =>
-        book.bookTags?.some(
-          (tag) => tag.toLowerCase() === tagFilter.toLowerCase()
-        )
-      );
-    }
+  if (categoryTerm) {
+    filtered = filtered.filter(
+      (book) => book.category?.toLowerCase().includes(categoryTerm)
+    );
+  }
 
-    return filtered;
-  }, [sourceBooks, searchQuery, categoryFilter, tagFilter]);
+  if (tagTerm) {
+    filtered = filtered.filter((book) =>
+      book.bookTags?.some(
+        tag => tag.toLowerCase().includes(tagTerm)
+      )
+    );
+  }
+
+  return filtered;
+}, [sourceBooks, searchQuery, categoryFilter, tagFilter]);
+
 
   // Pagination logic
   const indexOfLastBook = currentPage * booksPerPage;
@@ -85,14 +91,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
             {currentBooks.map((book) => (
               <div key={book.bookId} className={styles.bookCard}>
                 <div className={styles.bookImageContainer}>
-                  <div className={styles.bookImage}>
-                    <img
-                      src="/assets/book.jpg"
-                      alt={book.bookName}
-                      className={styles.bookCover}
-                    />
-                    <div className={styles.bookPlaceholder}>📚</div>
-                  </div>
+      
                   
                   {/* Info Button */}
                   <div className={styles.infoButton}>
@@ -113,8 +112,8 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                       </div>
                       <div className={styles.tooltipFooter}>
                         <span className={styles.tooltipPrice}>₹{book.price}</span>
-                        {book.bookCategory && (
-                          <span className={styles.tooltipCategory}>{book.bookCategory}</span>
+                        {book.category && (
+                          <span className={styles.tooltipCategory}>{book.category}</span>
                         )}
                       </div>
                     </div>
@@ -127,12 +126,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                     </div>
                   )}
 
-                  {/* Favorite Button */}
-                  <button className={styles.favoriteButton}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                  </button>
+            
                 </div>
 
                 <div className={styles.bookInfo}>
@@ -144,8 +138,8 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                   
                   <div className={styles.bookFooter}>
                     <span className={styles.bookPrice}>₹{book.price}</span>
-                    {book.bookCategory && (
-                      <span className={styles.bookCategory}>{book.bookCategory}</span>
+                    {book.category && (
+                      <span className={styles.bookCategory}>{book.category}</span>
                     )}
                   </div>
 

@@ -222,24 +222,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Tags Filter Section */}
-      <section className={styles.tagsSection}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Browse by Tags</h2>
-          <p className={styles.sectionSubtitle}>Filter books by popular tags</p>
-        </div>
-        <div className={styles.tagsContainer}>
-          {bookTags.map((tag) => (
-            <button
-              key={tag.key}
-              className={styles.tagButton}
-              onClick={() => handleTagClick(tag.key)}
-            >
-              {tag.label}
-            </button>
-          ))}
-        </div>
-      </section>
 
       {/* Featured Books Section */}
       <section className={styles.featuredSection}>
