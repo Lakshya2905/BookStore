@@ -344,7 +344,7 @@ const LandingPage = () => {
             </p>
           </div>
           <div className={styles.featureCard}>
-            <div className={styles.featureIcon">🔄</div>
+            <div className={styles.featureIcon}>🔄</div>
             <h3 className={styles.featureTitle}>Easy Returns</h3>
             <p className={styles.featureDescription}>
               Not satisfied? Return any book within 30 days for a full refund.
