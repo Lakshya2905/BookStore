@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Routes, Route, Link, useNavigate, Navigate, useLocation } from "react-router-dom";
+import { Search, Heart, ShoppingCart, User, Menu, X } from "lucide-react";
 import styles from "./App.module.css";
+import NavBar from "./components/User/NavBar";
 import LandingPage from "./components/Landing/LandingPage";
-import Dashboard from "./components/user/UserDashboard";
 import LoginModal from "./components/Landing/LoginModal";
 import SignupModal from "./components/Landing/SignupModal";
+import BookViewCard from "./components/Books/BookViewCard";
 import Promotion from "./assets/Promotion";
-import Logo from "./assets/logo.png";
-import NameTag from "./assets/nameTag.png";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -21,7 +21,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // List of pages that don't require authentication
-const PUBLIC_PAGES = [ "/"];
+const PUBLIC_PAGES = ["/", "/landing", "/books"];
 
 const App = () => {
   return <AppContent />;
@@ -29,7 +29,11 @@ const App = () => {
 
 const AppContent = () => {
   const [loginStatus, setLoginStatus] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
   const currentPath = window.location.pathname;
 
   const getUserData = () => {
@@ -54,113 +58,44 @@ const AppContent = () => {
       PUBLIC_PAGES.some((page) => currentPath.startsWith(page));
 
     if (!token && !isPublicPage) {
-      navigate("/login");
+      navigate("/");
     }
   }, [navigate, currentPath]);
 
   useEffect(() => {
-    const validateToken = async () => {
-      const token = sessionStorage.getItem("token");
-      const userStr = sessionStorage.getItem("user");
+    const hasToken = !!sessionStorage.getItem("token");
+    setLoginStatus(hasToken);
+  }, []);
 
-      if (!loginStatus) {
-        return;
-      }
+  // Handle sign in modal
+  const handleSignIn = () => {
+    setShowLoginModal(true);
+  };
 
-      if (token && userStr) {
-        try {
-          const { user, token } = getUserData();
-          console.log("Validating token...");
+  // Handle sign up modal
+  const handleSignUp = () => {
+    setShowSignupModal(true);
+  };
 
-          const response = await axios.get(
-            // `${API_BASE_URL}/user/validate_token`,
-            {
-              params: {
-                emailId: user.emailId,
-                token: token,
-              },
-            }
-          );
-
-          if (response.data.response === "unauthorized") {
-            console.log("Token validation failed: 401 Unauthorized");
-            sessionStorage.clear();
-            setLoginStatus(false);
-            navigate("/login");
-          }
-        } catch (error) {
-          console.error("Error validating token:", error);
-          sessionStorage.clear();
-          setLoginStatus(false);
-          navigate("/");
-        }
-      }
-    };
-
-    if (loginStatus) {
-      const interval = setInterval(validateToken, 6000);
-      return () => clearInterval(interval);
-    }
-  }, [loginStatus]);
-
-  useEffect(() => {
-    if (!loginStatus) {
+  // Handle cart click
+  const handleCartClick = () => {
+    const { user } = getUserData();
+    if (!user) {
+      setShowLoginModal(true);
       return;
     }
+    navigate("/cart");
+  };
 
-    const handleStorageChange = () => {
-      const hasToken = !!sessionStorage.getItem("token");
-      setLoginStatus(hasToken);
+  // Handle search functionality
+  const handleSearch = (query) => {
+    if (query.trim()) {
+      // Navigate to books page with search query
+      navigate(`/books?search=${encodeURIComponent(query.trim())}`);
+    }
+  };
 
-      if (!hasToken) {
-        navigate("/");
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, [navigate, currentPath]);
-
-  return (
-    <div className={styles.appContainer}>
-      <NavbarWithRouter setLoginStatus={setLoginStatus} />
-      <main>
-        <Routes>
-          <Route path="/" element={<Promotion/>} />
-          {/* <Route
-            path="/login"
-            element={<LoginModal setLoginStatus={setLoginStatus} />}
-          />
-          <Route path="/signup" element={<SignupModal />} /> */}
-
-          <Route
-            path="/landing" element={<LandingPage />}
-          />
-
-          <Route
-            path="/user-dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </main>
-    </div>
-  );
-};
-
-const NavbarWithRouter = ({ setLoginStatus }) => {
-  const navigate = useNavigate();
-  const userData = JSON.parse(sessionStorage.getItem("user"));
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
-  const location = useLocation();
-
+  // Handle switching between modals
   const handleSwitchToSignup = () => {
     setShowLoginModal(false);
     setShowSignupModal(true);
@@ -171,125 +106,57 @@ const NavbarWithRouter = ({ setLoginStatus }) => {
     setShowLoginModal(true);
   };
 
+  // Close all modals
   const closeModals = () => {
     setShowLoginModal(false);
     setShowSignupModal(false);
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("role");
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-
-    sessionStorage.clear();
-    localStorage.clear();
-
-    setLoginStatus(false);
-    navigate("/landing");
-  };
-
-  const handleDashboardNavigate = () => {
-    if (userData.role === "instructor") navigate("/instructor-dashboard");
-    else if (userData.role === "user") navigate("/user-dashboard");
-  };
-
-  const handleSignupClick = (e) => {
-    e.preventDefault();
-    navigate("/signup");
-  };
-
-  const handleLoginClick = (e) => {
-    e.preventDefault();
-    navigate("/login");
-  };
-
-  if (location.pathname === '/') {
-    return null;
-  }
+  // Don't show navbar on promotion page
+  const shouldShowNavbar = location.pathname !== '/';
 
   return (
-    <>
-      <header className={`${styles.header} sticky-top`}>
-        <div className="container-fluid">
-          <div className="row align-items-center py-2">
-            <div className="col-md-6">
-              <div
-                className={`${styles.logo} d-flex align-items-center`}
-                onClick={handleDashboardNavigate}
-                style={{ cursor: "pointer" }}
-              >
-                {/* <img
-                  src={Logo}
-                  alt="CodeGram Logo"
-                  className={styles.logoImage}
-                />
+    <div className={styles.appContainer}>
+      {shouldShowNavbar && (
+        <NavBar
+          onSignIn={handleSignIn}
+          onSignUp={handleSignUp}
+          onCartClick={handleCartClick}
+          onSearch={handleSearch}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+      )}
+      
+      <main>
+        <Routes>
+          <Route path="/" element={<Promotion />} />
+          <Route path="/landing" element={<LandingPage />} />
+          <Route 
+            path="/books" 
+            element={
+                <BookViewCard />
+             } 
+          />
+          {/* Add more routes as needed */}
+        </Routes>
+      </main>
 
-                 <img
-                  src={NameTag}
-                  alt="CodeGram Name Tag"
-                  className={styles.nameTagImage}
-                />                       */}
-              </div>
-            </div>
-            <div className="col-md-6">
-              <nav
-                className={`${styles.nav} d-flex justify-content-md-end justify-content-center gap-3 align-items-center`}
-              >
-                {userData ? (
-                  <>
-                    <div className={styles.userProfile}>
-                      <div className={styles.userAvatar}>
-                        <span>
-                          {userData.fullName?.[0] || ""}
-                        </span>
-                      </div>
-                      <div className={styles.userInfo}>
-                        <span className={styles.userName}>
-                          {userData.fullName} 
-                        </span>
-                      </div>
-                    </div>
-                    <button onClick={handleLogout} className={styles.logoutBtn}>
-                      <span>Logout</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className={`${styles.loginBtn} btn`}
-                      onClick={() => setShowLoginModal(true)}
-                    >
-                      Login
-                    </button>
-                    <button
-                      className={`${styles.signupBtn} btn`}
-                      onClick={() => setShowSignupModal(true)}
-                    >
-                      Sign Up
-                    </button>
-                  </>
-                )}
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Modals */}
+      {/* Login Modal */}
       <LoginModal
         isOpen={showLoginModal}
         onClose={closeModals}
         onSwitchToSignup={handleSwitchToSignup}
+        setLoginStatus={setLoginStatus}
       />
 
+      {/* Signup Modal */}
       <SignupModal
         isOpen={showSignupModal}
         onClose={closeModals}
         onSwitchToLogin={handleSwitchToLogin}
       />
-    </>
+    </div>
   );
 };
 

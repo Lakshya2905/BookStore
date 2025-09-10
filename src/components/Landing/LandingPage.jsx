@@ -1,136 +1,102 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Heart, ShoppingCart, User, Menu, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Star, BookOpen, Users, Award, TrendingUp } from 'lucide-react';
+import axios from 'axios';
+import CategoriesView from '../Books/CategoriesView';
+import BookViewCard from '../Books/BookViewCard';
 import styles from './LandingPage.module.css';
-
-// Mock axios for demo - replace with actual axios import
-const axios = {
-  get: async (url) => {
-    // Mock API responses
-    if (url === '/api/bookList') {
-      return {
-        data: {
-          data: [
-            {
-              bookId: 1,
-              bookName: "The Dragon's Legacy",
-              description: "Epic fantasy adventure in a realm of magic and dragons",
-              category: "Fantasy",
-              authorName: "Sarah Mitchell",
-              price: 24.99,
-              bookTags: ["BESTSELLER", "SALE"]
-            },
-            {
-              bookId: 2,
-              bookName: "Hearts Entwined",
-              description: "A passionate romance that spans generations",
-              category: "Romance",
-              authorName: "Emma Davidson",
-              price: 19.99,
-              bookTags: ["NEW_RELEASE"]
-            },
-            {
-              bookId: 3,
-              bookName: "Shadows of Truth",
-              description: "A gripping mystery that will keep you guessing",
-              category: "Mystery",
-              authorName: "Michael Thompson",
-              price: 22.99,
-              bookTags: ["NEW_RELEASE"]
-            },
-            {
-              bookId: 4,
-              bookName: "Quantum Horizons",
-              description: "Hard science fiction exploring the boundaries of reality",
-              category: "Sci-Fi",
-              authorName: "David Chen",
-              price: 26.99,
-              bookTags: ["TOP_RATED"]
-            },
-            {
-              bookId: 5,
-              bookName: "The Mind Unveiled",
-              description: "Understanding human psychology and behavior",
-              category: "Psychology",
-              authorName: "Dr. Lisa Johnson",
-              price: 29.99,
-              bookTags: ["BESTSELLER"]
-            },
-            {
-              bookId: 6,
-              bookName: "Business Mastery",
-              description: "Strategic insights for modern entrepreneurs",
-              category: "Business",
-              authorName: "Robert Williams",
-              price: 34.99,
-              bookTags: ["TOP_RATED"]
-            }
-          ]
-        }
-      };
-    }
-    if (url === '/api/categories') {
-      return {
-        data: {
-          data: ["Fantasy", "Romance", "Mystery", "Sci-Fi", "History", "Psychology", "Children", "Business"]
-        }
-      };
-    }
-  }
-};
+import { BOOK_FETCH_URL, CATRGORY_FETCH_URL } from '../../constants/apiConstants';
 
 const LandingPage = () => {
-  const [books, setBooks] = useState([]);
+  const [allBooks, setAllBooks] = useState([]);
+  const [featuredBooks, setFeaturedBooks] = useState([]);
+  const [previewBooks, setPreviewBooks] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [stats, setStats] = useState({
+    totalBooks: 0,
+    totalUsers: 0,
+    totalCategories: 0,
+    averageRating: 4.5
+  });
   const [loading, setLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [error, setError] = useState(null);
 
+  const navigate = useNavigate();
+  
   useEffect(() => {
     fetchData();
+    fetchStats();
   }, []);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [booksResponse, categoriesResponse] = await Promise.all([
-        axios.get('/api/bookList'),
-        axios.get('/api/categories')
+      const [categoryResponse, bookResponse] = await Promise.all([
+        axios.get(`${CATRGORY_FETCH_URL}`),
+        axios.get(`${BOOK_FETCH_URL}`)
       ]);
-      
-      setBooks(booksResponse.data.data);
-      setCategories(categoriesResponse.data.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+
+      // Categories
+      if (categoryResponse.data.status === "SUCCESS") {
+        setCategories(categoryResponse.data.payload || []);
+      } else {
+        setError(categoryResponse.data.message || "Failed to load categories");
+      }
+
+      // Books
+      if (bookResponse.data.status === "SUCCESS") {
+        const books = bookResponse.data.payload || [];
+        setAllBooks(books);
+
+        // Featured books (top 6 with specific tags)
+        const featured = books
+          .filter(book =>
+            book.bookTags?.includes("BESTSELLER") ||
+            book.bookTags?.includes("TOP_RATED") ||
+            book.bookTags?.includes("NEW_RELEASE")
+          )
+          .slice(0, 6);
+        setFeaturedBooks(featured);
+
+        // Preview books for "All Books" section (first 8 books)
+        setPreviewBooks(books.slice(0, 8));
+
+        // Update stats with actual data
+        setStats(prev => ({
+          ...prev,
+          totalBooks: books.length,
+          totalCategories: categoryResponse.data.payload?.length || prev.totalCategories
+        }));
+
+      } else {
+        setError(bookResponse.data.message || "Failed to load books");
+      }
+
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to load data");
     } finally {
       setLoading(false);
     }
   };
 
-  const getCategoryIcon = (category) => {
-    const icons = {
-      Fantasy: '🐲',
-      Romance: '❤️',
-      Mystery: '🕵️‍♂️',
-      'Sci-Fi': '🚀',
-      History: '🏛️',
-      Psychology: '🧠',
-      Children: '😊',
-      Business: '💼'
-    };
-    return icons[category] || '📚';
+  const fetchStats = () => {
+    // Mock stats - you can replace with actual API call
+    setStats(prev => ({
+      ...prev,
+      totalUsers: 125000,
+      averageRating: 4.5
+    }));
   };
 
-  const getCategoryCount = (category) => {
-    return books.filter(book => book.category === category).length;
+  const handleExploreBooks = () => navigate('/books');
+
+  const handleViewAllCategories = () => {
+    document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const getTagStyle = (tag) => {
-    const tagStyles = {
-      BESTSELLER: styles.bestseller,
-      NEW_RELEASE: styles.newRelease,
-      TOP_RATED: styles.topRated,
-      SALE: styles.sale
-    };
-    return tagStyles[tag] || '';
+  const handleCategoryClick = (category) => {
+    navigate(`/books?category=${encodeURIComponent(category)}`);
   };
 
   const getTagText = (tag) => {
@@ -143,180 +109,228 @@ const LandingPage = () => {
     return tagTexts[tag] || tag;
   };
 
-  if (loading) {
-    return (
-      <div className={styles.loading}>
-        <div className={styles.spinner}></div>
-        <p>Loading BookHaven...</p>
+  const FeaturedBookCard = ({ book }) => (
+    <div className={styles.featuredBookCard}>
+      <div className={styles.bookCover}>
+        <span className={styles.bookEmoji}>📚</span>
+        {book.bookTags && book.bookTags.map((tag, index) => (
+          <span 
+            key={`${tag}-${index}`} 
+            className={styles.bookTag}
+            style={{ top: `${8 + (index * 25)}px` }}
+          >
+            {getTagText(tag)}
+          </span>
+        ))}
       </div>
-    );
-  }
+      <div className={styles.bookInfo}>
+        <h3 className={styles.bookTitle}>{book.bookName}</h3>
+        <p className={styles.bookAuthor}>by {book.authorName}</p>
+        <div className={styles.bookRating}>
+          <Star size={16} fill="#fbbf24" color="#fbbf24" />
+          <span>4.5</span>
+        </div>
+        <div className={styles.bookFooter}>
+          <span className={styles.bookPrice}>${book.price}</span>
+          <span className={styles.bookCategory}>{book.category}</span>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className={styles.container}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.topBar}>
-          <div className={styles.topBarContent}>
-            <span className={styles.freeShipping}>📦 Free shipping on orders over $35</span>
-            <span className={styles.customerService}>📞 Customer Service: 1-800-BOOKS</span>
-            <div className={styles.authLinks}>
-              <span>Sign In</span>
-              <span>Create Account</span>
+    <div className={styles.landingPage}>
+      {/* Hero Section */}
+      <section className={styles.heroSection}>
+        <div className={styles.heroContent}>
+          <div className={styles.heroText}>
+            <h1 className={styles.heroTitle}>
+              Discover Your Next
+              <span className={styles.highlight}> Great Read</span>
+            </h1>
+            <p className={styles.heroSubtitle}>
+              Explore thousands of books across multiple genres. From bestsellers to hidden gems, 
+              find the perfect book for every mood and moment.
+            </p>
+            <div className={styles.heroButtons}>
+              <button className={styles.primaryButton} onClick={handleExploreBooks}>
+                <BookOpen size={20} />
+                Explore Books
+                <ArrowRight size={20} />
+              </button>
+              <button className={styles.secondaryButton} onClick={handleViewAllCategories}>
+                View Categories
+              </button>
+            </div>
+          </div>
+          <div className={styles.heroImage}>
+            <div className={styles.bookStack}>
+              <div className={styles.book} style={{ background: '#6366f1' }}>📚</div>
+              <div className={styles.book} style={{ background: '#8b5cf6' }}>📖</div>
+              <div className={styles.book} style={{ background: '#06b6d4' }}>📘</div>
+              <div className={styles.book} style={{ background: '#10b981' }}>📗</div>
             </div>
           </div>
         </div>
-        
-        <div className={styles.mainHeader}>
-          <div className={styles.headerContent}>
-            <div className={styles.logo}>
-              <span className={styles.logoIcon}>📚</span>
-              <h1>BookHaven</h1>
+      </section>
+
+      {/* Stats Section */}
+      <section className={styles.statsSection}>
+        <div className={styles.statsContainer}>
+          <div className={styles.statCard}>
+            <BookOpen className={styles.statIcon} />
+            <div className={styles.statNumber}>
+              {loading ? '...' : stats.totalBooks.toLocaleString()}
             </div>
-            
-            <div className={styles.searchBar}>
-              <input 
-                type="text" 
-                placeholder="Search books, authors, genres..."
-                className={styles.searchInput}
-              />
-              <button className={styles.searchButton}>
-                <Search size={20} />
-                Search
-              </button>
+            <div className={styles.statLabel}>Books Available</div>
+          </div>
+          <div className={styles.statCard}>
+            <Users className={styles.statIcon} />
+            <div className={styles.statNumber}>{stats.totalUsers.toLocaleString()}</div>
+            <div className={styles.statLabel}>Happy Readers</div>
+          </div>
+          <div className={styles.statCard}>
+            <Award className={styles.statIcon} />
+            <div className={styles.statNumber}>
+              {loading ? '...' : stats.totalCategories}
             </div>
-            
-            <div className={styles.headerActions}>
-              <button className={styles.actionButton}>
-                <Heart size={20} />
-              </button>
-              <button className={styles.actionButton}>
-                <ShoppingCart size={20} />
-              </button>
-              <div className={styles.userInfo}>
-                <User size={20} />
-                <span>John Doe</span>
-              </div>
-              <button 
-                className={styles.mobileMenuButton}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-            </div>
+            <div className={styles.statLabel}>Categories</div>
+          </div>
+          <div className={styles.statCard}>
+            <Star className={styles.statIcon} />
+            <div className={styles.statNumber}>{stats.averageRating}</div>
+            <div className={styles.statLabel}>Avg Rating</div>
           </div>
         </div>
+      </section>
+
+      {/* Featured Books Section */}
+      <section className={styles.featuredSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Featured This Week</h2>
+          <p className={styles.sectionSubtitle}>Handpicked selections from our editorial team</p>
+        </div>
         
-        <nav className={`${styles.navigation} ${mobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
-          <div className={styles.navContent}>
-            <a href="#" className={styles.navLink}>Home</a>
-            <a href="#" className={styles.navLink}>New Releases</a>
-            <a href="#" className={styles.navLink}>Best Sellers</a>
-            <a href="#" className={styles.navLink}>Categories</a>
-            <a href="#" className={styles.navLink}>Authors</a>
-            <a href="#" className={styles.navLink}>Sale</a>
+        {loading ? (
+          <div className={styles.loading}>
+            <div className={styles.spinner}></div>
+            <p>Loading featured books...</p>
           </div>
-        </nav>
-      </header>
-
-      <main className={styles.main}>
-        {/* Browse by Genre Section */}
-        <section className={styles.genreSection}>
-          <div className={styles.sectionContent}>
-            <h2 className={styles.sectionTitle}>Browse by Genre</h2>
-            <p className={styles.sectionSubtitle}>Find your perfect book in our carefully curated categories</p>
-            
-            <div className={styles.genreGrid}>
-              {categories.map((category) => (
-                <div key={category} className={styles.genreCard}>
-                  <div className={styles.genreIcon}>
-                    {getCategoryIcon(category)}
-                  </div>
-                  <h3 className={styles.genreTitle}>{category}</h3>
-                  <p className={styles.genreCount}>
-                    {getCategoryCount(category).toLocaleString()} books
-                  </p>
-                </div>
+        ) : error ? (
+          <div className={styles.error}>
+            <p>{error}</p>
+            <button onClick={fetchData} className={styles.retryButton}>
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className={styles.featuredBooks}>
+              {featuredBooks.map((book) => (
+                <FeaturedBookCard key={book.bookId} book={book} />
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Featured Books Section */}
-        <section className={styles.featuredSection}>
-          <div className={styles.sectionContent}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <h2 className={styles.sectionTitle}>Featured Books</h2>
-                <p className={styles.sectionSubtitle}>Handpicked selections from our editors</p>
+            {featuredBooks.length === 0 && (
+              <div className={styles.noBooks}>
+                <p>No featured books available at the moment.</p>
               </div>
-              <button className={styles.viewAllButton}>
-                View All →
-              </button>
-            </div>
-            
-            <div className={styles.bookGrid}>
-              {books.slice(0, 4).map((book) => (
-                <div key={book.bookId} className={styles.bookCard}>
-                  <div className={styles.bookImageContainer}>
-                    <div className={styles.bookImage}>
-                      <span className={styles.bookPlaceholder}>📖</span>
-                    </div>
-                    {book.bookTags.map((tag) => (
-                      <span key={tag} className={`${styles.bookTag} ${getTagStyle(tag)}`}>
-                        {getTagText(tag)}
-                      </span>
-                    ))}
-                    <button className={styles.favoriteButton}>
-                      <Heart size={20} />
-                    </button>
-                  </div>
-                  
-                  <div className={styles.bookInfo}>
-                    <h3 className={styles.bookTitle}>{book.bookName}</h3>
-                    <p className={styles.bookAuthor}>{book.authorName}</p>
-                    <p className={styles.bookDescription}>{book.description}</p>
-                    <div className={styles.bookFooter}>
-                      <span className={styles.bookPrice}>${book.price}</span>
-                      <span className={styles.bookCategory}>{book.category}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+            )}
+          </>
+        )}
+        
+        <div className={styles.sectionFooter}>
+          <button className={styles.viewAllButton} onClick={handleExploreBooks}>
+            View All Books
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      </section>
 
-        {/* All Books Section */}
-        <section className={styles.allBooksSection}>
-          <div className={styles.sectionContent}>
-            <h2 className={styles.sectionTitle}>All Books</h2>
-            <div className={styles.bookList}>
-              {books.map((book) => (
-                <div key={book.bookId} className={styles.bookListItem}>
-                  <div className={styles.bookListImage}>
-                    <span className={styles.bookPlaceholder}>📖</span>
-                    {book.bookTags.map((tag) => (
-                      <span key={tag} className={`${styles.bookTag} ${getTagStyle(tag)}`}>
-                        {getTagText(tag)}
-                      </span>
-                    ))}
-                  </div>
-                  <div className={styles.bookListInfo}>
-                    <h4 className={styles.bookListTitle}>{book.bookName}</h4>
-                    <p className={styles.bookListAuthor}>{book.authorName}</p>
-                    <p className={styles.bookListDescription}>{book.description}</p>
-                    <div className={styles.bookListFooter}>
-                      <span className={styles.bookListPrice}>${book.price}</span>
-                      <span className={styles.bookListCategory}>{book.category}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* Categories Section */}
+      <section id="categories" className={styles.categoriesSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Browse by Category</h2>
+          <p className={styles.sectionSubtitle}>Find your favorite genre and discover new worlds</p>
+        </div>
+        <CategoriesView 
+          categories={categories} 
+          books={previewBooks} // Use preview books instead of all books
+          onCategoryClick={handleCategoryClick} 
+        />
+      </section>
+
+      {/* Books Preview Section (Only show first 8 books) */}
+      <section className={styles.featuredSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Popular Books</h2>
+          <p className={styles.sectionSubtitle}>Browse some of our most popular titles</p>
+        </div>
+        <BookViewCard 
+          books={previewBooks} // Show only preview books
+          loading={loading}
+          error={error}
+          showPagination={false} // Disable pagination for preview
+        />
+        <div className={styles.sectionFooter}>
+          <button className={styles.viewAllButton} onClick={handleExploreBooks}>
+            View All {stats.totalBooks} Books
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      </section>
+
+      {/* Why Choose Us Section */}
+      <section className={styles.whyChooseSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Why Choose BookHaven?</h2>
+          <p className={styles.sectionSubtitle}>More than just a bookstore</p>
+        </div>
+        <div className={styles.featuresGrid}>
+          <div className={styles.featureCard}>
+            <div className={styles.featureIcon}>📦</div>
+            <h3 className={styles.featureTitle}>Free Shipping</h3>
+            <p className={styles.featureDescription}>
+              Free shipping on all orders over $35. Get your books delivered right to your doorstep.
+            </p>
           </div>
-        </section>
-      </main>
+          <div className={styles.featureCard}>
+            <div className={styles.featureIcon}>⚡</div>
+            <h3 className={styles.featureTitle}>Fast Delivery</h3>
+            <p className={styles.featureDescription}>
+              Quick processing and shipping. Most orders arrive within 2-3 business days.
+            </p>
+          </div>
+          <div className={styles.featureCard}>
+            <div className={styles.featureIcon}>💎</div>
+            <h3 className={styles.featureTitle}>Curated Selection</h3>
+            <p className={styles.featureDescription}>
+              Handpicked books from bestsellers to hidden gems across all genres.
+            </p>
+          </div>
+          <div className={styles.featureCard}>
+            <div className={styles.featureIcon}>🔄</div>
+            <h3 className={styles.featureTitle}>Easy Returns</h3>
+            <p className={styles.featureDescription}>
+              Not satisfied? Return any book within 30 days for a full refund.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action Section */}
+      <section className={styles.ctaSection}>
+        <div className={styles.ctaContent}>
+          <h2 className={styles.ctaTitle}>Ready to Start Reading?</h2>
+          <p className={styles.ctaSubtitle}>
+            Join thousands of readers who have found their next favorite book with us.
+          </p>
+          <button className={styles.ctaButton} onClick={handleExploreBooks}>
+            <TrendingUp size={20} />
+            Start Browsing Now
+            <ArrowRight size={20} />
+          </button>
+        </div>
+      </section>
     </div>
   );
 };

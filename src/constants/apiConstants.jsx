@@ -11,7 +11,5 @@ export const LOGIN_URL = `${API_BASE_URL}/auth/login`;
 export const REGISTER_URL = `${API_BASE_URL}/auth/register`;
 
 //Landing
-export const LANDING_STATS_URL = `${API_BASE_PUBLIC_URL}/landing/stats`;
-export const LANDING_COURSES_URL = `${API_BASE_PUBLIC_URL}/landing/courseList`;
-export const LANDING_FAQ_URL = `${API_BASE_PUBLIC_URL}/landing/FaqQuestions`;
-export const LANDING_COMBOPACK_URL = `${API_BASE_PUBLIC_URL}/landing/courseComboList`;
+export const BOOK_FETCH_URL = `${API_BASE_URL}/landing/bookList`;
+export const CATRGORY_FETCH_URL = `${API_BASE_URL}/landing/categories`;

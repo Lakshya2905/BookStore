@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { postApiWithAuth } from '../../constants/PostMethod';
 import { REGISTER_URL } from '../../constants/apiConstants';
 import styles from './SignupModal.module.css';
 
 const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
-  
   const [formError, setFormError] = useState({});
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-
   const [formData, setFormData] = useState({
     fullName: '',
     emailId: '',
@@ -17,7 +13,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     mobileNo: ''
   });
 
-  // Reset form when modal is closed
+  // Reset form on close
   const resetForm = () => {
     setFormData({
       fullName: '',
@@ -27,150 +23,118 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     });
     setFormError({});
     setSuccessMessage("");
-    setShowSuccessModal(false);
     setLoadingSubmit(false);
   };
 
-  // Handle modal close with form reset
   const handleClose = () => {
     resetForm();
     onClose();
   };
 
-  // Auto-close modal after 3 seconds when success message is shown
+  // Auto close modal 3 seconds after success
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
         handleClose();
       }, 3000);
-
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-
-    validateField(name, value);
-  };
-
-  const validateField = (name, value) => {
-    let errorMessage = "";
-
-    if (name === "emailId") {
-      if (!validateEmail(value)) {
-        errorMessage = "Email must be in the format: example@gmail.com";
-      }
-    } else if (name === "password") {
-      if (!validatePassword(value)) {
-        errorMessage = "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.";
-      }
-    } else if (name === "fullName") {
-      if (!validateName(value)) {
-        errorMessage = "Name must start with a capital letter.";
-      }
-    } else if (name === "mobileNo") {
-      if (!validatePhoneNumber(value)) {
-        errorMessage = "Phone Number must be exactly 10 digits.";
-      }
-    }
-
-    setFormError((prevErrors) => ({
-      ...prevErrors,
-      [name]: errorMessage,
-    }));
-  };
-
-  const validateEmail = (emailId) => {
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; 
-    return emailPattern.test(emailId);
+  const validateEmail = (email) => {
+    const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return pattern.test(email);
   };
 
   const validatePassword = (password) => {
-    const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*])[\w!@#$%^&*]{8,}$/;
-    return passwordPattern.test(password);
+    const pattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[\w!@#$%^&*]{8,}$/;
+    return pattern.test(password);
   };
 
   const validateName = (name) => {
-    return name.charAt(0) === name.charAt(0).toUpperCase();
+    return name && name[0] === name[0].toUpperCase();
   };
 
-  const validatePhoneNumber = (mobileNo) => {
-    const phonePattern = /^\d{10}$/; // 10 digits
-    return phonePattern.test(mobileNo);
+  const validatePhoneNumber = (phone) => {
+    const pattern = /^\d{10}$/;
+    return pattern.test(phone);
+  };
+
+  const validateField = (name, value) => {
+    let error = "";
+    switch (name) {
+      case "fullName":
+        if (!validateName(value)) error = "Name must start with a capital letter.";
+        break;
+      case "emailId":
+        if (!validateEmail(value)) error = "Email must be in the format: example@gmail.com";
+        break;
+      case "password":
+        if (!validatePassword(value)) error = "Password must be at least 8 characters with uppercase, lowercase, number, and special char.";
+        break;
+      case "mobileNo":
+        if (!validatePhoneNumber(value)) error = "Phone Number must be exactly 10 digits.";
+        break;
+      default:
+        break;
+    }
+    setFormError(prev => ({ ...prev, [name]: error }));
+    return error === "";
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Validate on change
+    if (formError[name]) validateField(name, value);
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    let isValid = true;
+    for (const [key, value] of Object.entries(formData)) {
+      if (!value) {
+        errors[key] = "This field is required.";
+        isValid = false;
+      } else if (!validateField(key, value)) {
+        isValid = false;
+      }
+    }
+    setFormError(errors);
+    return isValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoadingSubmit(true);
     setSuccessMessage("");
+    setFormError({});
 
-    const errors = {};
-    
-    // Validate all fields
-    Object.keys(formData).forEach((key) => {
-      if (!formData[key]) {
-        errors[key] = "This field is required.";
-      } else {
-        validateField(key, formData[key]);
-      }
-    });
-
-    // Check if there are any current validation errors
-    const currentErrors = { ...formError };
-    delete currentErrors.general; // Remove general errors
-    
-    // Check if form has errors (either from existing formError or new errors)
-    if (Object.values(currentErrors).some(error => error !== "") || Object.keys(errors).length > 0) {
-      setFormError(prev => ({ ...prev, ...errors }));
+    if (!validateForm()) {
       setLoadingSubmit(false);
       return;
     }
 
     try {
-      // Prepare user data matching backend User model
-      const userData = {
-        fullName: formData.fullName,
-        emailId: formData.emailId, // Map emailId to email for backend
-        password: formData.password,
-        mobileNo: formData.mobileNo
-      };
+      const response = await fetch(REGISTER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
 
-      console.log(REGISTER_URL)
-
-      // Call the register API
-      const response = await postApiWithAuth(REGISTER_URL, userData);
-      
-      // Handle successful registration
-      if (response.data) {
+      if (!response.ok) {
+        // Try to parse error message from server response
+        const errorData = await response.json().catch(() => null);
+        const errMsg = errorData?.message || errorData?.error || "Registration failed. Please try again.";
+        setFormError({ general: errMsg });
+      } else {
         setSuccessMessage("User registered successfully! Please contact admin for account activation.");
-        setShowSuccessModal(true);
-        setFormData({
-          fullName: "",
-          emailId: "",
-          password: "",
-          mobileNo: "", 
-        });
-        // Clear errors after successful submission
-        setFormError({});
+        resetForm();
       }
-    } catch (err) {
-      // Handle API errors
-      let errorMessage = "Registration failed. Please try again.";
-      
-      if (typeof err === 'string') {
-        errorMessage = err;
-      } else if (err.message) {
-        errorMessage = err.message;
-      } else if (err.error) {
-        errorMessage = err.error;
-      }
-      
-      setFormError({ general: errorMessage });
+    } catch (error) {
+      setFormError({ general: "Network error. Please try again later." });
     } finally {
       setLoadingSubmit(false);
     }
@@ -181,10 +145,10 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   return (
     <div className={styles.overlay}>
       <div className={`${styles.modal} ${Object.keys(formError).length > 0 ? styles.modalWithErrors : ''}`}>
-        <button className={styles.closeButton} onClick={handleClose}>
+        <button className={styles.closeButton} onClick={handleClose} aria-label="Close modal">
           ×
         </button>
-        
+
         <div className={styles.header}>
           <div className={styles.logo}>
             <span className={styles.logoIcon}>🎓</span>
@@ -192,17 +156,10 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
           </div>
         </div>
 
-        {/* Success Message */}
-        {successMessage && (
-          <div className={styles.successMessage}>{successMessage}</div>
-        )}
+        {successMessage && <div className={styles.successMessage} role="alert">{successMessage}</div>}
+        {formError.general && <div className={styles.errorMessage} role="alert">{formError.general}</div>}
 
-        {/* General Error Message */}
-        {formError.general && (
-          <div className={styles.errorMessage}>{formError.general}</div>
-        )}
-
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit} className={styles.form} noValidate>
           <div className={styles.inputGroup}>
             <span className={styles.inputIcon}>👤</span>
             <input
@@ -213,10 +170,10 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
               onChange={handleChange}
               className={`${styles.input} ${formError.fullName ? styles.inputError : ''}`}
               required
+              aria-invalid={!!formError.fullName}
+              aria-describedby={formError.fullName ? "fullname-error" : undefined}
             />
-            {formError.fullName && (
-              <div className={styles.fieldErrorMessage}>{formError.fullName}</div>
-            )}
+            {formError.fullName && <div id="fullname-error" className={styles.fieldErrorMessage} role="alert">{formError.fullName}</div>}
           </div>
 
           <div className={styles.inputGroup}>
@@ -229,10 +186,10 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
               onChange={handleChange}
               className={`${styles.input} ${formError.emailId ? styles.inputError : ''}`}
               required
+              aria-invalid={!!formError.emailId}
+              aria-describedby={formError.emailId ? "email-error" : undefined}
             />
-            {formError.emailId && (
-              <div className={styles.fieldErrorMessage}>{formError.emailId}</div>
-            )}
+            {formError.emailId && <div id="email-error" className={styles.fieldErrorMessage} role="alert">{formError.emailId}</div>}
           </div>
 
           <div className={styles.inputGroup}>
@@ -244,12 +201,11 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
               value={formData.password}
               onChange={handleChange}
               className={`${styles.input} ${formError.password ? styles.inputError : ''}`}
-              minLength="6"
               required
+              aria-invalid={!!formError.password}
+              aria-describedby={formError.password ? "password-error" : undefined}
             />
-            {formError.password && (
-              <div className={styles.fieldErrorMessage}>{formError.password}</div>
-            )}
+            {formError.password && <div id="password-error" className={styles.fieldErrorMessage} role="alert">{formError.password}</div>}
           </div>
 
           <div className={styles.inputGroup}>
@@ -262,16 +218,17 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
               onChange={handleChange}
               className={`${styles.input} ${formError.mobileNo ? styles.inputError : ''}`}
               required
+              aria-invalid={!!formError.mobileNo}
+              aria-describedby={formError.mobileNo ? "phone-error" : undefined}
             />
-            {formError.mobileNo && (
-              <div className={styles.fieldErrorMessage}>{formError.mobileNo}</div>
-            )}
+            {formError.mobileNo && <div id="phone-error" className={styles.fieldErrorMessage} role="alert">{formError.mobileNo}</div>}
           </div>
 
           <button
             type="submit"
             disabled={loadingSubmit}
-            className={styles.submitButton} 
+            className={styles.submitButton}
+            aria-busy={loadingSubmit}
           >
             {loadingSubmit ? "Loading..." : "Register"}
           </button>
@@ -280,9 +237,10 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
         <div className={styles.footer}>
           <span className={styles.switchText}>
             Already have an Account?
-            <button 
+            <button
               className={styles.switchButton}
               onClick={onSwitchToLogin}
+              type="button"
             >
               Login
             </button>

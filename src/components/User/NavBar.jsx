@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, Heart, ShoppingCart, User, Menu, X } from "lucide-react";
 import styles from "./NavBar.module.css";
 
-const NavBar = ({ onSignIn, onSignUp, onCartClick }) => {
+const NavBar = ({ onSignIn, onSignUp, onCartClick, onSearch }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   const getUserData = () => {
     try {
@@ -21,42 +24,38 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick }) => {
   const handleSignOut = () => {
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("token");
+    sessionStorage.removeItem("role");
+    navigate("/landing");
     window.location.reload();
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to books page with search query
+      navigate(`/books?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit(e);
+    }
   };
 
   return (
     <header className={styles.header}>
-      <div className={styles.topBar}>
-        <div className={styles.topBarContent}>
-          <span>📦 Free shipping on orders over $35</span>
-          <span>📞 Customer Service: 1-800-BOOKS</span>
-          <div className={styles.authLinks}>
-            {user ? (
-              <div className={styles.signedIn}>
-                <span>Welcome, {user.name || user.email}!</span>
-                <button className={styles.signOutBtn} onClick={handleSignOut}>
-                  Sign Out
-                </button>
-              </div>
-            ) : (
-              <div className={styles.authLinks}>
-                <span className={styles.authLink} onClick={onSignIn}>
-                  Sign In
-                </span>
-                <span className={styles.authLink} onClick={onSignUp}>
-                  Create Account
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
+      {/* Main Header */}
       <div className={styles.mainHeader}>
         <div className={styles.headerContent}>
-          <div className={styles.logo}>
+          <div className={styles.logo} onClick={() => navigate('/landing')}>
             <span className={styles.logoIcon}>📚</span>
-            <h1>BookHaven</h1>
+            <h5>Shah Cart</h5>
           </div>
 
           <div className={styles.searchBar}>
@@ -64,8 +63,15 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick }) => {
               type="text"
               placeholder="Search books, authors, genres..."
               className={styles.searchInput}
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              onKeyPress={handleKeyPress}
             />
-            <button className={styles.searchButton}>
+            <button 
+              className={styles.searchButton}
+              onClick={handleSearchSubmit}
+              type="submit"
+            >
               <Search size={20} />
               Search
             </button>
@@ -81,7 +87,12 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick }) => {
             {user ? (
               <div className={styles.userInfo}>
                 <User size={20} />
-                <span>{user.name || user.email || "User"}</span>
+                <span>{user.fullName || user.name || user.email || "User"}</span>
+
+                <button className={styles.signOutBtn} onClick={handleSignOut}>
+                  Sign Out
+                </button>
+
               </div>
             ) : (
               <div className={styles.signInButtons}>
@@ -104,28 +115,77 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick }) => {
         </div>
       </div>
 
+      {/* Navigation */}
       <nav className={styles.navigation}>
         <div className={styles.navContent}>
-          <a href="#" className={styles.navLink}>
+          <Link to="/landing" className={styles.navLink}>
             Home
-          </a>
-          <a href="#" className={styles.navLink}>
+          </Link>
+          <Link to="/books" className={styles.navLink}>
+            All Books
+          </Link>
+          <Link to="/books?category=NEW_RELEASE" className={styles.navLink}>
             New Releases
-          </a>
-          <a href="#" className={styles.navLink}>
+          </Link>
+          <Link to="/books?category=BESTSELLER" className={styles.navLink}>
             Best Sellers
-          </a>
-          <a href="#" className={styles.navLink}>
+          </Link>
+          <a href="#categories" className={styles.navLink}>
             Categories
           </a>
-          <a href="#" className={styles.navLink}>
+          <a href="#authors" className={styles.navLink}>
             Authors
           </a>
-          <a href="#" className={styles.navLink}>
+          <Link to="/books?category=SALE" className={styles.navLink}>
             Sale
-          </a>
+          </Link>
         </div>
       </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className={styles.mobileMenu}>
+          <Link to="/landing" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            Home
+          </Link>
+          <Link to="/books" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            All Books
+          </Link>
+          <Link to="/books?category=NEW_RELEASE" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            New Releases
+          </Link>
+          <Link to="/books?category=BESTSELLER" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            Best Sellers
+          </Link>
+          <a href="#categories" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            Categories
+          </a>
+          <a href="#authors" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            Authors
+          </a>
+          <Link to="/books?category=SALE" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            Sale
+          </Link>
+          
+          {/* Mobile Search */}
+          <div className={styles.mobileSearchBar}>
+            <input
+              type="text"
+              placeholder="Search books..."
+              className={styles.mobileSearchInput}
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              onKeyPress={handleKeyPress}
+            />
+            <button 
+              className={styles.mobileSearchButton}
+              onClick={handleSearchSubmit}
+            >
+              <Search size={18} />
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
