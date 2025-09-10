@@ -7,10 +7,11 @@ const BookViewCard = ({ books, loading, error, showPagination = true }) => {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search');
   const categoryFilter = searchParams.get('category');
+  const tagFilter = searchParams.get('tag');
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 12;
   
-  // Filter books based on search query and category
+  // Filter books based on search query and category/tag (only one filter at a time)
   const filteredBooks = React.useMemo(() => {
     let filtered = books || [];
     
@@ -26,16 +27,22 @@ const BookViewCard = ({ books, loading, error, showPagination = true }) => {
       );
     }
     
-    // Apply category filter
-    if (categoryFilter) {
+    // Apply category filter (from categories fetched separately)
+    if (categoryFilter && categoryFilter !== 'ALL') {
       filtered = filtered.filter(book => 
-        book.category === categoryFilter ||
-        book.bookTags?.includes(categoryFilter)
+        book.category === categoryFilter
+      );
+    }
+    
+    // Apply tag filter (NEW_RELEASE, BESTSELLER, TOP_RATED, SALE)
+    if (tagFilter && tagFilter !== 'ALL') {
+      filtered = filtered.filter(book => 
+        book.bookTags?.includes(tagFilter)
       );
     }
     
     return filtered;
-  }, [books, searchQuery, categoryFilter]);
+  }, [books, searchQuery, categoryFilter, tagFilter]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
@@ -45,23 +52,29 @@ const BookViewCard = ({ books, loading, error, showPagination = true }) => {
 
   // Display search results info
   const getResultsText = () => {
-    if (searchQuery && categoryFilter) {
-      return `Showing ${filteredBooks.length} results for "${searchQuery}" in ${categoryFilter}`;
-    } else if (searchQuery) {
-      return `Showing ${filteredBooks.length} results for "${searchQuery}"`;
-    } else if (categoryFilter) {
+    if (searchQuery) {
+      let baseText = `Showing ${filteredBooks.length} results for "${searchQuery}"`;
+      if (categoryFilter && categoryFilter !== 'ALL') {
+        baseText += ` in ${categoryFilter}`;
+      } else if (tagFilter && tagFilter !== 'ALL') {
+        baseText += ` in ${getTagText(tagFilter)}`;
+      }
+      return baseText;
+    } else if (categoryFilter && categoryFilter !== 'ALL') {
       return `Showing ${filteredBooks.length} books in ${categoryFilter}`;
+    } else if (tagFilter && tagFilter !== 'ALL') {
+      return `Showing ${filteredBooks.length} ${getTagText(tagFilter)} books`;
     } else {
-      return `Showing ${filteredBooks.length} books`;
+      return `Showing all ${filteredBooks.length} books`;
     }
   };
 
   const getTagText = (tag) => {
     const tagTexts = {
       BESTSELLER: 'Bestseller',
-      NEW_RELEASE: 'New',
+      NEW_RELEASE: 'New Release',
       TOP_RATED: 'Top Rated',
-      SALE: 'Sale'
+      SALE: 'On Sale'
     };
     return tagTexts[tag] || tag;
   };
@@ -185,7 +198,7 @@ const BookViewCard = ({ books, loading, error, showPagination = true }) => {
 
   return (
     <div className={styles.bookViewContainer}>
-      {(searchQuery || categoryFilter) && (
+      {(searchQuery || categoryFilter || tagFilter) && (
         <div className={styles.searchInfo}>
           <h3>{getResultsText()}</h3>
           {filteredBooks.length === 0 && (
