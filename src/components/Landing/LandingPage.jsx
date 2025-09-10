@@ -23,6 +23,15 @@ const LandingPage = () => {
 
   const navigate = useNavigate();
   
+  // Available tags for filtering
+  const bookTags = [
+    { key: 'ALL', label: 'All Books' },
+    { key: 'NEW_RELEASE', label: 'New Release' },
+    { key: 'BESTSELLER', label: 'Bestseller' },
+    { key: 'TOP_RATED', label: 'Top Rated' },
+    { key: 'SALE', label: 'On Sale' }
+  ];
+  
   useEffect(() => {
     fetchData();
     fetchStats();
@@ -99,12 +108,20 @@ const LandingPage = () => {
     navigate(`/books?category=${encodeURIComponent(category)}`);
   };
 
+  const handleTagClick = (tag) => {
+    if (tag === 'ALL') {
+      navigate('/books');
+    } else {
+      navigate(`/books?tag=${encodeURIComponent(tag)}`);
+    }
+  };
+
   const getTagText = (tag) => {
     const tagTexts = {
       BESTSELLER: 'Bestseller',
-      NEW_RELEASE: 'New',
+      NEW_RELEASE: 'New Release',
       TOP_RATED: 'Top Rated',
-      SALE: 'Sale'
+      SALE: 'On Sale'
     };
     return tagTexts[tag] || tag;
   };
@@ -201,6 +218,25 @@ const LandingPage = () => {
             <div className={styles.statNumber}>{stats.averageRating}</div>
             <div className={styles.statLabel}>Avg Rating</div>
           </div>
+        </div>
+      </section>
+
+      {/* Tags Filter Section */}
+      <section className={styles.tagsSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Browse by Tags</h2>
+          <p className={styles.sectionSubtitle}>Filter books by popular tags</p>
+        </div>
+        <div className={styles.tagsContainer}>
+          {bookTags.map((tag) => (
+            <button
+              key={tag.key}
+              className={styles.tagButton}
+              onClick={() => handleTagClick(tag.key)}
+            >
+              {tag.label}
+            </button>
+          ))}
         </div>
       </section>
 
@@ -308,7 +344,7 @@ const LandingPage = () => {
             </p>
           </div>
           <div className={styles.featureCard}>
-            <div className={styles.featureIcon}>🔄</div>
+            <div className={styles.featureIcon">🔄</div>
             <h3 className={styles.featureTitle}>Easy Returns</h3>
             <p className={styles.featureDescription}>
               Not satisfied? Return any book within 30 days for a full refund.
