@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate,useLocation } from "react-router-dom";
 import { Search, Heart, ShoppingCart, User, Menu, X } from "lucide-react";
 import styles from "./NavBar.module.css";
 
 const NavBar = ({ onSignIn, onSignUp, onCartClick, onSearch }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const location = useLocation();
   const navigate = useNavigate();
 
   const getUserData = () => {
@@ -36,6 +37,21 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick, onSearch }) => {
       navigate(`/books?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
+
+  const handleCategoriesClick = () => {
+  if (location.pathname !== "/landing") {
+    navigate("/landing");
+    setTimeout(() => {
+      window.location.hash = "#categories";
+      // Or, use scroll logic if needed:
+      // document.getElementById("categories")?.scrollIntoView({ behavior: "smooth" });
+    }, 200); // adjust delay if needed
+  } else {
+    window.location.hash = "#categories";
+    // Or scroll directly
+    // document.getElementById("categories")?.scrollIntoView({ behavior: "smooth" });
+  }
+};
 
   const handleSearchInputChange = (e) => {
     setSearchQuery(e.target.value);
@@ -133,9 +149,8 @@ const NavBar = ({ onSignIn, onSignUp, onCartClick, onSearch }) => {
           <Link to="/books?tag=TOP_RATED" className={styles.navLink}>
             Top Rated
           </Link>
-          <a href="#categories" className={styles.navLink}>
-            Categories
-          </a>
+       <button className={styles.navLink} onClick={handleCategoriesClick}> Categories </button>
+
           <a href="#authors" className={styles.navLink}>
             Authors
           </a>
