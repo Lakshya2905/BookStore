@@ -56,6 +56,7 @@ const LandingPage = () => {
       if (bookResponse.data.status === "SUCCESS") {
         const books = bookResponse.data.payload || [];
         setAllBooks(books);
+        sessionStorage.setItem("allBooks", JSON.stringify(books));
 
         // Featured books (top 6 with specific tags)
         const featured = books
