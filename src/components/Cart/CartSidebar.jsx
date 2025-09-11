@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import axios from 'axios';
 import styles from './CartSidebar.module.css';
-import { CART_VIEW_URL } from '../../constants/apiConstants';
+import { CART_VIEW_URL,CART_ITEM_QUANTITY_URL } from '../../constants/apiConstants';
 
 const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
   const [cartData, setCartData] = useState(null);
@@ -57,7 +57,7 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
 
   // Update item quantity
   const updateQuantity = async (bookCartId, newQuantity) => {
-    if (newQuantity < 1) return;
+    if (newQuantity <= 1) return;
     
     const { user, token } = getUserData();
     if (!user || !token) return;
@@ -65,14 +65,14 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
     setUpdatingItems(prev => new Set(prev).add(bookCartId));
 
     try {
-      const response = await axios.post('/api/cart/update', {
+      const response = await axios.post(`${CART_ITEM_QUANTITY_URL}`, {
         user: user,
         token: token,
         bookCartId: bookCartId,
         quantity: newQuantity
       });
 
-      if (response.data.statusResponse === 'SUCCESS') {
+      if (response.data.status === 'SUCCESS') {
         // Refresh cart data
         await fetchCartData();
       } else {
@@ -208,7 +208,7 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
                             disabled={item.quantity <= 1 || updatingItems.has(item.bookCartId)}
                             title="Decrease quantity"
                           >
-                            <Minus size={14} />
+                            -
                           </button>
                           <span className={styles.quantity}>{item.quantity}</span>
                           <button
@@ -217,7 +217,7 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
                             disabled={updatingItems.has(item.bookCartId)}
                             title="Increase quantity"
                           >
-                            <Plus size={14} />
+                          +
                           </button>
                         </div>
                       </div>
