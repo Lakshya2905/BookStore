@@ -29,14 +29,67 @@
   font-weight: 400;
 }
 
-/* Grid System */
-.booksGrid {
+/* Scroll Container */
+.scrollContainer {
+  position: relative;
   max-width: 1200px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  padding: 0 60px; /* Space for scroll buttons */
+}
+
+/* Scroll Buttons */
+.scrollButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  background: #ffffff;
+  color: #475569;
+  border: 2px solid #e2e8f0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.scrollButton:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.scrollButton:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.scrollLeft {
+  left: 0;
+}
+
+.scrollRight {
+  right: 0;
+}
+
+/* Grid System - Now Horizontal Scrolling */
+.booksGrid {
+  display: flex;
   gap: 24px;
-  padding: 0 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  padding: 20px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.booksGrid::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Card Styles */
@@ -48,6 +101,8 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #e2e8f0;
   height: fit-content;
+  flex: 0 0 280px; /* Fixed width, no shrinking */
+  max-width: 280px;
 }
 
 .bookCard:hover {
@@ -481,18 +536,48 @@
   background: #f8fafc;
 }
 
+/* Page Number Specific Styling */
+.pageNumber {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.pageNumber:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pageNumber.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
 /* Mobile Responsive Design */
 @media (max-width: 1200px) {
-  .booksGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+  .scrollContainer {
+    padding: 0 50px;
+  }
+  
+  .bookCard {
+    flex: 0 0 260px;
+    max-width: 260px;
   }
 }
 
 @media (max-width: 900px) {
-  .booksGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+  .scrollContainer {
+    padding: 0 40px;
+  }
+  
+  .bookCard {
+    flex: 0 0 240px;
+    max-width: 240px;
   }
   
   .title {
@@ -502,13 +587,21 @@
   .container {
     padding: 30px 15px;
   }
+  
+  .scrollButton {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 @media (max-width: 600px) {
-  .booksGrid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 0 15px;
+  .scrollContainer {
+    padding: 0 30px;
+  }
+  
+  .bookCard {
+    flex: 0 0 220px;
+    max-width: 220px;
   }
   
   .title {
@@ -517,11 +610,6 @@
   
   .subtitle {
     font-size: 1rem;
-  }
-  
-  .bookCard {
-    max-width: 400px;
-    margin: 0 auto;
   }
   
   .bookImageContainer {
@@ -545,11 +633,30 @@
     padding: 6px 10px;
     font-size: 0.8rem;
   }
+  
+  .pageNumber {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .scrollButton {
+    width: 36px;
+    height: 36px;
+  }
 }
 
 @media (max-width: 480px) {
   .container {
     padding: 20px 10px;
+  }
+  
+  .scrollContainer {
+    padding: 0 25px;
+  }
+  
+  .bookCard {
+    flex: 0 0 200px;
+    max-width: 200px;
   }
   
   .header {
@@ -575,6 +682,11 @@
   .bookDescription {
     font-size: 0.75rem;
   }
+  
+  .scrollButton {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 /* Print Styles */
@@ -592,7 +704,20 @@
   .pagination,
   .bookActions,
   .infoButton,
-  .tooltip {
+  .tooltip,
+  .scrollButton {
     display: none;
+  }
+  
+  .booksGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    overflow: visible;
+  }
+  
+  .bookCard {
+    flex: none;
+    max-width: none;
   }
 }

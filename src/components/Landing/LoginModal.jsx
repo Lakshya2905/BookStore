@@ -138,8 +138,8 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup }) => {
         
         <div className={styles.header}>
           <div className={styles.logo}>
-            <span className={styles.logoIcon}>🎓</span>
-            <span className={styles.logoText}>CodeGram</span>
+            <span className={styles.logoIcon}>📚</span>
+            <span className={styles.logoText}>ShahKart</span>
           </div>
         </div>
 
@@ -207,7 +207,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup }) => {
 
         <div className={styles.footer}>
           <span className={styles.switchText}>
-            New to CodeGram?
+            New to ShahKart?
             <button 
               type="button"
               className={styles.switchButton}

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Star, BookOpen, Users, Award, TrendingUp } from 'lucide-react';
+import { ArrowRight, BookOpen, Users, Award, TrendingUp, Star } from 'lucide-react';
 import axios from 'axios';
 import CategoriesView from '../Books/CategoriesView';
 import BookViewCard from '../Books/BookViewCard';
+import FeaturedBooksSection from '../Books/FeaturedBooksSection'; // Import the new component
 import styles from './LandingPage.module.css';
 import { BOOK_FETCH_URL, CATRGORY_FETCH_URL } from '../../constants/apiConstants';
 
@@ -22,15 +23,6 @@ const LandingPage = () => {
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
-  
-  // Available tags for filtering
-  const bookTags = [
-    { key: 'ALL', label: 'All Books' },
-    { key: 'NEW_RELEASE', label: 'New Release' },
-    { key: 'BESTSELLER', label: 'Bestseller' },
-    { key: 'TOP_RATED', label: 'Top Rated' },
-    { key: 'SALE', label: 'On Sale' }
-  ];
   
   useEffect(() => {
     fetchData();
@@ -58,14 +50,9 @@ const LandingPage = () => {
         setAllBooks(books);
         sessionStorage.setItem("allBooks", JSON.stringify(books));
 
-        // Featured books (top 6 with specific tags)
-        const featured = books
-          .filter(book =>
-            book.bookTags?.includes("BESTSELLER") ||
-            book.bookTags?.includes("TOP_RATED") ||
-            book.bookTags?.includes("NEW_RELEASE")
-          )
-          .slice(0, 6);
+        // Featured books - get first 6 books for featured section
+        // You can modify this logic to filter by specific criteria if needed
+        const featured = books.slice(0, 6);
         setFeaturedBooks(featured);
 
         // Preview books for "All Books" section (first 8 books)
@@ -108,53 +95,6 @@ const LandingPage = () => {
   const handleCategoryClick = (category) => {
     navigate(`/books?category=${encodeURIComponent(category)}`);
   };
-
-  const handleTagClick = (tag) => {
-    if (tag === 'ALL') {
-      navigate('/books');
-    } else {
-      navigate(`/books?tag=${encodeURIComponent(tag)}`);
-    }
-  };
-
-  const getTagText = (tag) => {
-    const tagTexts = {
-      BESTSELLER: 'Bestseller',
-      NEW_RELEASE: 'New Release',
-      TOP_RATED: 'Top Rated',
-      SALE: 'On Sale'
-    };
-    return tagTexts[tag] || tag;
-  };
-
-  const FeaturedBookCard = ({ book }) => (
-    <div className={styles.featuredBookCard}>
-      <div className={styles.bookCover}>
-        <span className={styles.bookEmoji}>📚</span>
-        {book.bookTags && book.bookTags.map((tag, index) => (
-          <span 
-            key={`${tag}-${index}`} 
-            className={styles.bookTag}
-            style={{ top: `${8 + (index * 25)}px` }}
-          >
-            {getTagText(tag)}
-          </span>
-        ))}
-      </div>
-      <div className={styles.bookInfo}>
-        <h3 className={styles.bookTitle}>{book.bookName}</h3>
-        <p className={styles.bookAuthor}>by {book.authorName}</p>
-        <div className={styles.bookRating}>
-          <Star size={16} fill="#fbbf24" color="#fbbf24" />
-          <span>4.5</span>
-        </div>
-        <div className={styles.bookFooter}>
-          <span className={styles.bookPrice}>${book.price}</span>
-          <span className={styles.bookCategory}>{book.category}</span>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className={styles.landingPage}>
@@ -222,48 +162,13 @@ const LandingPage = () => {
         </div>
       </section>
 
-
-      {/* Featured Books Section */}
-      <section className={styles.featuredSection}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Featured This Week</h2>
-          <p className={styles.sectionSubtitle}>Handpicked selections from our editorial team</p>
-        </div>
-        
-        {loading ? (
-          <div className={styles.loading}>
-            <div className={styles.spinner}></div>
-            <p>Loading featured books...</p>
-          </div>
-        ) : error ? (
-          <div className={styles.error}>
-            <p>{error}</p>
-            <button onClick={fetchData} className={styles.retryButton}>
-              Try Again
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className={styles.featuredBooks}>
-              {featuredBooks.map((book) => (
-                <FeaturedBookCard key={book.bookId} book={book} />
-              ))}
-            </div>
-            {featuredBooks.length === 0 && (
-              <div className={styles.noBooks}>
-                <p>No featured books available at the moment.</p>
-              </div>
-            )}
-          </>
-        )}
-        
-        <div className={styles.sectionFooter}>
-          <button className={styles.viewAllButton} onClick={handleExploreBooks}>
-            View All Books
-            <ArrowRight size={18} />
-          </button>
-        </div>
-      </section>
+      {/* Featured Books Section - Now using separate component */}
+      <FeaturedBooksSection 
+        books={featuredBooks}
+        loading={loading}
+        error={error}
+        onViewAllClick={handleExploreBooks}
+      />
 
       {/* Categories Section */}
       <section id="categories" className={styles.categoriesSection}>
@@ -279,7 +184,7 @@ const LandingPage = () => {
       </section>
 
       {/* Books Preview Section (Only show first 8 books) */}
-      <section className={styles.featuredSection}>
+      <section className={styles.booksPreviewSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Popular Books</h2>
           <p className={styles.sectionSubtitle}>Browse some of our most popular titles</p>

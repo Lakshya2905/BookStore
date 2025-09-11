@@ -151,8 +151,8 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
 
         <div className={styles.header}>
           <div className={styles.logo}>
-            <span className={styles.logoIcon}>🎓</span>
-            <span className={styles.logoText}>CodeGram</span>
+            <span className={styles.logoIcon}>📚</span>
+            <span className={styles.logoText}>ShahKart</span>
           </div>
         </div>
 
