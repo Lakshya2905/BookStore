@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { REGISTER_URL } from '../../constants/apiConstants';
 import styles from './SignupModal.module.css';
 
@@ -7,7 +8,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
-    fullName: '',
+    name: '', // Changed from fullName to match backend User model
     emailId: '',
     password: '',
     mobileNo: ''
@@ -16,7 +17,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   // Reset form on close
   const resetForm = () => {
     setFormData({
-      fullName: '',
+      name: '',
       emailId: '',
       password: '',
       mobileNo: ''
@@ -63,7 +64,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   const validateField = (name, value) => {
     let error = "";
     switch (name) {
-      case "fullName":
+      case "name": // Changed from fullName to name
         if (!validateName(value)) error = "Name must start with a capital letter.";
         break;
       case "emailId":
@@ -116,25 +117,33 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     }
 
     try {
-      const response = await fetch(REGISTER_URL, {
-        method: 'POST',
+      const response = await axios.post(REGISTER_URL, formData, {
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
+        }
       });
 
-      if (!response.ok) {
-        // Try to parse error message from server response
-        const errorData = await response.json().catch(() => null);
-        const errMsg = errorData?.message || errorData?.error || "Registration failed. Please try again.";
-        setFormError({ general: errMsg });
-      } else {
+      // Check if response indicates success
+      if (response.data) {
         setSuccessMessage("User registered successfully! Please contact admin for account activation.");
         resetForm();
+      } else {
+        setFormError({ general: "Registration failed. Please try again." });
       }
     } catch (error) {
-      setFormError({ general: "Network error. Please try again later." });
+      // Handle different types of errors
+      if (error.response) {
+        // Server responded with error status
+        const errorData = error.response.data;
+        const errMsg = errorData?.message || errorData?.error || `Registration failed: ${error.response.status}`;
+        setFormError({ general: errMsg });
+      } else if (error.request) {
+        // Network error
+        setFormError({ general: "Network error. Please check your connection and try again." });
+      } else {
+        // Other error
+        setFormError({ general: "An unexpected error occurred. Please try again." });
+      }
     } finally {
       setLoadingSubmit(false);
     }
@@ -164,16 +173,16 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
             <span className={styles.inputIcon}>👤</span>
             <input
               type="text"
-              name="fullName"
+              name="name" // Changed from fullName to name
               placeholder="Full Name"
-              value={formData.fullName}
+              value={formData.name}
               onChange={handleChange}
-              className={`${styles.input} ${formError.fullName ? styles.inputError : ''}`}
+              className={`${styles.input} ${formError.name ? styles.inputError : ''}`}
               required
-              aria-invalid={!!formError.fullName}
-              aria-describedby={formError.fullName ? "fullname-error" : undefined}
+              aria-invalid={!!formError.name}
+              aria-describedby={formError.name ? "name-error" : undefined}
             />
-            {formError.fullName && <div id="fullname-error" className={styles.fieldErrorMessage} role="alert">{formError.fullName}</div>}
+            {formError.name && <div id="name-error" className={styles.fieldErrorMessage} role="alert">{formError.name}</div>}
           </div>
 
           <div className={styles.inputGroup}>
