@@ -1,57 +1,65 @@
+/* Bootstrap-like grid system */
 .container {
   min-height: 100vh;
-  padding: 80px 20px 60px;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  padding: 40px 20px;
+  background: #f8fafc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 40px;
+  padding: 0 20px;
 }
 
 .title {
-  font-size: 3.5rem;
+  font-size: 2.5rem;
   font-weight: 700;
-  color: white;
-  margin-bottom: 16px;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  color: #1e293b;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  color: #64748b;
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
+  font-weight: 400;
 }
 
+/* Grid System */
 .booksGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 30px;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  padding: 0 20px;
 }
 
+/* Card Styles */
 .bookCard {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
+  background: #ffffff;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #e2e8f0;
+  height: fit-content;
 }
 
 .bookCard:hover {
-  transform: translateY(-10px) rotateY(5deg);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #cbd5e1;
 }
 
 .bookImageContainer {
   position: relative;
-  height: 250px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 200px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,7 +77,7 @@
 }
 
 .bookCard:hover .bookImage {
-  transform: scale(1.1);
+  transform: scale(1.02);
 }
 
 .bookCover {
@@ -82,96 +90,58 @@
 }
 
 .bookPlaceholder {
-  font-size: 4rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 3rem;
+  color: #94a3b8;
   z-index: 1;
 }
 
 .bookTag {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: bold;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   z-index: 2;
-  animation: tagPulse 2s infinite;
-}
-
-@keyframes tagPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  backdrop-filter: blur(10px);
 }
 
 .bestseller {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: rgba(245, 158, 11, 0.9);
   color: white;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
 }
 
 .newrelease {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: rgba(16, 185, 129, 0.9);
   color: white;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
 }
 
 .toprated {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  background: rgba(139, 92, 246, 0.9);
   color: white;
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
 }
 
 .sale {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: rgba(239, 68, 68, 0.9);
   color: white;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
 }
 
 .defaultTag {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-  color: white;
-  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.4);
-}
-
-.favoriteButton {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  z-index: 3;
-}
-
-.favoriteButton:hover {
-  background: rgba(255, 255, 255, 1);
-  transform: scale(1.1);
-}
-
-.favoriteButton.favorited {
-  background: #ef4444;
+  background: rgba(107, 114, 128, 0.9);
   color: white;
 }
 
-/* Info Button Styles */
+/* Info Button */
 .infoButton {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.9);
+  bottom: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 50%;
   display: flex;
@@ -183,8 +153,7 @@
   transition: all 0.3s ease;
   z-index: 10;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(226, 232, 240, 0.5);
 }
 
 .bookCard:hover .infoButton {
@@ -198,14 +167,14 @@
   transform: scale(1.1);
 }
 
-/* Tooltip Styles */
+/* Tooltip */
 .tooltip {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.8));
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
   backdrop-filter: blur(10px);
   opacity: 0;
   visibility: hidden;
@@ -223,7 +192,7 @@
 }
 
 .tooltipContent {
-  padding: 20px;
+  padding: 16px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -232,43 +201,28 @@
 }
 
 .tooltipContent h4 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 6px 0;
   line-height: 1.3;
   color: #fff;
 }
 
 .tooltipAuthor {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.8);
-  margin: 0 0 12px 0;
-  font-weight: 500;
+  margin: 0 0 10px 0;
+  font-weight: 400;
 }
 
 .tooltipDescription {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   line-height: 1.4;
   color: rgba(255, 255, 255, 0.9);
   flex-grow: 1;
   overflow-y: auto;
-  margin-bottom: 16px;
-  max-height: 120px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-}
-
-.tooltipDescription::-webkit-scrollbar {
-  width: 3px;
-}
-
-.tooltipDescription::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.tooltipDescription::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
+  margin-bottom: 12px;
+  max-height: 80px;
 }
 
 .tooltipFooter {
@@ -276,192 +230,192 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   margin-top: auto;
 }
 
 .tooltipPrice {
-  font-size: 1.2rem;
-  font-weight: bold;
-  background: linear-gradient(135deg, #10b981, #059669);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #10b981;
 }
 
 .tooltipCategory {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: #fff;
   background: rgba(255, 255, 255, 0.2);
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 2px 6px;
+  border-radius: 8px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+/* Book Info Section */
 .bookInfo {
-  padding: 24px;
+  padding: 20px;
 }
 
 .bookTitle {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: #1e293b;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: 2.8em;
 }
 
 .bookAuthor {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: #64748b;
-  margin-bottom: 12px;
-  font-weight: 500;
+  margin-bottom: 10px;
+  font-weight: 400;
 }
 
 .bookDescription {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #64748b;
-  line-height: 1.5;
+  line-height: 1.4;
   margin-bottom: 16px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: 3.6em;
 }
 
 .bookFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .bookPrice {
-  font-size: 1.5rem;
-  font-weight: bold;
-  background: linear-gradient(135deg, #059669, #10b981);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #059669;
 }
 
 .bookCategory {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #64748b;
   background: #f1f5f9;
-  padding: 4px 12px;
-  border-radius: 20px;
+  padding: 4px 8px;
+  border-radius: 12px;
   font-weight: 500;
+  text-transform: capitalize;
 }
 
+/* Actions */
 .bookActions {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .quantityControl {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .quantityButton {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border: none;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .quantityButton:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  background: #e2e8f0;
+  border-color: #cbd5e1;
 }
 
 .quantity {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #1e293b;
-  min-width: 40px;
+  min-width: 32px;
   text-align: center;
 }
 
 .actionButtons {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .addToCartButton {
   flex: 1;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  padding: 10px 12px;
+  background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: all 0.3s ease;
+  gap: 6px;
+  transition: all 0.2s ease;
 }
 
 .addToCartButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  background: #2563eb;
+  transform: translateY(-1px);
 }
 
 .checkoutButton {
   flex: 1;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  padding: 10px 12px;
+  background: #059669;
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .checkoutButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+  background: #047857;
+  transform: translateY(-1px);
 }
 
+/* Loading and Error States */
 .loading, .error {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
+  min-height: 60vh;
+  color: #64748b;
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f1f5f9;
+  border-top: 3px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 @keyframes spin {
@@ -471,56 +425,174 @@
 
 .noBooks {
   text-align: center;
-  color: white;
+  color: #64748b;
   padding: 60px 20px;
 }
 
 .noBooks h2 {
-  font-size: 2rem;
-  margin-bottom: 16px;
-  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .noBooks p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   opacity: 0.8;
 }
 
+/* Pagination */
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
-  margin-top: 60px;
-  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 40px;
+  padding: 0 20px;
 }
 
 .pageButton {
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  color: #1e293b;
-  border: none;
-  border-radius: 12px;
+  padding: 8px 12px;
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  min-width: 44px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  font-size: 0.875rem;
 }
 
 .pageButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  background: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 .pageButton.active {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: #3b82f6;
   color: white;
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  border-color: #3b82f6;
 }
 
 .pageButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background: #f8fafc;
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 1200px) {
+  .booksGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 900px) {
+  .booksGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .container {
+    padding: 30px 15px;
+  }
+}
+
+@media (max-width: 600px) {
+  .booksGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 0 15px;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .bookCard {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .bookImageContainer {
+    height: 180px;
+  }
+  
+  .bookInfo {
+    padding: 16px;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+  }
+  
+  .pagination {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .pageButton {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px 10px;
+  }
+  
+  .header {
+    margin-bottom: 30px;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+  }
+  
+  .subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .bookImageContainer {
+    height: 160px;
+  }
+  
+  .bookTitle {
+    font-size: 1rem;
+  }
+  
+  .bookDescription {
+    font-size: 0.75rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .container {
+    background: white;
+  }
+  
+  .bookCard {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .pagination,
+  .bookActions,
+  .infoButton,
+  .tooltip {
+    display: none;
+  }
 }

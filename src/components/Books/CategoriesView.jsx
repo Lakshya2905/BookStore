@@ -20,10 +20,11 @@ const CategoriesView = ({ categories = [], books = [], onCategoryClick }) => {
     return books.filter(book => book.category === category).length;
   };
 
-  if (!categories.length) {
+if (!categories.length) {
     return (
       <div className={styles.noCategories}>
-        <p>No categories available.</p>
+        <h2>No Categories Available</h2>
+        <p>Check back later for book categories.</p>
       </div>
     );
   }
@@ -32,7 +33,7 @@ const CategoriesView = ({ categories = [], books = [], onCategoryClick }) => {
     <div className={styles.container}>
       <div className={styles.categoriesGrid}>
         {categories.map((category) => (
-          <div 
+          <article 
             key={category} 
             className={styles.categoryCard}
             onClick={() => onCategoryClick(category)}
@@ -47,11 +48,12 @@ const CategoriesView = ({ categories = [], books = [], onCategoryClick }) => {
             <div className={styles.categoryOverlay}>
               <span>View Books →</span>
             </div>
-          </div>
+          </article>
         ))}
       </div>
     </div>
   );
+
 };
 
 export default CategoriesView;

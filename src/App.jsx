@@ -113,7 +113,7 @@ const AppContent = () => {
   };
 
   // Don't show navbar on promotion page
-  const shouldShowNavbar = location.pathname !== '/';
+  const shouldShowNavbar = location.pathname !== '/payment';
 
   return (
     <div className={styles.appContainer}>
@@ -130,7 +130,7 @@ const AppContent = () => {
       
       <main>
         <Routes>
-          <Route path="/" element={<Promotion />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route 
             path="/books" 
