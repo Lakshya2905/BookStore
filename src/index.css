@@ -46,6 +46,13 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+html, body {
+  background: #fff !important;
+  color: #000 !important;
+  color-scheme: light !important; /* 👈 tells browser to render inputs in light mode */
+}
+
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

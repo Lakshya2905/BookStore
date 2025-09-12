@@ -45,7 +45,7 @@ const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
     if (location.pathname !== "/landing") {
       navigate("/landing");
       setTimeout(() => {
-        window.location.hash = "#categories";
+        window.location.hash = "#categovries";
         // Or, use scroll logic if needed:
         // document.getElementById("categories")?.scrollIntoView({ behavior: "smooth" });
       }, 200); // adjust delay if needed
@@ -174,7 +174,9 @@ const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
             <Link to="/books?tag=TOP_RATED" className={styles.navLink}>
               Top Rated
             </Link>
-            <button className={styles.navLink} onClick={handleCategoriesClick}>
+            
+            
+            <button className={styles.categoryBtn} onClick={handleCategoriesClick}>
               Categories
             </button>
             <a href="#authors" className={styles.navLink}>

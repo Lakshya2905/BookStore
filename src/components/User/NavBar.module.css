@@ -346,3 +346,27 @@
   height: 200px;  /* keeps it square */
   object-fit: contain; /* prevents stretching */
 }
+
+.categoryBtn {
+  padding: 15px 0;
+  text-decoration: none;
+  color: #374151;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;                 /* remove default button border */
+  outline: none;                /* remove focus outline */
+  background: none;             /* remove background */
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.categoryBtn:hover {
+  color: #1e40af;
+  border-bottom-color: #1e40af;
+}
+
+.categoryBtn:focus {
+  outline: none;                /* ensure no outline when focused */
+  box-shadow: none;             /* prevent extra glow */
+}
