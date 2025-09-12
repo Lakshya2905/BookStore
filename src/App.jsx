@@ -143,12 +143,6 @@ const  shouldShowFooter = location.pathname !== '/payment';
              } 
           />
 
-   <Route 
-            path="/discovery" 
-            element={
-                <Discovery />
-             } 
-          />
 
           {/* Add more routes as needed */}
         </Routes>
