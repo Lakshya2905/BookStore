@@ -1,17 +1,81 @@
-import React, { useEffect, useState } from "react";
-import { Routes, Route, Link, useNavigate, Navigate, useLocation } from "react-router-dom";
-import { Search, Heart, ShoppingCart, User, Menu, X } from "lucide-react";
+import React, { useEffect, useState, createContext, useContext } from "react";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import styles from "./App.module.css";
 import NavBar from "./components/User/NavBar";
 import LandingPage from "./components/Landing/LandingPage";
 import LoginModal from "./components/Landing/LoginModal";
 import SignupModal from "./components/Landing/SignupModal";
 import BookViewCard from "./components/Books/BookViewCard";
-import Promotion from "./assets/Promotion";
-import Discovery from "./components/Landing/Discovery";
 import Footer from "./components/User/Footer";
 
-// Protected Route component
+// ========================
+// Auth Context
+// ========================
+const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
+
+const AuthProvider = ({ children }) => {
+  const [loginStatus, setLoginStatus] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+
+  const openLogin = () => {
+    setShowSignupModal(false);
+    setShowLoginModal(true);
+  };
+
+  const openSignup = () => {
+    setShowLoginModal(false);
+    setShowSignupModal(true);
+  };
+
+  const closeModals = () => {
+    setShowLoginModal(false);
+    setShowSignupModal(false);
+  };
+
+  // 🔥 Listen for API events (open login modal globally)
+  useEffect(() => {
+    const handleOpenLogin = () => openLogin();
+    window.addEventListener("openLoginModal", handleOpenLogin);
+
+    return () => {
+      window.removeEventListener("openLoginModal", handleOpenLogin);
+    };
+  }, []);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        loginStatus,
+        setLoginStatus,
+        openLogin,
+        openSignup,
+        closeModals,
+      }}
+    >
+      {children}
+
+      {/* 🔥 Universal Modals */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={closeModals}
+        onSwitchToSignup={openSignup}
+        setLoginStatus={setLoginStatus}
+      />
+      <SignupModal
+        isOpen={showSignupModal}
+        onClose={closeModals}
+        onSwitchToLogin={openLogin}
+      />
+    </AuthContext.Provider>
+  );
+};
+
+// ========================
+// Protected Route
+// ========================
 const ProtectedRoute = ({ children }) => {
   const token = sessionStorage.getItem("token");
 
@@ -25,18 +89,16 @@ const ProtectedRoute = ({ children }) => {
 // List of pages that don't require authentication
 const PUBLIC_PAGES = ["/", "/landing", "/books"];
 
-const App = () => {
-  return <AppContent />;
-};
-
+// ========================
+// App Content
+// ========================
 const AppContent = () => {
-  const [loginStatus, setLoginStatus] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = window.location.pathname;
+
+  const { openLogin, openSignup } = useAuth();
 
   const getUserData = () => {
     try {
@@ -51,10 +113,9 @@ const AppContent = () => {
     }
   };
 
-  // Check token on initial load, but allow access to login and register pages
+  // Check token on initial load, but allow access to public pages
   useEffect(() => {
     const token = sessionStorage.getItem("token");
-    // Only redirect to login if not on a public page AND no token
     const isPublicPage =
       PUBLIC_PAGES.includes(currentPath) ||
       PUBLIC_PAGES.some((page) => currentPath.startsWith(page));
@@ -64,26 +125,11 @@ const AppContent = () => {
     }
   }, [navigate, currentPath]);
 
-  useEffect(() => {
-    const hasToken = !!sessionStorage.getItem("token");
-    setLoginStatus(hasToken);
-  }, []);
-
-  // Handle sign in modal
-  const handleSignIn = () => {
-    setShowLoginModal(true);
-  };
-
-  // Handle sign up modal
-  const handleSignUp = () => {
-    setShowSignupModal(true);
-  };
-
   // Handle cart click
   const handleCartClick = () => {
     const { user } = getUserData();
     if (!user) {
-      setShowLoginModal(true);
+      openLogin(); // 🔥 universal login modal
       return;
     }
     navigate("/cart");
@@ -92,83 +138,49 @@ const AppContent = () => {
   // Handle search functionality
   const handleSearch = (query) => {
     if (query.trim()) {
-      // Navigate to books page with search query
       navigate(`/books?search=${encodeURIComponent(query.trim())}`);
     }
   };
 
-  // Handle switching between modals
-  const handleSwitchToSignup = () => {
-    setShowLoginModal(false);
-    setShowSignupModal(true);
-  };
-
-  const handleSwitchToLogin = () => {
-    setShowSignupModal(false);
-    setShowLoginModal(true);
-  };
-
-  // Close all modals
-  const closeModals = () => {
-    setShowLoginModal(false);
-    setShowSignupModal(false);
-  };
-
-  // Don't show navbar on promotion page
-  const shouldShowNavbar = location.pathname !== '/payment';
-const  shouldShowFooter = location.pathname !== '/payment';
-
+  // Don't show navbar/footer on payment page
+  const shouldShowNavbar = location.pathname !== "/payment";
+  const shouldShowFooter = location.pathname !== "/payment";
 
   return (
     <div className={styles.appContainer}>
       {shouldShowNavbar && (
         <NavBar
-          onSignIn={handleSignIn}
-          onSignUp={handleSignUp}
+          onSignIn={openLogin}
+          onSignUp={openSignup}
           onCartClick={handleCartClick}
           onSearch={handleSearch}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
         />
       )}
-      
+
       <main>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/landing" element={<LandingPage />} />
-          <Route 
-            path="/books" 
-            element={
-                <BookViewCard />
-             } 
-          />
-
-
+          <Route path="/books" element={<BookViewCard />} />
           {/* Add more routes as needed */}
         </Routes>
       </main>
 
-      {/* Login Modal */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={closeModals}
-        onSwitchToSignup={handleSwitchToSignup}
-        setLoginStatus={setLoginStatus}
-      />
-
-      {/* Signup Modal */}
-      <SignupModal
-        isOpen={showSignupModal}
-        onClose={closeModals}
-        onSwitchToLogin={handleSwitchToLogin}
-      />
-
-
-    {shouldShowFooter && (
-        <Footer />
-      )}
-
+      {shouldShowFooter && <Footer />}
     </div>
+  );
+};
+
+// ========================
+// Main App Export
+// ========================
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

@@ -1,5 +1,4 @@
 import axios from 'axios';
-
 import { CART_ITEM_ADD_URL } from '../constants/apiConstants';
 
 const getUserData = () => {
@@ -16,9 +15,11 @@ const getUserData = () => {
 const addItemToCart = async (bookId) => {
   try {
     const { user, token } = getUserData();
-    
+
     if (!user || !token) {
-      throw new Error('User not authenticated');
+      // 🔥 Trigger a global event instead of throwing error
+      window.dispatchEvent(new Event("openLoginModal"));
+      return null;
     }
 
     const requestData = {
