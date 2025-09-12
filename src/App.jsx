@@ -8,6 +8,7 @@ import LoginModal from "./components/Landing/LoginModal";
 import SignupModal from "./components/Landing/SignupModal";
 import BookViewCard from "./components/Books/BookViewCard";
 import Promotion from "./assets/Promotion";
+import Discovery from "./components/Landing/Discovery";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -138,6 +139,14 @@ const AppContent = () => {
                 <BookViewCard />
              } 
           />
+
+   <Route 
+            path="/discovery" 
+            element={
+                <Discovery />
+             } 
+          />
+
           {/* Add more routes as needed */}
         </Routes>
       </main>

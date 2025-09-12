@@ -4,7 +4,8 @@ import { ArrowRight, BookOpen, Users, Award, TrendingUp, Star } from 'lucide-rea
 import axios from 'axios';
 import CategoriesView from '../Books/CategoriesView';
 import BookViewCard from '../Books/BookViewCard';
-import FeaturedBooksSection from '../Books/FeaturedBooksSection'; // Import the new component
+import FeaturedBooksSection from '../Books/FeaturedBooksSection';
+import Discovery from './Discovery';
 import styles from './LandingPage.module.css';
 import { BOOK_FETCH_URL, CATRGORY_FETCH_URL } from '../../constants/apiConstants';
 
@@ -51,7 +52,6 @@ const LandingPage = () => {
         sessionStorage.setItem("allBooks", JSON.stringify(books));
 
         // Featured books - get first 6 books for featured section
-        // You can modify this logic to filter by specific criteria if needed
         const featured = books.slice(0, 6);
         setFeaturedBooks(featured);
 
@@ -99,38 +99,7 @@ const LandingPage = () => {
   return (
     <div className={styles.landingPage}>
       {/* Hero Section */}
-      <section className={styles.heroSection}>
-        <div className={styles.heroContent}>
-          <div className={styles.heroText}>
-            <h1 className={styles.heroTitle}>
-              Discover Your Next
-              <span className={styles.highlight}> Great Read</span>
-            </h1>
-            <p className={styles.heroSubtitle}>
-              Explore thousands of books across multiple genres. From bestsellers to hidden gems, 
-              find the perfect book for every mood and moment.
-            </p>
-            <div className={styles.heroButtons}>
-              <button className={styles.primaryButton} onClick={handleExploreBooks}>
-                <BookOpen size={20} />
-                Explore Books
-                <ArrowRight size={20} />
-              </button>
-              <button className={styles.secondaryButton} onClick={handleViewAllCategories}>
-                View Categories
-              </button>
-            </div>
-          </div>
-          <div className={styles.heroImage}>
-            <div className={styles.bookStack}>
-              <div className={styles.book} style={{ background: '#6366f1' }}>📚</div>
-              <div className={styles.book} style={{ background: '#8b5cf6' }}>📖</div>
-              <div className={styles.book} style={{ background: '#06b6d4' }}>📘</div>
-              <div className={styles.book} style={{ background: '#10b981' }}>📗</div>
-            </div>
-          </div>
-        </div>
-      </section>
+     <Discovery />
 
       {/* Stats Section */}
       <section className={styles.statsSection}>
@@ -162,13 +131,15 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Featured Books Section - Now using separate component */}
+      {/* Featured Books Section */}
       <FeaturedBooksSection 
         books={featuredBooks}
         loading={loading}
         error={error}
         onViewAllClick={handleExploreBooks}
       />
+
+    
 
       {/* Categories Section */}
       <section id="categories" className={styles.categoriesSection}>
@@ -178,22 +149,22 @@ const LandingPage = () => {
         </div>
         <CategoriesView 
           categories={categories} 
-          books={previewBooks} // Use preview books instead of all books
+          books={previewBooks}
           onCategoryClick={handleCategoryClick} 
         />
       </section>
 
-      {/* Books Preview Section (Only show first 8 books) */}
+      {/* Books Preview Section */}
       <section className={styles.booksPreviewSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Popular Books</h2>
           <p className={styles.sectionSubtitle}>Browse some of our most popular titles</p>
         </div>
         <BookViewCard 
-          books={previewBooks} // Show only preview books
+          books={previewBooks}
           loading={loading}
           error={error}
-          showPagination={false} // Disable pagination for preview
+          showPagination={false}
         />
         <div className={styles.sectionFooter}>
           <button className={styles.viewAllButton} onClick={handleExploreBooks}>

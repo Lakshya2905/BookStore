@@ -1,0 +1,208 @@
+/* Discovery.module.css */
+.discoverySection {
+  padding: 3rem 1rem;
+  background: #f9fafb;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.discoveryContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.discoveryPanel {
+  display: flex;
+  gap: 3rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.contentSection {
+  flex: 1 1 320px;
+  max-width: 450px;
+}
+
+.badge {
+  display: inline-block;
+  background: linear-gradient(90deg, #ff8a00, #e52e71);
+  color: white;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 9999px;
+  margin-bottom: 0.5rem;
+  user-select: none;
+}
+
+.mainTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0.3rem 0 1rem 0;
+  color: #222;
+}
+
+.offerBadge {
+  margin-bottom: 1rem;
+}
+
+.offerText {
+  background-color: #e0f7fa;
+  color: #006064;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: 1rem;
+  font-size: 1rem;
+  user-select: none;
+}
+
+.description {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+
+.validText {
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.warningMessage {
+  color: #c62828;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.imageSection {
+  flex: 1 1 400px;
+  max-width: 450px;
+}
+
+.imageContainer {
+  width: 100%;
+  max-width: 450px;
+  height: 280px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.discoveryImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: opacity 0.8s ease;
+  border-radius: 12px;
+}
+
+.active {
+  z-index: 1;
+  opacity: 1;
+}
+
+.indicators {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  gap: 10px;
+}
+
+.indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid #888;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.indicatorActive {
+  background-color: #e52e71;
+  border-color: #e52e71;
+}
+
+.loadingContainer,
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #666;
+}
+
+.loadingSpinner {
+  border: 4px solid #ddd;
+  border-top: 4px solid #e52e71;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 0.6rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  font-style: italic;
+  font-size: 1.1rem;
+  user-select: none;
+}
+
+.errorMessage {
+  color: #c62828;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.retryButton {
+  background-color: #e52e71;
+  color: white;
+  font-weight: 700;
+  border: none;
+  padding: 0.65rem 1.3rem;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+.retryButton:hover {
+  background-color: #b61d53;
+}
+
+.decorativeElements {
+  display: none; /* Hide or style as needed */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .discoveryPanel {
+    flex-direction: column;
+    align-items: center;
+  }
+  .imageSection, .contentSection {
+    max-width: 90vw;
+  }
+  .imageContainer {
+    height: 220px;
+  }
+  .mainTitle {
+    font-size: 2rem;
+  }
+}
