@@ -11,10 +11,6 @@ const Discovery = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const STORAGE_KEY = 'discovery_images_cache';
-  const STORAGE_EXPIRY_KEY = 'discovery_images_expiry';
-  const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
-
   const detectImageFormatFromName = useCallback((filename) => {
     if (!filename) return 'image/jpeg';
     const extension = filename.toLowerCase().split('.').pop();
@@ -30,34 +26,6 @@ const Discovery = () => {
     return formatMap[extension] || 'image/jpeg';
   }, []);
 
-  const loadFromCache = useCallback(() => {
-    try {
-      const cached = sessionStorage.getItem(STORAGE_KEY);
-      const expiry = sessionStorage.getItem(STORAGE_EXPIRY_KEY);
-
-      if (cached && expiry && new Date().getTime() < parseInt(expiry)) {
-        const { imageUrls, names } = JSON.parse(cached);
-        setImages(imageUrls);
-        setImageNames(names);
-        return true;
-      }
-    } catch (e) {
-      console.error('Error loading from cache:', e);
-    }
-    return false;
-  }, []);
-
-  const saveToCache = useCallback((imageUrls, names) => {
-    try {
-      const cacheData = { imageUrls, names };
-      const expiry = new Date().getTime() + CACHE_DURATION;
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(cacheData));
-      sessionStorage.setItem(STORAGE_EXPIRY_KEY, expiry.toString());
-    } catch (e) {
-      console.error('Error saving to cache:', e);
-    }
-  }, [CACHE_DURATION]);
-
   const base64ToBlobUrl = (base64String, fileName) => {
     const mimeType = detectImageFormatFromName(fileName);
     const byteCharacters = atob(base64String);
@@ -72,11 +40,6 @@ const Discovery = () => {
   const fetchImages = useCallback(async () => {
     setLoading(true);
     setError(null);
-  
-    if (loadFromCache()) {
-      setLoading(false);
-      return;
-    }
 
     try {
       const response = await axios.get(DISCOVERY_IMAGES, {
@@ -113,7 +76,6 @@ const Discovery = () => {
           setImages(imageUrls);
           setImageNames(names);
           setCurrentImageIndex(0);
-          saveToCache(imageUrls, names);
         } else {
           throw new Error('No valid images could be processed');
         }
@@ -142,23 +104,24 @@ const Discovery = () => {
     } finally {
       setLoading(false);
     }
-  }, [loadFromCache, saveToCache, detectImageFormatFromName, images]);
+  }, [detectImageFormatFromName, images]);
 
-
-
+  // Fetch images only once when component mounts
   useEffect(() => {
     fetchImages();
-  }, [fetchImages]);
+  }, []); // Empty dependency array - fetch only once
 
+  // Auto-slide functionality
   useEffect(() => {
     if (images.length > 1) {
       const interval = setInterval(() => {
         setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-      }, 4000);
+      }, 5000); // 5 seconds per slide
       return () => clearInterval(interval);
     }
   }, [images.length]);
 
+  // Cleanup blob URLs on unmount
   useEffect(() => {
     return () => {
       images.forEach((imageUrl) => {
@@ -171,8 +134,6 @@ const Discovery = () => {
 
   const handleRetry = () => {
     setError(null);
-    sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_EXPIRY_KEY);
     fetchImages();
   };
 
@@ -180,14 +141,26 @@ const Discovery = () => {
     e.target.style.display = 'none';
   };
 
-  if (loading && images.length === 0) {
+  const goToSlide = (index) => {
+    setCurrentImageIndex(index);
+  };
+
+  const goToPrevious = () => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+    );
+  };
+
+  const goToNext = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+  };
+
+  if (loading) {
     return (
       <section className={styles.discoverySection}>
-        <div className={styles.discoveryContainer}>
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner}></div>
-            <p className={styles.loadingText}>Loading amazing discoveries...</p>
-          </div>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p className={styles.loadingText}>Loading banner images...</p>
         </div>
       </section>
     );
@@ -196,85 +169,81 @@ const Discovery = () => {
   if (error && images.length === 0) {
     return (
       <section className={styles.discoverySection}>
-        <div className={styles.discoveryContainer}>
-          <div className={styles.errorContainer}>
-            <p className={styles.errorMessage}>{error}</p>
-            <button className={styles.retryButton} onClick={handleRetry}>
-              Try Again
-            </button>
-          </div>
+        <div className={styles.errorContainer}>
+          <p className={styles.errorMessage}>{error}</p>
+          <button className={styles.retryButton} onClick={handleRetry}>
+            Try Again
+          </button>
         </div>
       </section>
     );
   }
 
+  if (images.length === 0) {
+    return null; // Don't render anything if no images
+  }
+
   return (
     <section className={styles.discoverySection}>
-      <div className={styles.discoveryContainer}>
-        <div className={styles.discoveryPanel}>
-          {/* Content Section */}
-          <div className={styles.contentSection}>
-            <div className={styles.badge}>Top Rated</div>
-            <h2 className={styles.mainTitle}>Discover Amazing Content</h2>
-            <div className={styles.offerBadge}>
-              <span className={styles.offerText}>Special Offer</span>
+      <div className={styles.bannerContainer}>
+        <div className={styles.imageSlider}>
+          {images.map((image, index) => (
+            <div
+              key={`${index}-${imageNames[index] || index}`}
+              className={`${styles.slide} ${
+                index === currentImageIndex ? styles.active : ''
+              }`}
+            >
+              <img
+                src={image}
+                alt={`Banner ${index + 1}: ${imageNames[index] || `Slide ${index + 1}`}`}
+                className={styles.bannerImage}
+                onError={handleImageError}
+                loading={index === 0 ? "eager" : "lazy"}
+              />
             </div>
-            <p className={styles.description}>
-              Explore our curated collection and get exclusive access to premium content
-            </p>
-            <p className={styles.validText}>Offer Valid on all premium subscriptions</p>
-            {error && (
-              <p className={styles.warningMessage}>
-                Note: Some content failed to load. Showing available items.
-              </p>
-            )}
-          </div>
-
-          {/* Image Carousel Section */}
-          {images.length > 0 && (
-            <div className={styles.imageSection}>
-              <div className={styles.imageContainer}>
-                {images.map((image, index) => (
-                  <img
-                    key={`${index}-${imageNames[index] || index}`}
-                    src={image}
-                    alt={`Discovery: ${imageNames[index] || `Content ${index + 1}`}`}
-                    className={`${styles.discoveryImage} ${
-                      index === currentImageIndex ? styles.active : ''
-                    }`}
-                    onError={handleImageError}
-                    loading="lazy"
-                    style={{
-                      display: index === currentImageIndex ? 'block' : 'none',
-                      opacity: index === currentImageIndex ? 1 : 0,
-                    }}
-                  />
-                ))}
-              </div>
-              {images.length > 1 && (
-                <div className={styles.indicators}>
-                  {images.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`${styles.indicator} ${
-                        index === currentImageIndex ? styles.indicatorActive : ''
-                      }`}
-                      onClick={() => setCurrentImageIndex(index)}
-                      aria-label={`View ${imageNames[index] || `content ${index + 1}`}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+          ))}
+          
+          {/* Navigation Arrows */}
+          {images.length > 1 && (
+            <>
+              <button
+                className={`${styles.navButton} ${styles.prevButton}`}
+                onClick={goToPrevious}
+                aria-label="Previous image"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <button
+                className={`${styles.navButton} ${styles.nextButton}`}
+                onClick={goToNext}
+                aria-label="Next image"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </>
           )}
-
-          {/* Decorative Elements */}
-          <div className={styles.decorativeElements}>
-            <div className={styles.triangle}></div>
-            <div className={styles.dots}></div>
-            <div className={styles.cube}></div>
-          </div>
         </div>
+
+        {/* Pagination Dots */}
+        {images.length > 1 && (
+          <div className={styles.pagination}>
+            {images.map((_, index) => (
+              <button
+                key={index}
+                className={`${styles.paginationDot} ${
+                  index === currentImageIndex ? styles.active : ''
+                }`}
+                onClick={() => goToSlide(index)}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

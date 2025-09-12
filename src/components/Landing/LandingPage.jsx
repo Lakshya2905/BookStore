@@ -7,6 +7,7 @@ import BookViewCard from '../Books/BookViewCard';
 import FeaturedBooksSection from '../Books/FeaturedBooksSection';
 import styles from './LandingPage.module.css';
 import { BOOK_FETCH_URL, CATRGORY_FETCH_URL } from '../../constants/apiConstants';
+import Discovery from './Discovery';
 
 const LandingPage = () => {
   const [allBooks, setAllBooks] = useState([]);
@@ -98,6 +99,7 @@ const LandingPage = () => {
   return (
     <div className={styles.landingPage}>
       {/* Hero Section */}
+      <Discovery />
    
       {/* Stats Section */}
       <section className={styles.statsSection}>
