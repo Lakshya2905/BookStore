@@ -7,7 +7,6 @@
   margin-top: -20px;
 }
 
-
 .topBar {
   background-color: #1e40af;
   color: white;
@@ -16,9 +15,9 @@
 }
 
 .topBarContent {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -47,7 +46,7 @@
 }
 
 .signOutBtn {
-  padding: 6px 12px;
+  padding: 4px 8px;
   background-color: #ef4444;
   color: white;
   border: none;
@@ -58,44 +57,42 @@
 }
 
 .mainHeader {
-  padding: 15px 0;
+  padding: 8px 0; /* Reduced from 15px */
 }
 
 .headerContent {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  max-width: 100%; /* Changed from 1200px to 100% */
+  margin: 0;
+  padding: 0 15px; /* Reduced from 20px */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 15px; /* Reduced from 20px */
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #1e40af;
-  text-decoration: none;
+  gap: 8px;
+  flex-shrink: 0; /* Prevent logo from shrinking */
 }
 
-.logoIcon {
-  font-size: 28px;
+.logoImg {
+  width: 120px;   /* Reduced from 200px */
+  height: 60px;   /* Reduced from 200px and made rectangular */
+  object-fit: contain;
 }
 
 .searchBar {
   display: flex;
   flex: 1;
-  max-width: 500px;
-  margin-left: 20px;
-  margin-right: 20px;
+  max-width: 400px; /* Reduced from 500px */
+  margin: 0 15px; /* Reduced margins */
 }
 
 .searchInput {
   flex: 1;
-  padding: 12px 16px;
+  padding: 8px 12px; /* Reduced from 12px 16px */
   border: 2px solid #e5e7eb;
   border-right: none;
   border-radius: 6px 0 0 6px;
@@ -109,7 +106,7 @@
 }
 
 .searchButton {
-  padding: 12px 20px;
+  padding: 8px 16px; /* Reduced from 12px 20px */
   background-color: #1e40af;
   color: white;
   border: none;
@@ -117,7 +114,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px; /* Reduced from 8px */
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.2s;
@@ -130,11 +127,12 @@
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px; /* Reduced from 15px */
+  flex-shrink: 0; /* Prevent actions from shrinking */
 }
 
 .actionButton {
-  padding: 10px;
+  padding: 8px; /* Reduced from 10px */
   background-color: transparent;
   border: 2px solid #e5e7eb;
   border-radius: 8px;
@@ -154,27 +152,27 @@
 .userInfo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 6px; /* Reduced from 8px */
+  padding: 6px 10px; /* Reduced from 8px 12px */
   background-color: #f3f4f6;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px; /* Reduced from 14px */
   font-weight: 500;
 }
 
 .signInButtons {
   display: flex;
-  gap: 10px;
+  gap: 8px; /* Reduced from 10px */
 }
 
 .signInBtn {
-  padding: 8px 16px;
+  padding: 6px 12px; /* Reduced from 8px 16px */
   background-color: transparent;
   color: #1e40af;
   border: 2px solid #1e40af;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px; /* Reduced from 14px */
   font-weight: 500;
   transition: all 0.2s;
 }
@@ -185,13 +183,13 @@
 }
 
 .signUpBtn {
-  padding: 8px 16px;
+  padding: 6px 12px; /* Reduced from 8px 16px */
   background-color: #1e40af;
   color: white;
   border: 2px solid #1e40af;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px; /* Reduced from 14px */
   font-weight: 500;
   transition: all 0.2s;
 }
@@ -202,7 +200,7 @@
 
 .mobileMenuButton {
   display: none;
-  padding: 8px;
+  padding: 6px; /* Reduced from 8px */
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -216,15 +214,15 @@
 }
 
 .navContent {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  max-width: 100%; /* Changed from 1200px to 100% */
+  margin: 0;
+  padding: 0 15px; /* Reduced from 20px */
   display: flex;
-  gap: 30px;
+  gap: 25px; /* Reduced from 30px */
 }
 
 .navLink {
-  padding: 15px 0;
+  padding: 10px 0; /* Reduced from 15px */
   text-decoration: none;
   color: #374151;
   font-weight: 500;
@@ -238,6 +236,82 @@
   border-bottom-color: #1e40af;
 }
 
+.categoryBtn {
+  padding: 10px 0; /* Reduced from 15px */
+  text-decoration: none;
+  color: #374151;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  outline: none;
+  background: none;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.categoryBtn:hover {
+  color: #1e40af;
+  border-bottom-color: #1e40af;
+}
+
+.categoryBtn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Mobile Menu Styles */
+.mobileMenu {
+  background-color: #fff;
+  border-top: 1px solid #e5e7eb;
+  padding: 15px; /* Reduced from default */
+}
+
+.mobileNavLink {
+  display: block;
+  padding: 8px 0; /* Reduced padding */
+  text-decoration: none;
+  color: #374151;
+  font-weight: 500;
+  font-size: 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.mobileNavLink:hover {
+  color: #1e40af;
+}
+
+.mobileSearchBar {
+  display: flex;
+  margin-top: 10px; /* Reduced from default */
+  gap: 8px;
+}
+
+.mobileSearchInput {
+  flex: 1;
+  padding: 8px 12px; /* Reduced padding */
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.mobileSearchInput:focus {
+  border-color: #1e40af;
+}
+
+.mobileSearchButton {
+  padding: 8px 12px; /* Reduced padding */
+  background-color: #1e40af;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 768px) {
   .searchBar {
     display: none;
@@ -246,12 +320,33 @@
     display: block;
   }
   .headerActions {
+    gap: 8px; /* Further reduced for mobile */
+  }
+  .headerContent {
+    padding: 0 10px; /* Reduced padding for mobile */
     gap: 10px;
+  }
+  .navContent {
+    padding: 0 10px;
+    gap: 20px;
   }
 }
 
-/* Add these styles to your LandingPage.module.css */
+@media (max-width: 480px) {
+  .logoImg {
+    width: 100px;
+    height: 50px;
+  }
+  .headerContent {
+    padding: 0 8px;
+  }
+  .navContent {
+    padding: 0 8px;
+    gap: 15px;
+  }
+}
 
+/* Tags Section Styles (keeping existing styles) */
 .tagsSection {
   padding: 4rem 2rem;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -296,7 +391,6 @@
   transform: translateY(0);
 }
 
-/* Special styling for the "All Books" tag */
 .tagButton:first-child {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: #ffffff;
@@ -308,7 +402,6 @@
   transform: translateY(-2px) scale(1.05);
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .tagsSection {
     padding: 3rem 1rem;
@@ -333,40 +426,4 @@
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 8px; /* space between logo and text */
-}
-
-.logoImg {
-  width: 200px;   /* controls size (same as 📚 emoji height) */
-  height: 200px;  /* keeps it square */
-  object-fit: contain; /* prevents stretching */
-}
-
-.categoryBtn {
-  padding: 15px 0;
-  text-decoration: none;
-  color: #374151;
-  font-weight: 500;
-  font-size: 14px;
-  border: none;                 /* remove default button border */
-  outline: none;                /* remove focus outline */
-  background: none;             /* remove background */
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.categoryBtn:hover {
-  color: #1e40af;
-  border-bottom-color: #1e40af;
-}
-
-.categoryBtn:focus {
-  outline: none;                /* ensure no outline when focused */
-  box-shadow: none;             /* prevent extra glow */
 }
