@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import { addItemToCart } from "../../api/addItemToCart";
 import styles from "./BookViewCard.module.css";
 
 const BookViewCard = ({ books = [], loading, error, showPagination = true  }) => {
@@ -10,6 +11,11 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 12;
   const scrollContainerRef = useRef(null);
+  
+  // State for cart operations
+  const [cartLoading, setCartLoading] = useState({});
+  const [cartMessage, setCartMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // SUCCESS, FAILED, etc.
 
   // 🔹 Load stored books from sessionStorage if no props given
   const storedBooks = useMemo(() => {
@@ -68,6 +74,54 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
     : filteredBooks;
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
+  // Handle Add to Cart
+  const handleAddToCart = async (bookId) => {
+    setCartLoading(prev => ({ ...prev, [bookId]: true }));
+    setCartMessage("");
+    
+    try {
+      const response = await addItemToCart(bookId);
+      
+      // Show success/failure message based on response
+      setMessageType(response.status);
+      setCartMessage(response.message || "Operation completed");
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        setCartMessage("");
+        setMessageType("");
+      }, 3000);
+      
+    } catch (error) {
+      setMessageType("FAILED");
+      setCartMessage(error.response?.data?.message || error.message || "Failed to add item to cart");
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        setCartMessage("");
+        setMessageType("");
+      }, 3000);
+    } finally {
+      setCartLoading(prev => ({ ...prev, [bookId]: false }));
+    }
+  };
+
+  // Get message styling based on status
+  const getMessageClass = (status) => {
+    switch (status) {
+      case "SUCCESS":
+      case "AUTHORIZED":
+        return styles.messageSuccess;
+      case "FAILED":
+      case "UNAUTHORIZED":
+        return styles.messageError;
+      case "NOT_FOUND":
+        return styles.messageWarning;
+      default:
+        return styles.messageInfo;
+    }
+  };
+
   // Scroll functions
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -98,6 +152,26 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
         Discover your next great read from our curated collection
       </p>
     </div>
+    
+    {/* Cart Message Display */}
+    {cartMessage && (
+      <div className={`${styles.message} ${getMessageClass(messageType)}`}>
+        <div className={styles.messageContent}>
+          <span>{cartMessage}</span>
+          <button 
+            className={styles.messageClose}
+            onClick={() => {
+              setCartMessage("");
+              setMessageType("");
+            }}
+            type="button"
+            aria-label="Close message"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    )}
     
     {loading && (
       <div className={styles.loading}>
@@ -212,13 +286,27 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
                     </div>
                     
                     <div className={styles.actionButtons}>
-                      <button className={styles.addToCartButton} type="button">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="9" cy="21" r="1"/>
-                          <circle cx="20" cy="21" r="1"/>
-                          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                        </svg>
-                        Add to Cart
+                      <button 
+                        className={`${styles.addToCartButton} ${cartLoading[book.bookId] ? styles.loading : ''}`}
+                        onClick={() => handleAddToCart(book.bookId)}
+                        disabled={cartLoading[book.bookId]}
+                        type="button"
+                      >
+                        {cartLoading[book.bookId] ? (
+                          <>
+                            <div className={styles.buttonSpinner}></div>
+                            Adding...
+                          </>
+                        ) : (
+                          <>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="9" cy="21" r="1"/>
+                              <circle cx="20" cy="21" r="1"/>
+                              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                            </svg>
+                            Add to Cart
+                          </>
+                        )}
                       </button>
                       <button className={styles.checkoutButton} type="button">
                         Buy Now

@@ -396,3 +396,153 @@
     font-size: 1rem;
   }
 }
+
+/* Message Styles for Featured Section */
+.message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease-out;
+}
+
+.messageContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+.messageClose {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.messageClose:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.messageSuccess {
+  background: #10b981;
+  color: white;
+}
+
+.messageError {
+  background: #ef4444;
+  color: white;
+}
+
+.messageWarning {
+  background: #f59e0b;
+  color: white;
+}
+
+.messageInfo {
+  background: #3b82f6;
+  color: white;
+}
+
+/* Button Loading State for Featured Section */
+.addToCartBtn.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.buttonSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Book Cover Image Style */
+.bookCoverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Enhanced Button Styles */
+.addToCartBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.addToCartBtn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile responsiveness for messages */
+@media (max-width: 768px) {
+  .message {
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+  
+  .addToCartBtn.loading {
+    font-size: 0.85rem;
+  }
+  
+  .buttonSpinner {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Additional Mobile Styles */
+@media (max-width: 480px) {
+  .bookActions {
+    gap: 8px;
+  }
+  
+  .addToCartBtn, .buyNowBtn {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+}
