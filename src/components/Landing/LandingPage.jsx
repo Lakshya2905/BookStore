@@ -99,7 +99,10 @@ const LandingPage = () => {
   return (
     <div className={styles.landingPage}>
       {/* Hero Section */}
-      <Discovery />
+     <div className={styles.discovery}>
+  <Discovery />
+</div>
+
    
       {/* Stats Section */}
       <section className={styles.statsSection}>
