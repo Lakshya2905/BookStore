@@ -334,3 +334,15 @@
     font-size: 0.8rem;
   }
 }
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* space between logo and text */
+}
+
+.logoImg {
+  width: 200px;   /* controls size (same as 📚 emoji height) */
+  height: 200px;  /* keeps it square */
+  object-fit: contain; /* prevents stretching */
+}

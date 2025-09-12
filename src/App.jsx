@@ -9,6 +9,7 @@ import SignupModal from "./components/Landing/SignupModal";
 import BookViewCard from "./components/Books/BookViewCard";
 import Promotion from "./assets/Promotion";
 import Discovery from "./components/Landing/Discovery";
+import Footer from "./components/User/Footer";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -115,6 +116,8 @@ const AppContent = () => {
 
   // Don't show navbar on promotion page
   const shouldShowNavbar = location.pathname !== '/payment';
+const  shouldShowFooter = location.pathname !== '/payment';
+
 
   return (
     <div className={styles.appContainer}>
@@ -165,6 +168,12 @@ const AppContent = () => {
         onClose={closeModals}
         onSwitchToLogin={handleSwitchToLogin}
       />
+
+
+    {shouldShowFooter && (
+        <Footer />
+      )}
+
     </div>
   );
 };

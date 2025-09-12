@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Heart, ShoppingCart, User, Menu, X } from "lucide-react";
 import CartSidebar from "../Cart/CartSidebar";
 import styles from "./NavBar.module.css";
+import  Logo  from "../images/logo.jpg";
 
 const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -90,10 +91,14 @@ const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
         {/* Main Header */}
         <div className={styles.mainHeader}>
           <div className={styles.headerContent}>
-            <div className={styles.logo} onClick={() => navigate('/landing')}>
-              <span className={styles.logoIcon}>📚</span>
-              <h5>Shah Cart</h5>
-            </div>
+           <div
+            className={styles.logo}
+            onClick={() => navigate("/landing")}
+            style={{ cursor: "pointer" }}
+          >
+            <img src={Logo} alt="Shah Cart Logo" className={styles.logoImg} />
+          </div>
+
 
             <div className={styles.searchBar}>
               <input
