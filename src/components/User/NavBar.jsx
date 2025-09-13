@@ -42,11 +42,10 @@ const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
   };
 
   const handleCategoriesClick = () => {
-    if (location.pathname !== "/landing") {
-      navigate("/categories");
-    } else {
+ 
+      navigate("/landing");
       window.location.hash = "#categories";
-    }
+    
   };
 
   const handleSearchInputChange = (e) => {
@@ -88,9 +87,8 @@ const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
       window.location.hash = "#authors";
     } else {
       navigate("/landing");
-      setTimeout(() => {
-        window.location.hash = "#authors";
-      }, 100);
+      // Removed the setTimeout - hash will be set immediately
+      window.location.hash = "#authors";
     }
   };
 
