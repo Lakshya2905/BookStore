@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Search, Heart, ShoppingCart, User, Menu, X } from "lucide-react";
 import CartSidebar from "../Cart/CartSidebar";
 import styles from "./NavBar.module.css";
-import  Logo  from "../images/logo.jpg";
+import Logo from "../images/logo.jpg";
 
 const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -43,16 +43,9 @@ const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
 
   const handleCategoriesClick = () => {
     if (location.pathname !== "/landing") {
-      navigate("/landing");
-      setTimeout(() => {
-        window.location.hash = "#categovries";
-        // Or, use scroll logic if needed:
-        // document.getElementById("categories")?.scrollIntoView({ behavior: "smooth" });
-      }, 200); // adjust delay if needed
+      navigate("/categories");
     } else {
       window.location.hash = "#categories";
-      // Or scroll directly
-      // document.getElementById("categories")?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -85,6 +78,22 @@ const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
     navigate('/checkout', { state: { cartData } });
   };
 
+  // Navigation handlers
+  const handleNavigation = (path) => {
+    navigate(path);
+  };
+
+  const handleAuthorsClick = () => {
+    if (location.pathname === "/landing") {
+      window.location.hash = "#authors";
+    } else {
+      navigate("/landing");
+      setTimeout(() => {
+        window.location.hash = "#authors";
+      }, 100);
+    }
+  };
+
   return (
     <>
       <header className={styles.header}>
@@ -98,7 +107,6 @@ const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
           >
             <img src={Logo} alt="Shah Cart Logo" className={styles.logoImg} />
           </div>
-
 
             <div className={styles.searchBar}>
               <input
@@ -159,62 +167,130 @@ const NavBar = ({ onSignIn, onSignUp, onSearch }) => {
         {/* Navigation */}
         <nav className={styles.navigation}>
           <div className={styles.navContent}>
-            <Link to="/landing" className={styles.navLink}>
+            <button 
+              className={styles.navButton} 
+              onClick={() => handleNavigation("/landing")}
+            >
               Home
-            </Link>
-            <Link to="/books" className={styles.navLink}>
+            </button>
+            <button 
+              className={styles.navButton} 
+              onClick={() => handleNavigation("/books")}
+            >
               All Books
-            </Link>
-            <Link to="/books?tag=NEW_RELEASE" className={styles.navLink}>
+            </button>
+            <button 
+              className={styles.navButton} 
+              onClick={() => handleNavigation("/books?tag=NEW_RELEASE")}
+            >
               New Releases
-            </Link>
-            <Link to="/books?tag=BESTSELLER" className={styles.navLink}>
+            </button>
+            <button 
+              className={styles.navButton} 
+              onClick={() => handleNavigation("/books?tag=BESTSELLER")}
+            >
               Best Sellers
-            </Link>
-            <Link to="/books?tag=TOP_RATED" className={styles.navLink}>
+            </button>
+            <button 
+              className={styles.navButton} 
+              onClick={() => handleNavigation("/books?tag=TOP_RATED")}
+            >
               Top Rated
-            </Link>
-            
+            </button>
             
             <button className={styles.categoryBtn} onClick={handleCategoriesClick}>
               Categories
             </button>
-            <a href="#authors" className={styles.navLink}>
+            <button className={styles.navButton} onClick={handleAuthorsClick}>
               Authors
-            </a>
-            <Link to="/books?tag=SALE" className={styles.navLink}>
+            </button>
+            <button 
+              className={styles.navButton} 
+              onClick={() => handleNavigation("/books?tag=SALE")}
+            >
               Sale
-            </Link>
+            </button>
           </div>
         </nav>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className={styles.mobileMenu}>
-            <Link to="/landing" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            <button 
+              className={styles.mobileNavButton} 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleNavigation("/landing");
+              }}
+            >
               Home
-            </Link>
-            <Link to="/books" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            </button>
+
+            <button 
+              className={styles.mobileNavButton} 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleNavigation("/books");
+              }}
+            >
               All Books
-            </Link>
-            <Link to="/books?tag=NEW_RELEASE" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            </button>
+            <button 
+              className={styles.mobileNavButton} 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleNavigation("/books?tag=NEW_RELEASE");
+              }}
+            >
               New Releases
-            </Link>
-            <Link to="/books?tag=BESTSELLER" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            </button>
+            <button 
+              className={styles.mobileNavButton} 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleNavigation("/books?tag=BESTSELLER");
+              }}
+            >
               Best Sellers
-            </Link>
-            <Link to="/books?tag=TOP_RATED" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            </button>
+            <button 
+              className={styles.mobileNavButton} 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleNavigation("/books?tag=TOP_RATED");
+              }}
+            >
               Top Rated
-            </Link>
-            <a href="#categories" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            </button>
+            
+            <button
+              className={styles.categoryBtn}
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleCategoriesClick();
+              }}
+            >
               Categories
-            </a>
-            <a href="#authors" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            </button>
+
+            <button 
+              className={styles.mobileNavButton} 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleAuthorsClick();
+              }}
+            >
               Authors
-            </a>
-            <Link to="/books?tag=SALE" className={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>
+            </button>
+            <button 
+              className={styles.mobileNavButton} 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleNavigation("/books?tag=SALE");
+              }}
+            >
               Sale
-            </Link>
+            </button>
             
             {/* Mobile Search */}
             <div className={styles.mobileSearchBar}>

@@ -33,14 +33,30 @@ const LandingPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      
+      // Check for cached categories in session storage
+      const cachedCategories = sessionStorage.getItem("allCategories");
+      let categoryData = [];
+      
+      if (cachedCategories) {
+        categoryData = JSON.parse(cachedCategories);
+        setCategories(categoryData);
+      }
+
       const [categoryResponse, bookResponse] = await Promise.all([
-        axios.get(`${CATRGORY_FETCH_URL}`),
+        // Only fetch categories if not in cache
+        cachedCategories ? Promise.resolve({ data: { status: "SUCCESS", payload: categoryData } }) : axios.get(`${CATRGORY_FETCH_URL}`),
         axios.get(`${BOOK_FETCH_URL}`)
       ]);
 
       // Categories
       if (categoryResponse.data.status === "SUCCESS") {
-        setCategories(categoryResponse.data.payload || []);
+        const categoriesPayload = categoryResponse.data.payload || [];
+        setCategories(categoriesPayload);
+        // Store categories in session storage if not already cached
+        if (!cachedCategories) {
+          sessionStorage.setItem("allCategories", JSON.stringify(categoriesPayload));
+        }
       } else {
         setError(categoryResponse.data.message || "Failed to load categories");
       }

@@ -222,19 +222,30 @@
   gap: 25px; /* Reduced from 30px */
 }
 
-.navLink {
+/* Updated nav button styles to replace navLink */
+.navButton {
   padding: 10px 0; /* Reduced from 15px */
-  text-decoration: none;
+  background: none;
+  border: none;
   color: #374151;
   font-weight: 500;
   font-size: 14px;
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  outline: none;
 }
 
-.navLink:hover {
+.navButton:hover {
   color: #1e40af;
   border-bottom-color: #1e40af;
+}
+
+.navButton:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .categoryBtn {
@@ -268,18 +279,30 @@
   padding: 15px; /* Reduced from default */
 }
 
-.mobileNavLink {
+/* Updated mobile nav button styles to replace mobileNavLink */
+.mobileNavButton {
   display: block;
+  width: 100%;
   padding: 8px 0; /* Reduced padding */
-  text-decoration: none;
+  background: none;
+  border: none;
   color: #374151;
   font-weight: 500;
   font-size: 14px;
   border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  outline: none;
 }
 
-.mobileNavLink:hover {
+.mobileNavButton:hover {
   color: #1e40af;
+}
+
+.mobileNavButton:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .mobileSearchBar {

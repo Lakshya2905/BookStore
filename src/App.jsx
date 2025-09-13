@@ -7,6 +7,7 @@ import LoginModal from "./components/Landing/LoginModal";
 import SignupModal from "./components/Landing/SignupModal";
 import BookViewCard from "./components/Books/BookViewCard";
 import Footer from "./components/User/Footer";
+import CategoriesView from "./components/Books/CategoriesView";
 
 // ========================
 // Auth Context
@@ -164,6 +165,9 @@ const AppContent = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/books" element={<BookViewCard />} />
+          <Route path="/categories" element={<CategoriesView />} />
+
+
           {/* Add more routes as needed */}
         </Routes>
       </main>
