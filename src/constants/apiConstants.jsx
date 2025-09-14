@@ -24,3 +24,4 @@ export const BOOK_CATEGORIES_FETCH_URL = `${API_BASE_URL}/book/categories`;
 
 
 
+export const CHECKOUT_CART_URL = `${API_BASE_URL}/order/create/cart`;
