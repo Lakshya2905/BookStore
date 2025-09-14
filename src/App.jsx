@@ -11,7 +11,6 @@ import CategoriesView from "./components/Books/CategoriesView";
 import AddBookPage from "./components/Admin/AddBookPage";
 import AddCategory from "./components/Admin/AddCategory";
 import InvoiceExportPage from "./components/Admin/InvoiceExportPage";
-import WhatsAppFloatingButton from "./components/User/WhatsAppFloatingButton";
 
 // ========================
 // Auth Context
@@ -180,9 +179,6 @@ const AppContent = () => {
       </main>
 
       {shouldShowFooter && <Footer />}
-      
-      {/* 🔥 WhatsApp Floating Button - Always visible */}
-      <WhatsAppFloatingButton whatsappLink="https://wa.link/wac1at" />
     </div>
   );
 };
