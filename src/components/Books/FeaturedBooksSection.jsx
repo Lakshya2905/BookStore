@@ -1,5 +1,5 @@
-import React, { useEffect,useState, useMemo } from 'react';
-import { ArrowRight, ChevronLeft, ChevronRight, ShoppingCart, Zap } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { ArrowRight, ChevronLeft, ChevronRight, ShoppingCart, Zap, ImageOff } from 'lucide-react';
 import { addItemToCart } from '../../api/addItemToCart';
 import styles from './FeaturedBooksSection.module.css';
 
@@ -37,6 +37,60 @@ const FeaturedBooksSection = ({
     newReleases: 0,
     topRated: 0
   });
+
+  // State for image loading
+  const [imageLoadStates, setImageLoadStates] = useState({});
+  const [imageErrors, setImageErrors] = useState({});
+
+  // Function to get cached image from session storage
+  const getCachedImage = (bookId) => {
+    try {
+      const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
+      return cachedImages[bookId] || null;
+    } catch (error) {
+      console.error("Error reading cached images:", error);
+      return null;
+    }
+  };
+
+  // Function to get book image URL with fallback logic
+  const getBookImageUrl = (book) => {
+    // Priority order:
+    // 1. coverImageUrl from props (already processed by LandingPage)
+    // 2. imageUrl from props (if available)
+    // 3. Check session storage directly
+    // 4. Return null for placeholder
+    
+    if (book.coverImageUrl) {
+      return book.coverImageUrl;
+    }
+    
+    if (book.imageUrl) {
+      return book.imageUrl;
+    }
+    
+    const cachedImage = getCachedImage(book.bookId);
+    if (cachedImage) {
+      return cachedImage;
+    }
+    
+    return null;
+  };
+
+  // Handle image loading states
+  const handleImageLoad = (bookId) => {
+    setImageLoadStates(prev => ({ ...prev, [bookId]: 'loaded' }));
+    setImageErrors(prev => ({ ...prev, [bookId]: false }));
+  };
+
+  const handleImageError = (bookId) => {
+    setImageLoadStates(prev => ({ ...prev, [bookId]: 'error' }));
+    setImageErrors(prev => ({ ...prev, [bookId]: true }));
+  };
+
+  const handleImageLoadStart = (bookId) => {
+    setImageLoadStates(prev => ({ ...prev, [bookId]: 'loading' }));
+  };
 
   // Organize books by tags
   const organizedBooks = useMemo(() => {
@@ -143,6 +197,48 @@ const FeaturedBooksSection = ({
     }
   };
 
+  const BookImageComponent = ({ book }) => {
+    const imageUrl = getBookImageUrl(book);
+    const imageLoadState = imageLoadStates[book.bookId];
+    const hasImageError = imageErrors[book.bookId];
+    
+    if (!imageUrl || hasImageError) {
+      return (
+        <div className={`${styles.bookPlaceholder} d-flex align-items-center justify-content-center bg-light`}>
+          <div className="text-center text-muted">
+            <ImageOff size={48} className="mb-2" />
+            <div className="small">No Image</div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.bookImageWrapper}>
+        {imageLoadState === 'loading' && (
+          <div className={`${styles.imageLoader} position-absolute top-50 start-50 translate-middle`}>
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading image...</span>
+            </div>
+          </div>
+        )}
+        
+        <img 
+          src={imageUrl} 
+          alt={book.bookName || 'Book cover'}
+          className={`${styles.bookImage} card-img-top`}
+          onLoad={() => handleImageLoad(book.bookId)}
+          onError={() => handleImageError(book.bookId)}
+          onLoadStart={() => handleImageLoadStart(book.bookId)}
+          style={{
+            opacity: imageLoadState === 'loaded' ? 1 : 0.7,
+            transition: 'opacity 0.3s ease'
+          }}
+        />
+      </div>
+    );
+  };
+
   const BookCard = ({ book }) => {
     const primaryTag = book.bookTags?.[0] || 'FEATURED';
     const tagInfo = getTagInfo(primaryTag);
@@ -151,17 +247,7 @@ const FeaturedBooksSection = ({
     return (
       <div className={`${styles.bookCard} card h-100`}>
         <div className={styles.bookImageContainer}>
-          {book.imageUrl ? (
-            <img 
-              src={book.imageUrl} 
-              alt={book.bookName}
-              className={`${styles.bookImage} card-img-top`}
-            />
-          ) : (
-            <div className={styles.bookPlaceholder}>
-              <i className="fas fa-book fa-3x text-muted"></i>
-            </div>
-          )}
+          <BookImageComponent book={book} />
           <span className={`${styles.bookTag} ${tagInfo.className} badge position-absolute`}>
             {tagInfo.label}
           </span>
@@ -321,6 +407,24 @@ const FeaturedBooksSection = ({
     ));
   };
 
+  // Debug function to show image cache info
+  const showImageCacheInfo = () => {
+    try {
+      const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
+      const imageCount = Object.keys(cachedImages).length;
+      console.log(`Image cache contains ${imageCount} images:`, Object.keys(cachedImages));
+      
+      // Show which books have images available
+      books.forEach(book => {
+        const imageUrl = getBookImageUrl(book);
+        console.log(`Book ${book.bookId} (${book.bookName}): ${imageUrl ? 'Has image' : 'No image'}`);
+      });
+    } catch (error) {
+      console.error("Error reading image cache:", error);
+    }
+  };
+
+  
   return (
     <div className={styles.featuredSection}>
       {/* Cart Message Display */}
@@ -397,7 +501,7 @@ const FeaturedBooksSection = ({
                   {books.length > 0 ? (
                     books.slice(0, 8).map((book) => (
                       <div key={book.bookId} className="col-xl-3 col-lg-4 col-md-6">
-                        <BookCard book={book} categoryTag={null} />
+                        <BookCard book={book} />
                       </div>
                     ))
                   ) : (
@@ -432,6 +536,8 @@ const FeaturedBooksSection = ({
           </button>
         </div>
       </div>
+      
+
     </div>
   );
 };
