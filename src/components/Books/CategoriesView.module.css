@@ -1,14 +1,14 @@
 /* Container and Layout */
 .container {
-  min-height: 100vh;
-  padding: 40px 20px;
+  min-height: auto;
+  padding: 20px;
   background: #f8fafc;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
   padding: 0 20px;
 }
 
@@ -16,7 +16,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   color: #1e293b;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   letter-spacing: -0.02em;
 }
 
@@ -32,9 +32,9 @@
 /* Categories Grid */
 .categoriesGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  max-width: 1200px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -45,13 +45,17 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 32px 24px;
+  padding: 24px 20px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   height: fit-content;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .categoryCard::before {
@@ -79,8 +83,8 @@
 
 /* Category Icon */
 .categoryIcon {
-  font-size: 3rem;
-  margin-bottom: 16px;
+  font-size: 2.5rem;
+  margin-bottom: 12px;
   display: block;
   transition: transform 0.3s ease;
   position: relative;
@@ -96,7 +100,7 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   transition: color 0.3s ease;
   position: relative;
   z-index: 1;
@@ -185,7 +189,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 60vh;
+  min-height: 40vh;
   color: #64748b;
 }
 
@@ -210,10 +214,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 60vh;
+  min-height: 40vh;
   color: #64748b;
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px;
 }
 
 .error p {
@@ -246,10 +250,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 60vh;
+  min-height: 40vh;
   color: #64748b;
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px;
 }
 
 .noCategories p {
@@ -289,14 +293,14 @@
 /* Mobile Responsive Design */
 @media (max-width: 1200px) {
   .categoriesGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
   }
 }
 
 @media (max-width: 900px) {
   .categoriesGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
   }
   
@@ -305,23 +309,29 @@
   }
   
   .container {
-    padding: 30px 15px;
+    padding: 16px;
+  }
+  
+  .header {
+    margin-bottom: 20px;
   }
   
   .categoryCard {
-    padding: 28px 20px;
+    padding: 20px 18px;
+    min-height: 160px;
   }
   
   .categoryIcon {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
+    margin-bottom: 10px;
   }
 }
 
 @media (max-width: 600px) {
   .categoriesGrid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 0 15px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    padding: 0 16px;
   }
   
   .title {
@@ -332,15 +342,22 @@
     font-size: 1rem;
   }
   
+  .container {
+    padding: 12px;
+  }
+  
+  .header {
+    margin-bottom: 16px;
+  }
+  
   .categoryCard {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 24px 20px;
+    padding: 18px 16px;
+    min-height: 140px;
   }
   
   .categoryIcon {
-    font-size: 2.25rem;
-    margin-bottom: 12px;
+    font-size: 2rem;
+    margin-bottom: 8px;
   }
   
   .categoryTitle {
@@ -354,27 +371,36 @@
 
 @media (max-width: 480px) {
   .container {
-    padding: 20px 10px;
+    padding: 10px;
   }
   
   .header {
-    margin-bottom: 30px;
+    margin-bottom: 12px;
+    padding: 0 10px;
   }
   
   .title {
     font-size: 1.5rem;
+    margin-bottom: 6px;
   }
   
   .subtitle {
     font-size: 0.9rem;
   }
   
+  .categoriesGrid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 0 10px;
+  }
+  
   .categoryCard {
-    padding: 20px 16px;
+    padding: 16px 14px;
+    min-height: 120px;
   }
   
   .categoryIcon {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
   
   .categoryTitle {
