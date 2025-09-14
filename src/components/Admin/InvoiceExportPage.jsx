@@ -633,12 +633,18 @@ const InvoiceExportPage = () => {
     }
   };
 
+
   // Check if any action for this invoice is loading
-  const isActionLoading = (invoiceId) => {
-    return Object.keys(actionLoading).some(key => 
-      key.includes(invoiceId.toString()) && actionLoading[key]
-    );
-  };
+const isActionLoading = (invoiceId) => {
+  // Add null check to prevent toString() error
+  if (!invoiceId) {
+    return false;
+  }
+  
+  return Object.keys(actionLoading).some(key => 
+    key.includes(invoiceId.toString()) && actionLoading[key]
+  );
+};
 
   return (
     <div className={styles.container}>
