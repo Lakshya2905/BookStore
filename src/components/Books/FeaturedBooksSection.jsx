@@ -424,32 +424,7 @@ const FeaturedBooksSection = ({
     }
   };
 
-  // Debug component (remove in production)
-  const DebugInfo = () => {
-    if (process.env.NODE_ENV !== 'development') return null;
-    
-    return (
-      <div style={{ 
-        position: 'fixed', 
-        bottom: '10px', 
-        right: '10px', 
-        background: 'rgba(0,0,0,0.8)', 
-        color: 'white', 
-        padding: '10px', 
-        fontSize: '12px', 
-        zIndex: 1000,
-        borderRadius: '4px'
-      }}>
-        <div>Books: {books.length}</div>
-        <div>Images loaded: {Object.values(imageLoadStates).filter(state => state === 'loaded').length}</div>
-        <div>Image errors: {Object.values(imageErrors).filter(error => error).length}</div>
-        <button onClick={showImageCacheInfo} style={{ marginTop: '5px', fontSize: '10px' }}>
-          Cache Info
-        </button>
-      </div>
-    );
-  };
-
+  
   return (
     <div className={styles.featuredSection}>
       {/* Cart Message Display */}
@@ -562,8 +537,7 @@ const FeaturedBooksSection = ({
         </div>
       </div>
       
-      {/* Debug Info Component */}
-      <DebugInfo />
+
     </div>
   );
 };
