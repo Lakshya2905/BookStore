@@ -22,6 +22,7 @@ const LandingPage = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
 
   const navigate = useNavigate();
   
@@ -29,6 +30,144 @@ const LandingPage = () => {
     fetchData();
     fetchStats();
   }, []);
+
+  // Function to fetch and cache book cover images
+  const fetchAndCacheBookImages = async (books) => {
+    if (!books || books.length === 0) return books;
+    
+    setImageLoading(true);
+    
+    try {
+      // Check for cached images first
+      const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
+      
+      const booksWithImages = await Promise.all(
+        books.map(async (book) => {
+          try {
+            // Check if image is already cached
+            if (cachedImages[book.id]) {
+              return {
+                ...book,
+                coverImageUrl: cachedImages[book.id]
+              };
+            }
+
+            // Fetch image from your Spring Boot endpoint
+            const imageResponse = await axios.get(`/api/book/image?bookId=${book.id}`, {
+              responseType: 'blob'
+            });
+
+            // Convert blob to base64 data URL for caching
+            const blob = imageResponse.data;
+            const reader = new FileReader();
+            
+            return new Promise((resolve) => {
+              reader.onloadend = () => {
+                const base64data = reader.result;
+                
+                // Cache the image
+                cachedImages[book.id] = base64data;
+                sessionStorage.setItem("bookImages", JSON.stringify(cachedImages));
+                
+                resolve({
+                  ...book,
+                  coverImageUrl: base64data
+                });
+              };
+              reader.readAsDataURL(blob);
+            });
+
+          } catch (imageError) {
+            console.warn(`Failed to load image for book ${book.id}:`, imageError);
+            // Return book without image if fetch fails
+            return {
+              ...book,
+              coverImageUrl: null
+            };
+          }
+        })
+      );
+
+      return booksWithImages;
+    } catch (error) {
+      console.error("Error fetching book images:", error);
+      return books; // Return original books if image fetching fails
+    } finally {
+      setImageLoading(false);
+    }
+  };
+
+  // Alternative approach: Fetch images in batches to avoid overwhelming the server
+  const fetchBookImagesInBatches = async (books, batchSize = 5) => {
+    if (!books || books.length === 0) return books;
+    
+    setImageLoading(true);
+    const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
+    const updatedBooks = [...books];
+
+    try {
+      // Process books in batches
+      for (let i = 0; i < books.length; i += batchSize) {
+        const batch = books.slice(i, i + batchSize);
+        
+        await Promise.all(
+          batch.map(async (book, index) => {
+            const actualIndex = i + index;
+            
+            try {
+              // Skip if already cached
+              if (cachedImages[book.id]) {
+                updatedBooks[actualIndex] = {
+                  ...book,
+                  coverImageUrl: cachedImages[book.id]
+                };
+                return;
+              }
+
+              const imageResponse = await axios.get(`/api/book/image?bookId=${book.id}`, {
+                responseType: 'blob',
+                timeout: 10000 // 10 second timeout
+              });
+
+              const blob = imageResponse.data;
+              const reader = new FileReader();
+              
+              reader.onloadend = () => {
+                const base64data = reader.result;
+                cachedImages[book.id] = base64data;
+                sessionStorage.setItem("bookImages", JSON.stringify(cachedImages));
+                
+                updatedBooks[actualIndex] = {
+                  ...book,
+                  coverImageUrl: base64data
+                };
+              };
+              reader.readAsDataURL(blob);
+
+            } catch (imageError) {
+              console.warn(`Failed to load image for book ${book.id}:`, imageError);
+              updatedBooks[actualIndex] = {
+                ...book,
+                coverImageUrl: null
+              };
+            }
+          })
+        );
+
+        // Small delay between batches to avoid overwhelming the server
+        if (i + batchSize < books.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+
+      return updatedBooks;
+    } catch (error) {
+      console.error("Error in batch image fetching:", error);
+      return books;
+    } finally {
+      setImageLoading(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -41,6 +180,25 @@ const LandingPage = () => {
       if (cachedCategories) {
         categoryData = JSON.parse(cachedCategories);
         setCategories(categoryData);
+      }
+
+      // Check for cached books
+      const cachedBooks = sessionStorage.getItem("allBooks");
+      
+      if (cachedBooks) {
+        const bookData = JSON.parse(cachedBooks);
+        setAllBooks(bookData);
+        setFeaturedBooks(bookData.slice(0, 6));
+        setPreviewBooks(bookData.slice(0, 8));
+        
+        setStats(prev => ({
+          ...prev,
+          totalBooks: bookData.length,
+          totalCategories: categoryData.length || prev.totalCategories
+        }));
+        
+        setLoading(false);
+        return;
       }
 
       const [categoryResponse, bookResponse] = await Promise.all([
@@ -64,20 +222,24 @@ const LandingPage = () => {
       // Books
       if (bookResponse.data.status === "SUCCESS") {
         const books = bookResponse.data.payload || [];
-        setAllBooks(books);
-        sessionStorage.setItem("allBooks", JSON.stringify(books));
+        
+        // Fetch and cache images for all books
+        const booksWithImages = await fetchBookImagesInBatches(books);
+        
+        setAllBooks(booksWithImages);
+        sessionStorage.setItem("allBooks", JSON.stringify(booksWithImages));
 
         // Featured books - get first 6 books for featured section
-        const featured = books.slice(0, 6);
+        const featured = booksWithImages.slice(0, 6);
         setFeaturedBooks(featured);
 
         // Preview books for "All Books" section (first 8 books)
-        setPreviewBooks(books.slice(0, 8));
+        setPreviewBooks(booksWithImages.slice(0, 8));
 
         // Update stats with actual data
         setStats(prev => ({
           ...prev,
-          totalBooks: books.length,
+          totalBooks: booksWithImages.length,
           totalCategories: categoryResponse.data.payload?.length || prev.totalCategories
         }));
 
@@ -102,6 +264,17 @@ const LandingPage = () => {
     }));
   };
 
+  // Utility function to get cached image
+  const getCachedImage = (bookId) => {
+    const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
+    return cachedImages[bookId] || null;
+  };
+
+  // Function to clear image cache if needed
+  const clearImageCache = () => {
+    sessionStorage.removeItem("bookImages");
+  };
+
   const handleExploreBooks = () => navigate('/books');
 
   const handleViewAllCategories = () => {
@@ -115,11 +288,10 @@ const LandingPage = () => {
   return (
     <div className={styles.landingPage}>
       {/* Hero Section */}
-     <div className={styles.discovery}>
-  <Discovery />
-</div>
+      <div className={styles.discovery}>
+        <Discovery />
+      </div>
 
-   
       {/* Stats Section */}
       <section className={styles.statsSection}>
         <div className={styles.statsContainer}>
@@ -150,6 +322,13 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Loading indicator for images */}
+      {imageLoading && (
+        <div className={styles.imageLoadingIndicator}>
+          <p>Loading book covers...</p>
+        </div>
+      )}
+
       {/* Featured Books Section */}
       <FeaturedBooksSection 
         books={featuredBooks}
@@ -157,8 +336,6 @@ const LandingPage = () => {
         error={error}
         onViewAllClick={handleExploreBooks}
       />
-
-    
 
       {/* Categories Section */}
       <section id="categories" className={styles.categoriesSection}>
