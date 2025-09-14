@@ -434,7 +434,6 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
       });
 
       if (response.data.status === 'SUCCESS') {
-        // Order placed successfully
         setShowCheckoutModal(false);
         onClose();
         
@@ -447,7 +446,7 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
         }
         
         // Show success message (you can customize this)
-        alert('Order placed successfully!');
+        alert(response.data.message);
       } else {
         throw new Error(response.data.message || 'Failed to place order');
       }
