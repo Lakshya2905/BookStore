@@ -5,11 +5,10 @@ import CartSidebar from "../Cart/CartSidebar";
 import styles from "./NavBar.module.css";
 import Logo from "../images/logo.jpg";
 
-const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
+const NavBar = React.memo(({ onSignIn, onSignUp }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
-  const [forceRender, setForceRender] = useState(0); // 👈 dummy state
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -24,8 +23,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
     }
   }, []);
 
-  const { user } = useMemo(() => getUserData(), [getUserData, forceRender]); 
-  // 👆 re-run when forceRender changes
+  const { user } = useMemo(() => getUserData(), [getUserData]);
 
   const handleSignOut = useCallback(() => {
     sessionStorage.removeItem("user");
@@ -40,17 +38,33 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
       e.preventDefault();
       if (searchQuery.trim()) {
         navigate(`/landing?search=${encodeURIComponent(searchQuery.trim())}`);
-        setForceRender((prev) => prev + 1); // 👈 force re-render
+        window.location.reload(); // 👈 force reload
       }
     },
     [searchQuery, navigate]
   );
 
   const handleCategoriesClick = useCallback(() => {
-    navigate("/landing");
-    window.location.hash = "#categories";
-    setForceRender((prev) => prev + 1); // 👈 force re-render
+    navigate("/landing#categories");
+    window.location.reload(); // 👈 force reload
   }, [navigate]);
+
+  const handleAuthorsClick = useCallback(() => {
+    if (location.pathname === "/landing") {
+      navigate("/landing#authors");
+    } else {
+      navigate("/landing#authors");
+    }
+    window.location.reload(); // 👈 force reload
+  }, [location.pathname, navigate]);
+
+  const handleNavigation = useCallback(
+    (path) => {
+      navigate(path);
+      window.location.reload(); // 👈 force reload
+    },
+    [navigate]
+  );
 
   const handleSearchInputChange = useCallback((e) => {
     setSearchQuery(e.target.value);
@@ -85,29 +99,11 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
     [navigate]
   );
 
-  const handleNavigation = useCallback(
-    (path) => {
-      navigate(path);
-      setForceRender((prev) => prev + 1); // 👈 force re-render on nav
-    },
-    [navigate]
-  );
-
-  const handleAuthorsClick = useCallback(() => {
-    if (location.pathname === "/landing") {
-      window.location.hash = "#authors";
-    } else {
-      navigate("/landing");
-      window.location.hash = "#authors";
-    }
-    setForceRender((prev) => prev + 1); // 👈 force re-render
-  }, [location.pathname, navigate]);
-
   const closeMobileMenuAndNavigate = useCallback(
     (path) => {
       setMobileMenuOpen(false);
       navigate(path);
-      setForceRender((prev) => prev + 1); // 👈 force re-render
+      window.location.reload(); // 👈 force reload
     },
     [navigate]
   );
@@ -115,7 +111,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
   const closeMobileMenuAndRunAction = useCallback((action) => {
     setMobileMenuOpen(false);
     action();
-    setForceRender((prev) => prev + 1); // 👈 force re-render
+    window.location.reload(); // 👈 force reload
   }, []);
 
   const navigationButtons = useMemo(
