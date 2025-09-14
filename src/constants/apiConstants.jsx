@@ -26,3 +26,9 @@ export const BOOK_CATEGORIES_ADD_URL = `${API_BASE_URL}/book/category/add`;
 
 
 export const CHECKOUT_CART_URL = `${API_BASE_URL}/order/create/cart`;
+
+export const INVOICE_ADMIN_FETCH_URL = `${API_BASE_URL}/invoice/findAllInvoice`;
+
+
+export const UPDATE_PAYMENT_URL = `${API_BASE_URL}/invoice/payment/paid/updateStatus`;
+export const UPDATE_ORDER_STATUS_URL = `${API_BASE_URL}/invoice/order/updateStatus`;

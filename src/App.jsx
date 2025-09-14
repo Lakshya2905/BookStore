@@ -10,6 +10,7 @@ import Footer from "./components/User/Footer";
 import CategoriesView from "./components/Books/CategoriesView";
 import AddBookPage from "./components/Admin/AddBookPage";
 import AddCategory from "./components/Admin/AddCategory";
+import InvoiceExportPage from "./components/Admin/InvoiceExportPage";
 
 // ========================
 // Auth Context
@@ -171,6 +172,7 @@ const AppContent = () => {
 
            <Route path="/admin/book/add" element={<AddBookPage />} />
            <Route path="/admin/category/add" element={<AddCategory />} />
+             <Route path="/admin/invoice" element={<InvoiceExportPage />} />
 
           {/* Add more routes as needed */}
         </Routes>
