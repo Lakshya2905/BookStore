@@ -1,7 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect,useState, useMemo } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, ShoppingCart, Zap } from 'lucide-react';
 import { addItemToCart } from '../../api/addItemToCart';
 import styles from './FeaturedBooksSection.module.css';
+
+const loadBootstrap = () => {
+  if (document.getElementById('featured-books-bootstrap')) return;
+  const link = document.createElement('link');
+  link.id = 'featured-books-bootstrap';
+  link.rel = 'stylesheet';
+  link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+  document.head.appendChild(link);
+};
 
 const FeaturedBooksSection = ({ 
   books = [], 
