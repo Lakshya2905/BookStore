@@ -9,6 +9,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
+  const [forceRender, setForceRender] = useState(0); // 👈 dummy state
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -23,7 +24,8 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
     }
   }, []);
 
-  const { user } = useMemo(() => getUserData(), [getUserData]);
+  const { user } = useMemo(() => getUserData(), [getUserData, forceRender]); 
+  // 👆 re-run when forceRender changes
 
   const handleSignOut = useCallback(() => {
     sessionStorage.removeItem("user");
@@ -33,27 +35,35 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
     window.location.reload();
   }, [navigate]);
 
-  const handleSearchSubmit = useCallback((e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/books?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  }, [searchQuery, navigate]);
+  const handleSearchSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (searchQuery.trim()) {
+        navigate(`/landing?search=${encodeURIComponent(searchQuery.trim())}`);
+        setForceRender((prev) => prev + 1); // 👈 force re-render
+      }
+    },
+    [searchQuery, navigate]
+  );
 
   const handleCategoriesClick = useCallback(() => {
     navigate("/landing");
     window.location.hash = "#categories";
+    setForceRender((prev) => prev + 1); // 👈 force re-render
   }, [navigate]);
 
   const handleSearchInputChange = useCallback((e) => {
     setSearchQuery(e.target.value);
   }, []);
 
-  const handleKeyPress = useCallback((e) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit(e);
-    }
-  }, [handleSearchSubmit]);
+  const handleKeyPress = useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        handleSearchSubmit(e);
+      }
+    },
+    [handleSearchSubmit]
+  );
 
   const handleCartClick = useCallback(() => {
     if (!user) {
@@ -67,15 +77,21 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
     setCartOpen(false);
   }, []);
 
-  const handleCheckout = useCallback((cartData) => {
-    console.log('Proceeding to checkout with:', cartData);
-    navigate('/checkout', { state: { cartData } });
-  }, [navigate]);
+  const handleCheckout = useCallback(
+    (cartData) => {
+      console.log("Proceeding to checkout with:", cartData);
+      navigate("/checkout", { state: { cartData } });
+    },
+    [navigate]
+  );
 
-  // Memoized navigation handlers to prevent recreation
-  const handleNavigation = useCallback((path) => {
-    navigate(path);
-  }, [navigate]);
+  const handleNavigation = useCallback(
+    (path) => {
+      navigate(path);
+      setForceRender((prev) => prev + 1); // 👈 force re-render on nav
+    },
+    [navigate]
+  );
 
   const handleAuthorsClick = useCallback(() => {
     if (location.pathname === "/landing") {
@@ -84,27 +100,35 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
       navigate("/landing");
       window.location.hash = "#authors";
     }
+    setForceRender((prev) => prev + 1); // 👈 force re-render
   }, [location.pathname, navigate]);
 
-  const closeMobileMenuAndNavigate = useCallback((path) => {
-    setMobileMenuOpen(false);
-    navigate(path);
-  }, [navigate]);
+  const closeMobileMenuAndNavigate = useCallback(
+    (path) => {
+      setMobileMenuOpen(false);
+      navigate(path);
+      setForceRender((prev) => prev + 1); // 👈 force re-render
+    },
+    [navigate]
+  );
 
   const closeMobileMenuAndRunAction = useCallback((action) => {
     setMobileMenuOpen(false);
     action();
+    setForceRender((prev) => prev + 1); // 👈 force re-render
   }, []);
 
-  // Memoized navigation buttons to prevent recreation
-  const navigationButtons = useMemo(() => [
-    { label: "Home", path: "/landing" },
-    { label: "All Books", path: "/books" },
-    { label: "New Releases", path: "/books?tag=NEW_RELEASE" },
-    { label: "Best Sellers", path: "/books?tag=BESTSELLER" },
-    { label: "Top Rated", path: "/books?tag=TOP_RATED" },
-    { label: "Sale", path: "/books?tag=SALE" }
-  ], []);
+  const navigationButtons = useMemo(
+    () => [
+      { label: "Home", path: "/landing" },
+      { label: "All Books", path: "/books" },
+      { label: "New Releases", path: "/books?tag=NEW_RELEASE" },
+      { label: "Best Sellers", path: "/books?tag=BESTSELLER" },
+      { label: "Top Rated", path: "/books?tag=TOP_RATED" },
+      { label: "Sale", path: "/books?tag=SALE" },
+    ],
+    []
+  );
 
   return (
     <>
@@ -114,7 +138,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
           <div className={styles.headerContent}>
             <div
               className={styles.logo}
-              onClick={() => navigate("/landing")}
+              onClick={() => handleNavigation("/landing")}
               style={{ cursor: "pointer" }}
             >
               <img src={Logo} alt="Shah Cart Logo" className={styles.logoImg} />
@@ -129,7 +153,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
                 onChange={handleSearchInputChange}
                 onKeyPress={handleKeyPress}
               />
-              <button 
+              <button
                 className={styles.searchButton}
                 onClick={handleSearchSubmit}
                 type="submit"
@@ -149,7 +173,9 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
               {user ? (
                 <div className={styles.userInfo}>
                   <User size={20} />
-                  <span>{user.fullName || user.name || user.email || "User"}</span>
+                  <span>
+                    {user.fullName || user.name || user.email || "User"}
+                  </span>
                   <button className={styles.signOutBtn} onClick={handleSignOut}>
                     Sign Out
                   </button>
@@ -179,16 +205,19 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
         <nav className={styles.navigation}>
           <div className={styles.navContent}>
             {navigationButtons.map((item) => (
-              <button 
+              <button
                 key={item.label}
-                className={styles.navButton} 
+                className={styles.navButton}
                 onClick={() => handleNavigation(item.path)}
               >
                 {item.label}
               </button>
             ))}
-            
-            <button className={styles.categoryBtn} onClick={handleCategoriesClick}>
+
+            <button
+              className={styles.categoryBtn}
+              onClick={handleCategoriesClick}
+            >
               Categories
             </button>
             <button className={styles.navButton} onClick={handleAuthorsClick}>
@@ -201,9 +230,9 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
         {mobileMenuOpen && (
           <div className={styles.mobileMenu}>
             {navigationButtons.map((item) => (
-              <button 
+              <button
                 key={`mobile-${item.label}`}
-                className={styles.mobileNavButton} 
+                className={styles.mobileNavButton}
                 onClick={() => closeMobileMenuAndNavigate(item.path)}
               >
                 {item.label}
@@ -212,18 +241,20 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
 
             <button
               className={styles.categoryBtn}
-              onClick={() => closeMobileMenuAndRunAction(handleCategoriesClick)}
+              onClick={() =>
+                closeMobileMenuAndRunAction(handleCategoriesClick)
+              }
             >
               Categories
             </button>
 
-            <button 
-              className={styles.mobileNavButton} 
+            <button
+              className={styles.mobileNavButton}
               onClick={() => closeMobileMenuAndRunAction(handleAuthorsClick)}
             >
               Authors
             </button>
-            
+
             {/* Mobile Search */}
             <div className={styles.mobileSearchBar}>
               <input
@@ -234,7 +265,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
                 onChange={handleSearchInputChange}
                 onKeyPress={handleKeyPress}
               />
-              <button 
+              <button
                 className={styles.mobileSearchButton}
                 onClick={handleSearchSubmit}
               >
@@ -246,7 +277,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
       </header>
 
       {/* Cart Sidebar */}
-      <CartSidebar 
+      <CartSidebar
         isOpen={cartOpen}
         onClose={handleCartClose}
         onCheckout={handleCheckout}
@@ -255,6 +286,6 @@ const NavBar = React.memo(({ onSignIn, onSignUp, onSearch }) => {
   );
 });
 
-NavBar.displayName = 'NavBar';
+NavBar.displayName = "NavBar";
 
 export default NavBar;
