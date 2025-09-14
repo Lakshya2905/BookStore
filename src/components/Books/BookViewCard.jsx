@@ -3,11 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { addItemToCart } from "../../api/addItemToCart";
 import styles from "./BookViewCard.module.css";
 
-const BookViewCard = ({ books = [], loading, error, showPagination = true  }) => {
+const BookViewCard = ({ books = [], loading, error, showPagination = true }) => {
   const [searchParams] = useSearchParams();
-  const searchQuery = searchParams.get("search");
-  const categoryFilter = searchParams.get("category");
-  const tagFilter = searchParams.get("tag");
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 12;
   const scrollContainerRef = useRef(null);
@@ -15,12 +12,39 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
   // State for cart operations
   const [cartLoading, setCartLoading] = useState({});
   const [cartMessage, setCartMessage] = useState("");
-  const [messageType, setMessageType] = useState(""); // SUCCESS, FAILED, etc.
+  const [messageType, setMessageType] = useState("");
   
   // State for cached images
   const [cachedImages, setCachedImages] = useState({});
 
-  // 🔹 Load cached images from sessionStorage
+  // Extract search parameters - this will trigger re-renders when URL changes
+  const searchQuery = searchParams.get("search");
+  const categoryFilter = searchParams.get("category");
+  const tagFilter = searchParams.get("tag");
+
+  // Force re-render trigger
+  const [forceUpdateKey, setForceUpdateKey] = useState(0);
+
+  // Listen for navigation changes from NavBar
+  useEffect(() => {
+    const handleNavigationChange = (event) => {
+      console.log('Navigation change detected:', event.detail);
+      setForceUpdateKey(prev => prev + 1);
+    };
+
+    window.addEventListener('navigationChange', handleNavigationChange);
+    return () => {
+      window.removeEventListener('navigationChange', handleNavigationChange);
+    };
+  }, []);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    console.log('Filters changed:', { searchQuery, categoryFilter, tagFilter });
+    setCurrentPage(1);
+  }, [searchQuery, categoryFilter, tagFilter, forceUpdateKey]);
+
+  // Load cached images from sessionStorage
   useEffect(() => {
     try {
       const storedImages = sessionStorage.getItem("bookImages");
@@ -32,7 +56,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
     }
   }, []);
 
-  // 🔹 Load stored books from sessionStorage if no props given
+  // Load stored books from sessionStorage if no props given
   const storedBooks = useMemo(() => {
     try {
       const saved = sessionStorage.getItem("allBooks");
@@ -46,25 +70,26 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
   // Decide which set of books to use
   const sourceBooks = books.length > 0 ? books : storedBooks;
 
-  // 🔹 Enhance books with cached images
+  // Enhance books with cached images
   const booksWithImages = useMemo(() => {
     return sourceBooks.map(book => {
       const cachedImageUrl = cachedImages[book.bookId] || cachedImages[book.id];
       return {
         ...book,
-        // Prioritize cached image, then existing imageUrl, then coverImageUrl
         imageUrl: cachedImageUrl || book.imageUrl || book.coverImageUrl || null
       };
     });
   }, [sourceBooks, cachedImages]);
 
-  // 🔍 Apply search + filters
+  // Apply search + filters - Now properly reactive to URL changes
   const filteredBooks = useMemo(() => {
+    console.log('Filtering books with:', { searchQuery, categoryFilter, tagFilter });
+    
     let filtered = booksWithImages || [];
 
-    const searchTerm = (searchQuery || "").toLowerCase();
-    const categoryTerm = (categoryFilter || "").toLowerCase();
-    const tagTerm = (tagFilter || "").toLowerCase();
+    const searchTerm = (searchQuery || "").toLowerCase().trim();
+    const categoryTerm = (categoryFilter || "").toLowerCase().trim();
+    const tagTerm = (tagFilter || "").toLowerCase().trim();
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -84,12 +109,14 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
 
     if (tagTerm) {
       filtered = filtered.filter((book) =>
-        book.bookTags?.some(
-          tag => tag.toLowerCase().includes(tagTerm)
+        book.bookTags?.some(tag => 
+          tag.toLowerCase().replace(/\s+/g, '').includes(tagTerm.replace(/\s+/g, '')) ||
+          tag.toLowerCase().includes(tagTerm)
         )
       );
     }
 
+    console.log(`Filtered ${filtered.length} books from ${booksWithImages.length} total`);
     return filtered;
   }, [booksWithImages, searchQuery, categoryFilter, tagFilter]);
 
@@ -103,7 +130,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
 
   // Function to get image URL for a book
   const getBookImageUrl = (book) => {
-    // Try multiple possible image sources
     return book.imageUrl || 
            cachedImages[book.bookId] || 
            cachedImages[book.id] || 
@@ -114,7 +140,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
   // Function to handle image load error
   const handleImageError = (bookId) => {
     console.warn(`Failed to load image for book ${bookId}`);
-    // You could implement fallback logic here if needed
   };
 
   // Handle Add to Cart
@@ -125,11 +150,9 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
     try {
       const response = await addItemToCart(bookId);
       
-      // Show success/failure message based on response
       setMessageType(response.status);
       setCartMessage(response.message || "Operation completed");
       
-      // Clear message after 3 seconds
       setTimeout(() => {
         setCartMessage("");
         setMessageType("");
@@ -139,7 +162,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
       setMessageType("FAILED");
       setCartMessage(error.response?.data?.message || error.message || "Failed to add item to cart");
       
-      // Clear message after 3 seconds
       setTimeout(() => {
         setCartMessage("");
         setMessageType("");
@@ -169,7 +191,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
-        left: -320, // Approximate width of one card plus gap
+        left: -320,
         behavior: 'smooth'
       });
     }
@@ -178,10 +200,19 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
   const scrollRight = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
-        left: 320, // Approximate width of one card plus gap
+        left: 320,
         behavior: 'smooth'
       });
     }
+  };
+
+  // Show current filter status for debugging
+  const getFilterStatus = () => {
+    const filters = [];
+    if (searchQuery) filters.push(`Search: "${searchQuery}"`);
+    if (categoryFilter) filters.push(`Category: "${categoryFilter}"`);
+    if (tagFilter) filters.push(`Tag: "${tagFilter}"`);
+    return filters.length > 0 ? filters.join(', ') : 'No filters applied';
   };
 
   if (loading) return <div className={styles.loading}><div className={styles.spinner}></div><p>Loading books...</p></div>;
@@ -194,6 +225,10 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
         <p className={styles.subtitle}>
           Discover your next great read from our curated collection
         </p>
+        {/* Debug info - remove in production */}
+        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+          {getFilterStatus()} | Showing {filteredBooks.length} of {sourceBooks.length} books
+        </div>
       </div>
       
       {/* Cart Message Display */}
@@ -232,6 +267,11 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
       {!loading && !error && filteredBooks.length === 0 && (
         <div className={styles.noBooks}>
           <h2>No books found</h2>
+          <p>
+            {searchQuery && `No results for "${searchQuery}"`}
+            {categoryFilter && ` in category "${categoryFilter}"`}
+            {tagFilter && ` with tag "${tagFilter}"`}
+          </p>
           <p>Try adjusting your search or filters to find more books</p>
         </div>
       )}
@@ -276,7 +316,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
                         )}
                       </div>
                       
-                      {/* Info Button */}
                       <button className={styles.infoButton} type="button" aria-label="Book details">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                           <circle cx="12" cy="12" r="10"/>
@@ -285,7 +324,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
                         </svg>
                       </button>
 
-                      {/* Tooltip */}
                       <div className={styles.tooltip}>
                         <div className={styles.tooltipContent}>
                           <div>
@@ -304,7 +342,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
                         </div>
                       </div>
 
-                      {/* Book Tags */}
                       {book.bookTags && book.bookTags.length > 0 && (
                         <div className={`${styles.bookTag} ${styles[book.bookTags[0].toLowerCase().replace(/\s+/g, '')] || styles.defaultTag}`}>
                           {book.bookTags[0]}
@@ -383,7 +420,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true  }) =>
             </button>
           </div>
 
-          {/* Pagination */}
           {showPagination && totalPages > 1 && (
             <nav className={styles.pagination} aria-label="Book pagination">
               <button 
