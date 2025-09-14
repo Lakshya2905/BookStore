@@ -9,6 +9,11 @@ const FeaturedBooksSection = ({
   error = null, 
   onViewAllClick = () => {} 
 }) => {
+  // Load Bootstrap when component mounts
+  useEffect(() => {
+    loadBootstrap();
+  }, []);
+
   // State for cart operations
   const [cartLoading, setCartLoading] = useState({});
   const [cartMessage, setCartMessage] = useState("");
@@ -383,7 +388,7 @@ const FeaturedBooksSection = ({
                   {books.length > 0 ? (
                     books.slice(0, 8).map((book) => (
                       <div key={book.bookId} className="col-xl-3 col-lg-4 col-md-6">
-                        <BookCard book={book} />
+                        <BookCard book={book} categoryTag={null} />
                       </div>
                     ))
                   ) : (
