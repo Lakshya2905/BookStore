@@ -166,6 +166,7 @@ const AppContent = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/books" element={<BookViewCard />} />
+          
             <Route path="/book/add" element={<AddBookPage />} />
           <Route path="/categories" element={<CategoriesView />} />
 
