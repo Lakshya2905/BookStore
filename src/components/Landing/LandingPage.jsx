@@ -6,7 +6,7 @@ import CategoriesView from '../Books/CategoriesView';
 import BookViewCard from '../Books/BookViewCard';
 import FeaturedBooksSection from '../Books/FeaturedBooksSection';
 import styles from './LandingPage.module.css';
-import { BOOK_FETCH_URL, CATRGORY_FETCH_URL } from '../../constants/apiConstants';
+import { BOOK_FETCH_URL, CATRGORY_FETCH_URL,BOOK_IMAGE_FETCH_URL } from '../../constants/apiConstants';
 import Discovery from './Discovery';
 
 const LandingPage = () => {
@@ -97,77 +97,78 @@ const LandingPage = () => {
     }
   };
 
-  // Alternative approach: Fetch images in batches to avoid overwhelming the server
-  const fetchBookImagesInBatches = async (books, batchSize = 5) => {
-    if (!books || books.length === 0) return books;
-    
-    setImageLoading(true);
-    const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
-    const updatedBooks = [...books];
+ // Alternative approach: Fetch images in batches to avoid overwhelming the server
+const fetchBookImagesInBatches = async (books, batchSize = 5) => {
+  if (!books || books.length === 0) return books;
+  
+  setImageLoading(true);
+  const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
+  const updatedBooks = [...books];
 
-    try {
-      // Process books in batches
-      for (let i = 0; i < books.length; i += batchSize) {
-        const batch = books.slice(i, i + batchSize);
-        
-        await Promise.all(
-          batch.map(async (book, index) => {
-            const actualIndex = i + index;
-            
-            try {
-              // Skip if already cached
-              if (cachedImages[book.id]) {
-                updatedBooks[actualIndex] = {
-                  ...book,
-                  coverImageUrl: cachedImages[book.id]
-                };
-                return;
-              }
-
-              const imageResponse = await axios.get(`/api/book/image?bookId=${book.id}`, {
-                responseType: 'blob',
-                timeout: 10000 // 10 second timeout
-              });
-
-              const blob = imageResponse.data;
-              const reader = new FileReader();
-              
-              reader.onloadend = () => {
-                const base64data = reader.result;
-                cachedImages[book.id] = base64data;
-                sessionStorage.setItem("bookImages", JSON.stringify(cachedImages));
-                
-                updatedBooks[actualIndex] = {
-                  ...book,
-                  coverImageUrl: base64data
-                };
-              };
-              reader.readAsDataURL(blob);
-
-            } catch (imageError) {
-              console.warn(`Failed to load image for book ${book.id}:`, imageError);
+  try {
+    // Process books in batches
+    for (let i = 0; i < books.length; i += batchSize) {
+      const batch = books.slice(i, i + batchSize);
+      
+      await Promise.all(
+        batch.map(async (book, index) => {
+          const actualIndex = i + index;
+          
+          try {
+            // Skip if already cached
+            if (cachedImages[book.bookId]) {
               updatedBooks[actualIndex] = {
                 ...book,
-                coverImageUrl: null
+                coverImageUrl: cachedImages[book.bookId]
               };
+              return;
             }
-          })
-        );
 
-        // Small delay between batches to avoid overwhelming the server
-        if (i + batchSize < books.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+            const imageResponse = await axios.get(`${BOOK_IMAGE_FETCH_URL}?bookId=${book.bookId}`, {
+              responseType: 'blob',
+              timeout: 10000 // 10 second timeout
+            });
+
+            const blob = imageResponse.data;
+            const reader = new FileReader();
+            
+            reader.onloadend = () => {
+              const base64data = reader.result;
+              cachedImages[book.bookId] = base64data;
+              sessionStorage.setItem("bookImages", JSON.stringify(cachedImages));
+              
+              updatedBooks[actualIndex] = {
+                ...book,
+                coverImageUrl: base64data
+              };
+            };
+            reader.readAsDataURL(blob);
+
+          } catch (imageError) {
+            console.warn(`Failed to load image for book ${book.bookId}:`, imageError);
+            updatedBooks[actualIndex] = {
+              ...book,
+              coverImageUrl: null
+            };
+          }
+        })
+      );
+
+      // Small delay between batches to avoid overwhelming the server
+      if (i + batchSize < books.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
-
-      return updatedBooks;
-    } catch (error) {
-      console.error("Error in batch image fetching:", error);
-      return books;
-    } finally {
-      setImageLoading(false);
     }
-  };
+
+    return updatedBooks;
+  } catch (error) {
+    console.error("Error in batch image fetching:", error);
+    return books;
+  } finally {
+    setImageLoading(false);
+  }
+};
+
 
   const fetchData = async () => {
     try {
