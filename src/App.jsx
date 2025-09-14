@@ -8,6 +8,7 @@ import SignupModal from "./components/Landing/SignupModal";
 import BookViewCard from "./components/Books/BookViewCard";
 import Footer from "./components/User/Footer";
 import CategoriesView from "./components/Books/CategoriesView";
+import AddBookPage from "./components/Admin/AddBookPage";
 
 // ========================
 // Auth Context
@@ -165,6 +166,7 @@ const AppContent = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/books" element={<BookViewCard />} />
+            <Route path="/book/add" element={<AddBookPage />} />
           <Route path="/categories" element={<CategoriesView />} />
 
 
