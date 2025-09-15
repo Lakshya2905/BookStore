@@ -44,6 +44,21 @@ const FeaturedBooksSection = ({
   const [imageLoadStates, setImageLoadStates] = useState({});
   const [imageErrors, setImageErrors] = useState({});
 
+  // State for cached images
+  const [cachedImages, setCachedImages] = useState({});
+
+  // Load cached images from sessionStorage
+  useEffect(() => {
+    try {
+      const storedImages = sessionStorage.getItem("bookImages");
+      if (storedImages) {
+        setCachedImages(JSON.parse(storedImages));
+      }
+    } catch (error) {
+      console.error("Error loading cached images:", error);
+    }
+  }, []);
+
   // Function to get cached image from session storage
   const getCachedImage = (bookId) => {
     try {
@@ -57,12 +72,6 @@ const FeaturedBooksSection = ({
 
   // Function to get book image URL with fallback logic
   const getBookImageUrl = (book) => {
-    // Priority order:
-    // 1. coverImageUrl from props (already processed by LandingPage)
-    // 2. imageUrl from props (if available)
-    // 3. Check session storage directly
-    // 4. Return null for placeholder
-    
     if (book.coverImageUrl) {
       return book.coverImageUrl;
     }
@@ -79,19 +88,10 @@ const FeaturedBooksSection = ({
     return null;
   };
 
-  // Handle image loading states
-  const handleImageLoad = (bookId) => {
-    setImageLoadStates(prev => ({ ...prev, [bookId]: 'loaded' }));
-    setImageErrors(prev => ({ ...prev, [bookId]: false }));
-  };
-
+  // Function to handle image load error
   const handleImageError = (bookId) => {
-    setImageLoadStates(prev => ({ ...prev, [bookId]: 'error' }));
+    console.warn(`Failed to load image for book ${bookId}`);
     setImageErrors(prev => ({ ...prev, [bookId]: true }));
-  };
-
-  const handleImageLoadStart = (bookId) => {
-    setImageLoadStates(prev => ({ ...prev, [bookId]: 'loading' }));
   };
 
   // Organize books by tags
@@ -115,18 +115,21 @@ const FeaturedBooksSection = ({
   }, [books]);
 
   // Handle Add to Cart
-  const handleAddToCart = async (bookId) => {
+  const handleAddToCart = async (bookId, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
     setCartLoading(prev => ({ ...prev, [bookId]: true }));
     setCartMessage("");
     
     try {
       const response = await addItemToCart(bookId);
       
-      // Show success/failure message based on response
       setMessageType(response.status);
       setCartMessage(response.message || "Operation completed");
       
-      // Clear message after 3 seconds
       setTimeout(() => {
         setCartMessage("");
         setMessageType("");
@@ -136,7 +139,6 @@ const FeaturedBooksSection = ({
       setMessageType("FAILED");
       setCartMessage(error.response?.data?.message || error.message || "Failed to add item to cart");
       
-      // Clear message after 3 seconds
       setTimeout(() => {
         setCartMessage("");
         setMessageType("");
@@ -147,7 +149,12 @@ const FeaturedBooksSection = ({
   };
 
   // Handle Buy Now - Open Place Order Modal
-  const handleBuyNow = (bookId) => {
+  const handleBuyNow = (bookId, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
     setSelectedBookId(bookId);
     setOrderModalOpen(true);
   };
@@ -159,7 +166,12 @@ const FeaturedBooksSection = ({
   };
 
   // Handle carousel navigation
-  const handleCarouselNav = (categoryKey, direction) => {
+  const handleCarouselNav = (categoryKey, direction, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
     const categoryBooks = organizedBooks[categoryKey];
     const maxPosition = Math.max(0, categoryBooks.length - 4);
     
@@ -185,119 +197,110 @@ const FeaturedBooksSection = ({
     }
   };
 
-  // Get tag display name and style
-  const getTagInfo = (tag) => {
-    switch (tag) {
-      case 'NEW_RELEASE':
-        return { label: 'New Release', className: styles.tagNewRelease };
-      case 'BESTSELLER':
-        return { label: 'Bestseller', className: styles.tagBestseller };
-      case 'TOP_RATED':
-        return { label: 'Top Rated', className: styles.tagTopRated };
-      default:
-        return { label: 'Featured', className: styles.tagDefault };
+  // Get tag display name and style for specific tags
+  const getTagInfo = (bookTags, categoryKey) => {
+    // Determine which tag to show based on category
+    if (categoryKey === 'bestsellers' && bookTags?.includes('BESTSELLER')) {
+      return { label: 'Bestseller', className: styles.bestseller };
     }
+    if (categoryKey === 'topRated' && bookTags?.includes('TOP_RATED')) {
+      return { label: 'Top Rated', className: styles.toprated };
+    }
+    if (categoryKey === 'newReleases' && bookTags?.includes('NEW_RELEASE')) {
+      return { label: 'New Release', className: styles.newrelease };
+    }
+    
+    // Fallback for general books or mixed categories
+    if (bookTags?.includes('BESTSELLER')) {
+      return { label: 'Bestseller', className: styles.bestseller };
+    }
+    if (bookTags?.includes('TOP_RATED')) {
+      return { label: 'Top Rated', className: styles.toprated };
+    }
+    if (bookTags?.includes('NEW_RELEASE')) {
+      return { label: 'New Release', className: styles.newrelease };
+    }
+    
+    return null; // No tag to show
   };
 
-  const BookImageComponent = ({ book }) => {
+  const BookCard = ({ book, categoryKey }) => {
     const imageUrl = getBookImageUrl(book);
-    const imageLoadState = imageLoadStates[book.bookId];
-    const hasImageError = imageErrors[book.bookId];
-    
-    if (!imageUrl || hasImageError) {
-      return (
-        <div className={`${styles.bookPlaceholder} d-flex align-items-center justify-content-center bg-light`}>
-          <div className="text-center text-muted">
-            <ImageOff size={48} className="mb-2" />
-            <div className="small">No Image</div>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className={styles.bookImageWrapper}>
-        {imageLoadState === 'loading' && (
-          <div className={`${styles.imageLoader} position-absolute top-50 start-50 translate-middle`}>
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading image...</span>
-            </div>
-          </div>
-        )}
-        
-        <img 
-          src={imageUrl} 
-          alt={book.bookName || 'Book cover'}
-          className={`${styles.bookImage} card-img-top`}
-          onLoad={() => handleImageLoad(book.bookId)}
-          onError={() => handleImageError(book.bookId)}
-          onLoadStart={() => handleImageLoadStart(book.bookId)}
-          style={{
-            opacity: imageLoadState === 'loaded' ? 1 : 0.7,
-            transition: 'opacity 0.3s ease'
-          }}
-        />
-      </div>
-    );
-  };
-
-  const BookCard = ({ book }) => {
-    const primaryTag = book.bookTags?.[0] || 'FEATURED';
-    const tagInfo = getTagInfo(primaryTag);
+    const bookId = book.bookId || book.id;
+    const tagInfo = getTagInfo(book.bookTags, categoryKey);
     
     return (
-      <div className={`${styles.bookCard} card h-100`}>
+      <article className={styles.bookCard}>
         <div className={styles.bookImageContainer}>
-          <BookImageComponent book={book} />
-          <span className={`${styles.bookTag} ${tagInfo.className} badge position-absolute`}>
-            {tagInfo.label}
-          </span>
-        </div>
-        
-        <div className="card-body d-flex flex-column">
-          <h5 className={`${styles.bookTitle} card-title`}>{book.bookName}</h5>
-          <p className={`${styles.bookAuthor} card-text text-muted`}>by {book.authorName}</p>
-          <p className={`${styles.bookCategory} text-muted small`}>{book.category || 'General'}</p>
-          
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <span className={`${styles.bookPrice} fw-bold text-success`}>₹{book.price}</span>
-            {book.category && (
-              <span className={`${styles.categoryBadge} badge bg-light text-dark`}>
-                {book.category}
-              </span>
+          <div className={styles.bookImage}>
+            {imageUrl ? (
+              <img 
+                src={imageUrl} 
+                alt={book.bookName}
+                className={styles.bookCover}
+                loading="lazy"
+                onError={() => handleImageError(bookId)}
+              />
+            ) : (
+              <div className={styles.bookPlaceholder}>
+                <div className={styles.placeholderIcon}>📚</div>
+                <div className={styles.placeholderText}>No Image</div>
+              </div>
             )}
           </div>
           
-          <div className="d-grid gap-2 mt-auto">
+          {/* Show tag only if it matches the category */}
+          {tagInfo && (
+            <div className={`${styles.bookTag} ${tagInfo.className}`}>
+              {tagInfo.label}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.bookInfo}>
+          <h3 className={styles.bookTitle}>{book.bookName}</h3>
+          <p className={styles.bookAuthor}>by {book.authorName}</p>
+          <p className={styles.bookDescription}>
+            {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
+          </p>
+          
+          <div className={styles.bookFooter}>
+            <span className={styles.bookPrice}>₹{book.price}</span>
+            {book.category && (
+              <span className={styles.bookCategory}>{book.category}</span>
+            )}
+          </div>
+
+          <div className={styles.bookActions}>
             <button 
-              className={`${styles.addToCartBtn} btn btn-primary`}
-              onClick={() => handleAddToCart(book.bookId)}
-              disabled={cartLoading[book.bookId]}
+              className={`${styles.addToCartButton} ${cartLoading[bookId] ? styles.loading : ''}`}
+              onClick={(event) => handleAddToCart(bookId, event)}
+              disabled={cartLoading[bookId]}
               type="button"
             >
-              {cartLoading[book.bookId] ? (
+              {cartLoading[bookId] ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  <div className={styles.buttonSpinner}></div>
                   Adding...
                 </>
               ) : (
                 <>
-                  <ShoppingCart size={16} className="me-2" />
+                  <ShoppingCart size={14} />
                   Add to Cart
                 </>
               )}
             </button>
             <button 
-              className="btn btn-success" 
+              className={styles.checkoutButton} 
               type="button"
-              onClick={() => handleBuyNow(book.bookId)}
+              onClick={(event) => handleBuyNow(bookId, event)}
             >
-              <Zap size={16} className="me-2" />
+              <Zap size={14} />
               Buy Now
             </button>
           </div>
         </div>
-      </div>
+      </article>
     );
   };
 
@@ -310,7 +313,7 @@ const FeaturedBooksSection = ({
     const visibleBooks = books.slice(position, position + 4);
 
     return (
-      <div className={`${styles.categorySection} mb-5`}>
+      <div className={styles.categorySection}>
         <div className={`${styles.categoryHeader} d-flex justify-content-between align-items-center mb-4`}>
           <div className="d-flex align-items-center">
             <span className={`${styles.categoryIcon} me-3`}>{icon}</span>
@@ -319,10 +322,10 @@ const FeaturedBooksSection = ({
               <small className="text-muted">({books.length} books)</small>
             </div>
           </div>
-          <div className={`${styles.categoryControls} d-flex`}>
+          <div className={`${styles.categoryControls} d-flex gap-2`}>
             <button 
-              className={`btn btn-outline-primary me-2 ${!canGoLeft ? 'disabled' : ''}`}
-              onClick={() => handleCarouselNav(categoryKey, -1)}
+              className={`btn btn-outline-primary ${!canGoLeft ? 'disabled' : ''}`}
+              onClick={(event) => handleCarouselNav(categoryKey, -1, event)}
               disabled={!canGoLeft}
               type="button"
             >
@@ -330,7 +333,7 @@ const FeaturedBooksSection = ({
             </button>
             <button 
               className={`btn btn-outline-primary ${!canGoRight ? 'disabled' : ''}`}
-              onClick={() => handleCarouselNav(categoryKey, 1)}
+              onClick={(event) => handleCarouselNav(categoryKey, 1, event)}
               disabled={!canGoRight}
               type="button"
             >
@@ -341,8 +344,8 @@ const FeaturedBooksSection = ({
         
         <div className="row g-4">
           {visibleBooks.map((book) => (
-            <div key={book.bookId} className="col-xl-3 col-lg-4 col-md-6">
-              <BookCard book={book} />
+            <div key={book.bookId || book.id} className="col-xl-3 col-lg-4 col-md-6">
+              <BookCard book={book} categoryKey={categoryKey} />
             </div>
           ))}
         </div>
@@ -383,66 +386,45 @@ const FeaturedBooksSection = ({
     ));
   };
 
-  // Debug function to show image cache info
-  const showImageCacheInfo = () => {
-    try {
-      const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
-      const imageCount = Object.keys(cachedImages).length;
-      console.log(`Image cache contains ${imageCount} images:`, Object.keys(cachedImages));
-      
-      // Show which books have images available
-      books.forEach(book => {
-        const imageUrl = getBookImageUrl(book);
-        console.log(`Book ${book.bookId} (${book.bookName}): ${imageUrl ? 'Has image' : 'No image'}`);
-      });
-    } catch (error) {
-      console.error("Error reading image cache:", error);
-    }
-  };
-
-  
   return (
-    <div className={styles.featuredSection}>
+    <div className={styles.container}>
       {/* Cart Message Display */}
       {cartMessage && (
-        <div className={`${getMessageClass(messageType)} alert alert-dismissible fade show position-fixed`} 
+        <div className={`${getMessageClass(messageType)} position-fixed`} 
              style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
-          <div className="d-flex justify-content-between align-items-center">
+          <div className={styles.messageContent}>
             <span>{cartMessage}</span>
             <button 
-              type="button" 
-              className="btn-close" 
+              className={styles.messageClose}
               onClick={() => {
                 setCartMessage("");
                 setMessageType("");
               }}
-            ></button>
+              type="button"
+              aria-label="Close message"
+            >
+              ×
+            </button>
           </div>
         </div>
       )}
 
       <div className="container-fluid py-5">
         {/* Main Header */}
-        <div className={`${styles.mainHeader} text-center mb-5`}>
-          <div className={`${styles.headerCard} card border-0 shadow-sm mx-auto`}>
-            <div className="card-body py-5">
-              <h1 className={`${styles.mainTitle} display-4 fw-bold mb-3`}>Featured Books</h1>
-              <p className={`${styles.mainSubtitle} lead text-muted`}>
-                Discover our carefully curated collection of exceptional reads
-              </p>
-            </div>
-          </div>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Featured Books</h1>
+          <p className={styles.subtitle}>
+            Discover our carefully curated collection of exceptional reads
+          </p>
         </div>
 
         {loading ? (
-          <div className={`${styles.loading} text-center py-5`}>
-            <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-            <p className="text-muted fs-5">Loading featured books...</p>
+          <div className={styles.loading}>
+            <div className={styles.spinner}></div>
+            <p>Loading featured books...</p>
           </div>
         ) : error ? (
-          <div className={`${styles.error} text-center py-5`}>
+          <div className={styles.error}>
             <div className="card border-danger mx-auto" style={{ maxWidth: '500px' }}>
               <div className="card-body">
                 <div className="text-danger mb-3">
@@ -468,7 +450,7 @@ const FeaturedBooksSection = ({
             {organizedBooks.bestsellers.length === 0 && 
              organizedBooks.newReleases.length === 0 && 
              organizedBooks.topRated.length === 0 && (
-              <div className={`${styles.categorySection} mb-5`}>
+              <div className={styles.categorySection}>
                 <div className={`${styles.categoryHeader} d-flex align-items-center mb-4`}>
                   <span className={`${styles.categoryIcon} me-3`}>📚</span>
                   <h2 className={`${styles.categoryTitle} mb-0`}>All Featured Books</h2>
@@ -476,22 +458,15 @@ const FeaturedBooksSection = ({
                 <div className="row g-4">
                   {books.length > 0 ? (
                     books.slice(0, 8).map((book) => (
-                      <div key={book.bookId} className="col-xl-3 col-lg-4 col-md-6">
-                        <BookCard book={book} />
+                      <div key={book.bookId || book.id} className="col-xl-3 col-lg-4 col-md-6">
+                        <BookCard book={book} categoryKey="all" />
                       </div>
                     ))
                   ) : (
                     <div className="col-12">
-                      <div className={`${styles.noBooks} text-center py-5`}>
-                        <div className="card border-0">
-                          <div className="card-body">
-                            <div className="text-muted mb-3">
-                              <i className="fas fa-book-open fa-4x"></i>
-                            </div>
-                            <h3 className="card-title text-muted">No featured books available</h3>
-                            <p className="card-text text-muted">Check back soon for our latest picks!</p>
-                          </div>
-                        </div>
+                      <div className={styles.noBooks}>
+                        <h2>No featured books available</h2>
+                        <p>Check back soon for our latest picks!</p>
                       </div>
                     </div>
                   )}
@@ -501,9 +476,10 @@ const FeaturedBooksSection = ({
           </>
         )}
         
-        <div className={`${styles.sectionFooter} text-center pt-4 mt-5`}>
+        {/* Section Footer with View All Button */}
+        <div className={`${styles.sectionFooter} text-center mt-5`}>
           <button 
-            className={`${styles.viewAllButton} btn btn-dark btn-lg`}
+            className={styles.viewAllButton}
             onClick={onViewAllClick} 
             type="button"
           >
