@@ -335,9 +335,6 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
                 >
                   Categories
                 </button>
-                <button className={styles.navButton} onClick={handleAuthorsClick}>
-                  Authors
-                </button>
               </>
             )}
           </div>

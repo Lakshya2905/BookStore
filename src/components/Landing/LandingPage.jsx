@@ -398,6 +398,8 @@ const LandingPage = () => {
 
   const handleCategoryClick = (category) => {
     navigate(`/books?category=${encodeURIComponent(category)}`);
+     window.location.reload();
+
   };
 
   return (
