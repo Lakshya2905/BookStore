@@ -1,68 +1,163 @@
+/* Container Styles */
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Header Styles */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #e0e0e0;
+  background: white;
+  padding: 25px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-.header h2 {
-  color: #333;
-  margin: 0;
+.title {
+  color: #2c3e50;
   font-size: 28px;
-  font-weight: 600;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.refreshBtn {
+.headerButtons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Button Styles */
+.reviewBtn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
   font-size: 14px;
-  font-weight: 500;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.reviewBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.reviewBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+}
+
+.submitBtn {
+  background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(86, 171, 47, 0.4);
+}
+
+.submitBtn:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(86, 171, 47, 0.6);
+}
+
+.submitBtn.disabled {
+  background: linear-gradient(135deg, #95a5a6 0%, #bdc3c7 100%);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.refreshBtn {
+  background: linear-gradient(135deg, #3498db 0%, #74b9ff 100%);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
 }
 
 .refreshBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
 }
 
-.loading {
-  text-align: center;
-  padding: 60px 20px;
-  font-size: 18px;
-  color: #666;
+.refreshBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.noBooks {
-  text-align: center;
-  padding: 60px 20px;
-  font-size: 18px;
-  color: #999;
-  background: #f8f9fa;
+/* Notice Styles */
+.changesNotice, .reviewedNotice {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
   border-radius: 12px;
-  border: 2px dashed #ddd;
+  margin-bottom: 20px;
+  animation: slideIn 0.5s ease;
 }
 
+.changesNotice {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-left: 4px solid #f39c12;
+  color: #856404;
+}
+
+.reviewedNotice {
+  background: linear-gradient(135deg, #d1ecf1 0%, #a7f3d0 100%);
+  border-left: 4px solid #27ae60;
+  color: #155724;
+}
+
+.noticeIcon {
+  font-size: 20px;
+  margin-right: 12px;
+}
+
+.noticeContent p {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Table Styles */
 .tableContainer {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.tableWrapper {
+  overflow-x: auto;
 }
 
 .table {
@@ -71,13 +166,13 @@
   font-size: 14px;
 }
 
-.table thead {
+.headerRow {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.table th {
-  padding: 16px 12px;
+.headerRow th {
+  padding: 18px 16px;
   text-align: left;
   font-weight: 600;
   font-size: 13px;
@@ -85,163 +180,508 @@
   letter-spacing: 0.5px;
 }
 
-.table th:first-child {
+.priorityHeader {
   width: 80px;
+  text-align: center;
 }
 
-.table th:last-child {
+.bookHeader {
+  min-width: 200px;
+}
+
+.authorHeader {
+  min-width: 150px;
+}
+
+.categoryHeader {
+  width: 120px;
+}
+
+.priceHeader {
+  width: 100px;
+  text-align: right;
+}
+
+.descriptionHeader {
+  min-width: 250px;
+}
+
+.actionsHeader {
   width: 100px;
   text-align: center;
 }
 
+/* Row Styles */
 .row {
-  cursor: move;
   transition: all 0.3s ease;
-  background: white;
-}
-
-.row:nth-child(even) {
-  background: #f8f9fa;
+  cursor: move;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .row:hover {
-  background: #e3f2fd !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+  transform: translateX(2px);
+}
+
+.row:last-child {
+  border-bottom: none;
 }
 
 .row.dragging {
   opacity: 0.5;
   transform: rotate(2deg);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  background: #fff3e0 !important;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
 }
 
 .row.dragOver {
-  border-top: 3px solid #4caf50;
-  background: #e8f5e8 !important;
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+  border-top: 2px solid #4caf50;
+  border-bottom: 2px solid #4caf50;
 }
 
-.table td {
-  padding: 16px 12px;
-  border-bottom: 1px solid #e0e0e0;
-  vertical-align: middle;
-}
-
-.priority {
-  font-weight: 700;
-  font-size: 16px;
-  color: #667eea;
+/* Cell Styles */
+.priorityCell {
+  padding: 16px;
   text-align: center;
-  background: #f0f4ff;
-  border-radius: 6px;
-  margin: 4px;
+}
+
+.priorityBadge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.bookCell {
+  padding: 16px;
 }
 
 .bookName {
   font-weight: 600;
-  color: #333;
-  max-width: 200px;
+  color: #2c3e50;
+  font-size: 15px;
 }
 
-.price {
+.authorCell {
+  padding: 16px;
+  color: #666;
+  font-style: italic;
+}
+
+.categoryCell {
+  padding: 16px;
+}
+
+.categoryTag {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #2c3e50;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 600;
-  color: #2e7d32;
-  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+}
+
+.priceCell {
+  padding: 16px;
+  text-align: right;
+  font-weight: 600;
+  color: #27ae60;
+  font-size: 15px;
+}
+
+.descriptionCell {
+  padding: 16px;
+  max-width: 250px;
 }
 
 .description {
-  max-width: 250px;
+  color: #666;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #666;
-  font-size: 13px;
 }
 
-.actions {
+.actionsCell {
+  padding: 16px;
   text-align: center;
 }
 
+.actionButtons {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
 .actionBtn {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 6px;
   width: 32px;
   height: 32px;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
-  margin: 0 2px;
-  transition: all 0.2s ease;
-  display: inline-flex;
+  transition: all 0.3s ease;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.actionBtn:hover:not(:disabled) {
-  background: #667eea;
+.upBtn {
+  background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
   color: white;
+  box-shadow: 0 2px 8px rgba(116, 185, 255, 0.4);
+}
+
+.upBtn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(116, 185, 255, 0.6);
+}
+
+.downBtn {
+  background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(253, 121, 168, 0.4);
+}
+
+.downBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(253, 121, 168, 0.6);
 }
 
 .actionBtn:disabled {
-  opacity: 0.3;
+  background: #bdc3c7;
+  color: #7f8c8d;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-.actionBtn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
+/* Instructions */
 .instructions {
-  background: #f0f4ff;
-  border: 1px solid #e0e7ff;
+  background: white;
+  padding: 25px 30px;
   border-radius: 12px;
-  padding: 20px;
-  color: #4338ca;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-.instructions p {
-  margin: 0 0 10px 0;
+.instructionsTitle {
+  color: #2c3e50;
+  font-size: 18px;
   font-weight: 600;
-  font-size: 16px;
+  margin: 0 0 15px 0;
 }
 
-.instructions ul {
+.instructionsList {
   margin: 0;
   padding-left: 20px;
+  color: #666;
 }
 
-.instructions li {
-  margin-bottom: 6px;
+.instructionsList li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 900px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.closeBtn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.modalContent {
+  padding: 30px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.modalDescription {
+  color: #666;
+  margin: 0 0 20px 0;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.modalTableContainer {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+}
+
+.modalTable {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 14px;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .table {
-    font-size: 13px;
+.modalTable thead tr {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.modalTable th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.modalRow {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.3s ease;
+}
+
+.modalRow:hover {
+  background-color: #f8f9fa;
+}
+
+.modalRow:last-child {
+  border-bottom: none;
+}
+
+.modalRow td {
+  padding: 16px;
+  vertical-align: middle;
+}
+
+.modalPriorityBadge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.modalBookName {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Add these styles to your PriorityUpdate.module.css file */
+
+/* Modal Footer Styles */
+.modalFooter {
+  padding: 20px 30px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Modal Button Styles */
+.cancelBtn {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.cancelBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+.confirmBtn {
+  background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(86, 171, 47, 0.4);
+}
+
+.confirmBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(86, 171, 47, 0.6);
+}
+
+/* Complete the existing modal styles */
+.modalCategoryTag {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #2c3e50;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Loading and No Books Styles */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 18px;
+  color: #666;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.noBooks {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  color: #666;
+}
+
+.noBooksIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.noBooks p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
-  
-  .table th,
-  .table td {
-    padding: 12px 8px;
-  }
-  
-  .description {
-    max-width: 150px;
+  to {
+    opacity: 1;
   }
 }
 
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .container {
-    padding: 15px;
+  .modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .modalHeader {
+    padding: 20px;
+  }
+  
+  .modalContent {
+    padding: 20px;
+  }
+  
+  .modalFooter {
+    padding: 15px 20px;
+    flex-direction: column-reverse;
+  }
+  
+  .cancelBtn,
+  .confirmBtn {
+    width: 100%;
+    justify-content: center;
   }
   
   .header {
@@ -251,57 +691,249 @@
   }
   
   .headerButtons {
-    flex-direction: column;
     width: 100%;
-    gap: 10px;
+    justify-content: center;
   }
   
-  .submitBtn,
-  .refreshBtn {
-    width: 100%;
-  }
-  
-  .tableContainer {
+  .tableWrapper {
     overflow-x: auto;
-  }
-  
-  .table {
-    min-width: 800px;
-    font-size: 12px;
-  }
-  
-  .table th,
-  .table td {
-    padding: 10px 6px;
-  }
-  
-  .description {
-    max-width: 120px;
-  }
-  
-  .actionBtn {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
   }
 }
 
-@media (max-width: 480px) {
-  .header h2 {
-    font-size: 24px;
+/* Add these styles to your PriorityUpdate.module.css file */
+
+/* Message Container Styles */
+.messageContainer {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  animation: slideInMessage 0.5s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid;
+  position: relative;
+}
+
+.messageContainer.success {
+  background: linear-gradient(135deg, #d1f2eb 0%, #a7f3d0 100%);
+  border-color: #27ae60;
+  color: #155724;
+}
+
+.messageContainer.error {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  border-color: #e74c3c;
+  color: #721c24;
+}
+
+.messageIcon {
+  font-size: 20px;
+  margin-right: 12px;
+}
+
+.messageContent {
+  flex: 1;
+}
+
+.messageContent p {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.messageClose {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  margin-left: 12px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.messageClose:hover {
+  opacity: 1;
+}
+
+/* Modal Footer Styles */
+.modalFooter {
+  padding: 20px 30px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Modal Button Styles */
+.cancelBtn {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.cancelBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+.confirmBtn {
+  background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(86, 171, 47, 0.4);
+}
+
+.confirmBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(86, 171, 47, 0.6);
+}
+
+/* Complete the existing modal styles */
+.modalCategoryTag {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #2c3e50;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Loading and No Books Styles */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 18px;
+  color: #666;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.noBooks {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  color: #666;
+}
+
+.noBooksIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.noBooks p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Animation keyframes */
+@keyframes slideInMessage {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    max-height: 90vh;
   }
   
-  .table {
-    min-width: 700px;
-    font-size: 11px;
+  .modalHeader {
+    padding: 20px;
   }
   
-  .table th,
-  .table td {
-    padding: 8px 4px;
+  .modalContent {
+    padding: 20px;
   }
   
-  .instructions {
-    padding: 15px;
+  .modalFooter {
+    padding: 15px 20px;
+    flex-direction: column-reverse;
+  }
+  
+  .cancelBtn,
+  .confirmBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .headerButtons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .tableWrapper {
+    overflow-x: auto;
   }
 }

@@ -8,8 +8,17 @@ const PriorityUpdate = () => {
   const [loading, setLoading] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState(null);
-  const [isInitialSetup, setIsInitialSetup] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewedChanges, setReviewedChanges] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '', show: false });
+
+  const showMessage = (type, text) => {
+    setMessage({ type, text, show: true });
+    setTimeout(() => {
+      setMessage(prev => ({ ...prev, show: false }));
+    }, 4000);
+  };
 
   const getUserData = () => {
     try {
@@ -22,29 +31,15 @@ const PriorityUpdate = () => {
     }
   };
 
-  const assignInitialPriorities = (bookList) => {
-    // Check if priorities need to be assigned (all are 0 or same)
-    const priorities = bookList.map(book => book.priority || 0);
-    const uniquePriorities = [...new Set(priorities)];
-    const needsInitialAssignment = uniquePriorities.length === 1 && uniquePriorities[0] <= 1;
+  const processBooksData = (bookList) => {
+    // If no priorities exist, assign them based on current order
+    const booksWithPriorities = bookList.map((book, index) => ({
+      ...book,
+      priority: book.priority || index + 1
+    }));
     
-    if (needsInitialAssignment) {
-      // Sort by book name alphabetically and assign priorities
-      const sortedBooks = [...bookList].sort((a, b) => 
-        a.bookName.toLowerCase().localeCompare(b.bookName.toLowerCase())
-      );
-      
-      const booksWithPriorities = sortedBooks.map((book, index) => ({
-        ...book,
-        priority: index + 1
-      }));
-      
-      setIsInitialSetup(true);
-      return booksWithPriorities;
-    }
-    
-    // Sort by existing priority
-    return bookList.sort((a, b) => (a.priority || 0) - (b.priority || 0));
+    // Sort by priority
+    return booksWithPriorities.sort((a, b) => a.priority - b.priority);
   };
 
   const fetchBooks = async () => {
@@ -53,7 +48,7 @@ const PriorityUpdate = () => {
       const { user, token } = getUserData();
       
       if (!user || !token) {
-        alert('Please login first');
+        showMessage('error', 'Please login first');
         return;
       }
 
@@ -63,24 +58,26 @@ const PriorityUpdate = () => {
       });
 
       if (response.data && response.data.status === 'SUCCESS') {
-        // Handle initial priority assignment or sort by existing priority
-        const processedBooks = assignInitialPriorities(response.data.payload);
+        // Process books data and assign priorities if needed
+        const processedBooks = processBooksData(response.data.payload);
         setBooks(processedBooks);
+        setHasChanges(false);
+        setReviewedChanges(false);
       }
     } catch (error) {
       console.error('Error fetching books:', error);
-      alert('Failed to fetch books');
+      showMessage('error', 'Failed to fetch books');
     } finally {
       setLoading(false);
     }
   };
 
-  const updatePriorities = async (updatedBooks, showAlert = true) => {
+  const updatePriorities = async (updatedBooks) => {
     try {
       const { user, token } = getUserData();
       
       if (!user || !token) {
-        alert('Please login first');
+        showMessage('error', 'Please login first');
         return false;
       }
 
@@ -97,32 +94,34 @@ const PriorityUpdate = () => {
       });
 
       if (response.data && response.data.status === 'SUCCESS') {
-        if (showAlert) {
-          alert('Priorities updated successfully');
-        }
-        setIsInitialSetup(false);
         setHasChanges(false);
+        setReviewedChanges(false);
         return true;
       } else {
-        if (showAlert) {
-          alert('Failed to update priorities');
-        }
+        showMessage('error', 'Failed to update priorities');
         return false;
       }
     } catch (error) {
       console.error('Error updating priorities:', error);
-      if (showAlert) {
-        alert('Failed to update priorities');
-      }
+      showMessage('error', 'Failed to update priorities');
       return false;
     }
   };
 
+  const handleReviewPriorities = () => {
+    setShowReviewModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowReviewModal(false);
+  };
+
   const handleSubmitPriorities = async () => {
     setLoading(true);
-    const success = await updatePriorities(books, true);
+    const success = await updatePriorities(books);
     if (success) {
-      alert('Initial priorities have been set successfully!');
+      showMessage('success', 'Priorities have been updated successfully!');
+      setShowReviewModal(false);
     }
     setLoading(false);
   };
@@ -170,11 +169,7 @@ const PriorityUpdate = () => {
     setDraggedIndex(null);
     setDraggedOverIndex(null);
     setHasChanges(true);
-
-    // Update priorities on server only if not in initial setup
-    if (!isInitialSetup) {
-      updatePriorities(booksWithNewPriorities, false);
-    }
+    setReviewedChanges(false); // Reset review status when changes are made
   };
 
   const moveUp = (index) => {
@@ -191,11 +186,7 @@ const PriorityUpdate = () => {
 
     setBooks(booksWithNewPriorities);
     setHasChanges(true);
-    
-    // Update priorities on server only if not in initial setup
-    if (!isInitialSetup) {
-      updatePriorities(booksWithNewPriorities, false);
-    }
+    setReviewedChanges(false); // Reset review status when changes are made
   };
 
   const moveDown = (index) => {
@@ -212,11 +203,7 @@ const PriorityUpdate = () => {
 
     setBooks(booksWithNewPriorities);
     setHasChanges(true);
-    
-    // Update priorities on server only if not in initial setup
-    if (!isInitialSetup) {
-      updatePriorities(booksWithNewPriorities, false);
-    }
+    setReviewedChanges(false); // Reset review status when changes are made
   };
 
   useEffect(() => {
@@ -230,120 +217,203 @@ const PriorityUpdate = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2>Book Priority Management</h2>
+        <h2 className={styles.title}>Book Priority Management</h2>
         <div className={styles.headerButtons}>
-          {isInitialSetup && (
+          {hasChanges && (
             <button 
-              onClick={handleSubmitPriorities} 
-              className={styles.submitBtn}
+              onClick={handleReviewPriorities} 
+              className={styles.reviewBtn}
               disabled={loading}
             >
-              {loading ? 'Setting Priorities...' : 'Submit Initial Priorities'}
+              Review & Submit Priorities
             </button>
           )}
-          <button onClick={fetchBooks} className={styles.refreshBtn}>
+  
+          <button onClick={fetchBooks} className={styles.refreshBtn} disabled={loading}>
             Refresh
           </button>
         </div>
       </div>
 
-      {isInitialSetup && (
-        <div className={styles.initialSetupNotice}>
-          <h3>🎯 Initial Priority Setup</h3>
-          <p>
-            Books have been arranged alphabetically by name. Please drag and drop or use arrow buttons 
-            to set your preferred priority order, then click "Submit Initial Priorities" to save.
-          </p>
-          {hasChanges && (
-            <p className={styles.changesIndicator}>
-              ✏️ You have unsaved changes. Don't forget to submit!
-            </p>
-          )}
+      {/* Message Display */}
+      {message.show && (
+        <div className={`${styles.messageContainer} ${styles[message.type]}`}>
+          <div className={styles.messageIcon}>
+            {message.type === 'success' ? '✅' : '❌'}
+          </div>
+          <div className={styles.messageContent}>
+            <p>{message.text}</p>
+          </div>
+          <button 
+            className={styles.messageClose}
+            onClick={() => setMessage(prev => ({ ...prev, show: false }))}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {hasChanges && (
+        <div className={styles.changesNotice}>
+          <div className={styles.noticeIcon}>⚠️</div>
+          <div className={styles.noticeContent}>
+            <p>You have unsaved changes. Please review your priorities before submitting.</p>
+          </div>
         </div>
       )}
 
       {books.length === 0 ? (
-        <div className={styles.noBooks}>No books found</div>
+        <div className={styles.noBooks}>
+          <div className={styles.noBooksIcon}>📚</div>
+          <p>No books found</p>
+        </div>
       ) : (
         <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Priority</th>
-                <th>Book Name</th>
-                <th>Author</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {books.map((book, index) => (
-                <tr
-                  key={book.bookId}
-                  className={`${styles.row} ${
-                    draggedIndex === index ? styles.dragging : ''
-                  } ${draggedOverIndex === index ? styles.dragOver : ''}`}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, index)}
-                >
-                  <td className={styles.priority}>{book.priority}</td>
-                  <td className={styles.bookName}>{book.bookName}</td>
-                  <td>{book.authorName}</td>
-                  <td>{book.category}</td>
-                  <td className={styles.price}>
-                    {book.price ? `$${book.price.toFixed(2)}` : 'N/A'}
-                  </td>
-                  <td className={styles.description}>
-                    {book.description || 'No description'}
-                  </td>
-                  <td className={styles.actions}>
-                    <button
-                      onClick={() => moveUp(index)}
-                      disabled={index === 0}
-                      className={styles.actionBtn}
-                      title="Move Up"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      onClick={() => moveDown(index)}
-                      disabled={index === books.length - 1}
-                      className={styles.actionBtn}
-                      title="Move Down"
-                    >
-                      ↓
-                    </button>
-                  </td>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr className={styles.headerRow}>
+                  <th className={styles.priorityHeader}>Priority</th>
+                  <th className={styles.bookHeader}>Book Name</th>
+                  <th className={styles.authorHeader}>Author</th>
+                  <th className={styles.categoryHeader}>Category</th>
+                  <th className={styles.priceHeader}>Price</th>
+                  <th className={styles.descriptionHeader}>Description</th>
+                  <th className={styles.actionsHeader}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {books.map((book, index) => (
+                  <tr
+                    key={book.bookId}
+                    className={`${styles.row} ${
+                      draggedIndex === index ? styles.dragging : ''
+                    } ${draggedOverIndex === index ? styles.dragOver : ''}`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                  >
+                    <td className={styles.priorityCell}>
+                      <div className={styles.priorityBadge}>{book.priority}</div>
+                    </td>
+                    <td className={styles.bookCell}>
+                      <div className={styles.bookName}>{book.bookName}</div>
+                    </td>
+                    <td className={styles.authorCell}>{book.authorName}</td>
+                    <td className={styles.categoryCell}>
+                      <span className={styles.categoryTag}>{book.category}</span>
+                    </td>
+                    <td className={styles.priceCell}>
+                      {book.price ? `${book.price.toFixed(2)} Rs` : 'N/A'}
+                    </td>
+                    <td className={styles.descriptionCell}>
+                      <div className={styles.description}>
+                        {book.description || 'No description available'}
+                      </div>
+                    </td>
+                    <td className={styles.actionsCell}>
+                      <div className={styles.actionButtons}>
+                        <button
+                          onClick={() => moveUp(index)}
+                          disabled={index === 0}
+                          className={`${styles.actionBtn} ${styles.upBtn}`}
+                          title="Move Up"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          onClick={() => moveDown(index)}
+                          disabled={index === books.length - 1}
+                          className={`${styles.actionBtn} ${styles.downBtn}`}
+                          title="Move Down"
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
       
       <div className={styles.instructions}>
-        <p>💡 Instructions:</p>
-        <ul>
-          {isInitialSetup ? (
-            <>
-              <li>Books are initially sorted alphabetically by name</li>
-              <li>Drag and drop rows or use arrow buttons to set priority order</li>
-              <li>Click "Submit Initial Priorities" to save your settings</li>
-            </>
-          ) : (
-            <>
-              <li>Drag and drop rows to reorder priorities</li>
-              <li>Use arrow buttons to move items up/down</li>
-              <li>Priorities are automatically updated on the server</li>
-            </>
-          )}
+        <h3 className={styles.instructionsTitle}>💡 How to Use</h3>
+        <ul className={styles.instructionsList}>
+          <li>Drag and drop rows to reorder book priorities</li>
+          <li>Use the arrow buttons (↑ ↓) to move books up or down</li>
+          <li>Click "Review & Submit Priorities" to review and submit your changes</li>
+          <li>Review modal will show final order before submitting to server</li>
         </ul>
       </div>
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div className={styles.modalOverlay} onClick={handleCloseModal}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>📋 Review & Submit Priority Order</h3>
+              <button 
+                className={styles.closeBtn}
+                onClick={handleCloseModal}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalContent}>
+              <p className={styles.modalDescription}>
+                Please review the final priority order below. If you're satisfied with the arrangement, 
+                click "Submit Priorities" to save the changes to the server.
+              </p>
+              <div className={styles.modalTableContainer}>
+                <table className={styles.modalTable}>
+                  <thead>
+                    <tr>
+                      <th>Priority</th>
+                      <th>Book Name</th>
+                      <th>Author</th>
+                      <th>Category</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {books.map((book, index) => (
+                      <tr key={book.bookId} className={styles.modalRow}>
+                        <td>
+                          <span className={styles.modalPriorityBadge}>{book.priority}</span>
+                        </td>
+                        <td className={styles.modalBookName}>{book.bookName}</td>
+                        <td>{book.authorName}</td>
+                        <td>
+                          <span className={styles.modalCategoryTag}>{book.category}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button 
+                onClick={handleCloseModal}
+                className={styles.cancelBtn}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSubmitPriorities}
+                className={styles.confirmBtn}
+                disabled={loading}
+              >
+                {loading ? 'Submitting...' : 'Submit Priorities'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
