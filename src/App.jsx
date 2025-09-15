@@ -14,7 +14,7 @@ import InvoiceExportPage from "./components/Admin/InvoiceExportPage";
 import WhatsAppFloatingButton from "./components/User/WhatsAppFloatingButton";
 import PriorityUpdate from "./components/Books/PriorityUpdate";
 import BookUpdate from "./components/Books/BookUpdate";
-
+import AddDiscoveryImage from "./components/Admin/AddDiscoveryImage";
 
 // ========================
 // Auth Context
@@ -291,6 +291,17 @@ const AppContent = React.memo(() => {
               </AdminProtectedRoute>
             } 
           />
+
+            <Route 
+            path="/admin/add/discoveryImage" 
+            element={
+              <AdminProtectedRoute>
+                <AddDiscoveryImage />
+              </AdminProtectedRoute>
+            } 
+          />
+          
+
           <Route 
             path="/admin/book/priority/update" 
             element={
