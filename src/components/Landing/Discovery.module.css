@@ -1,319 +1,281 @@
 /* Discovery.module.css */
 
+/* Section Styling */
 .discoverySection {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  background: #f8f9fa;
+  background-color: #f8f9fa !important;
 }
 
-.bannerContainer {
-  position: relative;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.imageSlider {
-  position: relative;
-  width: 100%;
+/* Card Styling */
+.loadingCard,
+.errorCard,
+.carouselCard {
   height: 400px;
-  overflow: hidden;
-  border-radius: 12px;
+  border-radius: 1rem !important;
 }
 
-@media (max-width: 768px) {
-  .imageSlider {
-    height: 250px;
-  }
+/* Carousel Styling */
+.carouselInner {
+  height: 400px;
 }
 
-@media (max-width: 480px) {
-  .imageSlider {
-    height: 200px;
-  }
-}
-
-.slide {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.6s ease-in-out, visibility 0.6s ease-in-out;
-}
-
-.slide.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.bannerImage {
-  width: 100%;
-  height: 100%;
+.carouselImage {
   object-fit: cover;
   object-position: center;
-  display: block;
   transition: transform 0.3s ease;
 }
 
-.bannerImage:hover {
+.carouselImage:hover {
   transform: scale(1.02);
 }
 
-/* Navigation Buttons */
-.navButton {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+/* Navigation Controls */
+.carouselControlPrev,
+.carouselControlNext {
+  width: auto;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.carouselControlPrev:hover,
+.carouselControlNext:hover {
+  opacity: 1;
+}
+
+.carouselControlPrev {
+  justify-content: flex-start;
+  padding-left: 2rem;
+}
+
+.carouselControlNext {
+  justify-content: flex-end;
+  padding-right: 2rem;
+}
+
+.navButtonWrapper {
   background: rgba(255, 255, 255, 0.9);
-  border: none;
-  width: 50px;
-  height: 50px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  padding: 0.75rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
-  z-index: 10;
-  color: #333;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-.navButton:hover {
+.navButtonWrapper:hover {
   background: rgba(255, 255, 255, 1);
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-.prevButton {
-  left: 20px;
-}
-
-.nextButton {
-  right: 20px;
-}
-
-@media (max-width: 768px) {
-  .navButton {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .prevButton {
-    left: 15px;
-  }
-  
-  .nextButton {
-    right: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .navButton {
-    width: 35px;
-    height: 35px;
-  }
-  
-  .prevButton {
-    left: 10px;
-  }
-  
-  .nextButton {
-    right: 10px;
-  }
-}
-
-/* Pagination Dots */
-.pagination {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  z-index: 10;
+/* Custom Indicators */
+.customIndicators {
+  bottom: 1.5rem !important;
   background: rgba(0, 0, 0, 0.3);
-  padding: 10px 15px;
-  border-radius: 25px;
-  backdrop-filter: blur(5px);
+  padding: 0.75rem 1rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(10px);
+  max-width: 150px;
+  width: 100px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin: 0 !important;
 }
 
-.paginationDot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  transition: all 0.3s ease;
+.indicatorDot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  padding: 0 !important;
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  transition: all 0.3s ease !important;
+  margin: 0 3px !important;
+  display: inline-block !important;
+  box-sizing: border-box !important;
 }
 
-.paginationDot:hover {
-  background: rgba(255, 255, 255, 0.8);
+.indicatorDot:hover {
+  background-color: rgba(255, 255, 255, 0.8);
   transform: scale(1.2);
 }
 
-.paginationDot.active {
-  background: #fff;
+.indicatorDot.active {
+  background-color: #fff;
   transform: scale(1.3);
 }
 
-@media (max-width: 768px) {
-  .pagination {
-    bottom: 15px;
-    gap: 8px;
-    padding: 8px 12px;
-  }
-  
-  .paginationDot {
-    width: 10px;
-    height: 10px;
-  }
-}
-
-@media (max-width: 480px) {
-  .pagination {
-    bottom: 10px;
-    gap: 6px;
-    padding: 6px 10px;
-  }
-  
-  .paginationDot {
-    width: 8px;
-    height: 8px;
-  }
-}
-
-/* Loading States */
-.loadingContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-  background: #f8f9fa;
-  border-radius: 12px;
-}
-
-.loadingSpinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e3e3e3;
-  border-top: 4px solid #007bff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loadingText {
-  color: #666;
-  font-size: 16px;
-  font-weight: 500;
-  margin: 0;
-}
-
-/* Error States */
-.errorContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-}
-
-.errorMessage {
-  color: #dc3545;
-  font-size: 16px;
-  margin-bottom: 20px;
-  max-width: 400px;
-  line-height: 1.5;
-}
-
+/* Retry Button Enhancement */
 .retryButton {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .retryButton:hover {
-  background: #0056b3;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
 }
 
 /* Responsive Design */
-@media (max-width: 1440px) {
-  .bannerContainer {
-    margin: 0 20px;
-  }
-}
-
 @media (max-width: 768px) {
-  .bannerContainer {
-    margin: 0 15px;
-    border-radius: 8px;
+  .discoverySection {
+    padding: 1.5rem 0;
   }
-  
-  .imageSlider {
-    border-radius: 8px;
-  }
-  
-  .loadingContainer,
-  .errorContainer {
+
+  .loadingCard,
+  .errorCard {
     height: 250px;
-    border-radius: 8px;
+  }
+
+  .carouselInner {
+    height: 300px;
+  }
+
+  .carouselItem {
+    padding: 1.5rem 2rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .textContent {
+    padding-right: 0;
+    padding-bottom: 1rem;
+  }
+
+  .imageContent {
+    max-width: 80%;
+  }
+
+  .bannerTitle {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .bannerSubtitle {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .bannerDescription {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .carouselControlPrev {
+    padding-left: 1rem;
+  }
+
+  .carouselControlNext {
+    padding-right: 1rem;
+  }
+
+  .navButtonWrapper {
+    padding: 0.75rem;
+  }
+
+  .customIndicators {
+    bottom: 1rem !important;
+    padding: 0.6rem 1rem;
+  }
+
+  .indicatorDot {
+    width: 12px;
+    height: 12px;
+    margin: 0 3px;
   }
 }
 
 @media (max-width: 480px) {
-  .bannerContainer {
-    margin: 0 10px;
-    border-radius: 6px;
+  .discoverySection {
+    padding: 1rem 0;
   }
-  
-  .imageSlider {
-    border-radius: 6px;
-  }
-  
-  .loadingContainer,
-  .errorContainer {
+
+  .loadingCard,
+  .errorCard {
     height: 200px;
-    border-radius: 6px;
   }
-  
-  .loadingText {
-    font-size: 14px;
+
+  .carouselInner {
+    height: 250px;
   }
-  
-  .errorMessage {
-    font-size: 14px;
+
+  .carouselItem {
+    padding: 1rem 1.5rem;
   }
-  
-  .retryButton {
-    padding: 10px 20px;
-    font-size: 14px;
+
+  .bannerTitle {
+    font-size: 1.75rem;
+  }
+
+  .bannerSubtitle {
+    font-size: 0.95rem;
+  }
+
+  .bannerDescription {
+    font-size: 0.85rem;
+  }
+
+  .ctaButton {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .carouselControlPrev {
+    padding-left: 0.5rem;
+  }
+
+  .carouselControlNext {
+    padding-right: 0.5rem;
+  }
+
+  .navButtonWrapper {
+    padding: 0.6rem;
+  }
+
+  .customIndicators {
+    bottom: 0.8rem !important;
+    padding: 0.5rem 0.8rem;
+  }
+
+  .indicatorDot {
+    width: 10px;
+    height: 10px;
+    margin: 0 2px;
+  }
+}
+
+/* Loading Animation Enhancement */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.discoverySection {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Accessibility Improvements */
+.carouselControlPrev:focus,
+.carouselControlNext:focus,
+.indicatorDot:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .navButtonWrapper {
+    background: #fff;
+    border: 2px solid #000;
+  }
+
+  .indicatorDot {
+    border: 1px solid #fff;
+  }
+
+  .customIndicators {
+    background: rgba(0, 0, 0, 0.8);
   }
 }
