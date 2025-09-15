@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, ShoppingCart, Zap, ImageOff } from 'lucide-react';
 import { addItemToCart } from '../../api/addItemToCart';
+import PlaceOrderModal from "../Order/PlaceOrderModal";
 import styles from './FeaturedBooksSection.module.css';
 
 const loadBootstrap = () => {
@@ -28,15 +29,16 @@ const FeaturedBooksSection = ({
   const [cartMessage, setCartMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // SUCCESS, FAILED, etc.
   
-  // State for quantities
-  const [quantities, setQuantities] = useState({});
-  
   // State for carousel positions
   const [carouselPositions, setCarouselPositions] = useState({
     bestsellers: 0,
     newReleases: 0,
     topRated: 0
   });
+
+  // State for Place Order Modal
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
+  const [selectedBookId, setSelectedBookId] = useState(null);
 
   // State for image loading
   const [imageLoadStates, setImageLoadStates] = useState({});
@@ -112,18 +114,6 @@ const FeaturedBooksSection = ({
     };
   }, [books]);
 
-  // Handle quantity change
-  const handleQuantityChange = (bookId, newQuantity) => {
-    const quantity = Math.max(1, Math.min(99, newQuantity));
-    setQuantities(prev => ({
-      ...prev,
-      [bookId]: quantity
-    }));
-  };
-
-  // Get quantity for a book (default to 1)
-  const getQuantity = (bookId) => quantities[bookId] || 1;
-
   // Handle Add to Cart
   const handleAddToCart = async (bookId) => {
     setCartLoading(prev => ({ ...prev, [bookId]: true }));
@@ -154,6 +144,18 @@ const FeaturedBooksSection = ({
     } finally {
       setCartLoading(prev => ({ ...prev, [bookId]: false }));
     }
+  };
+
+  // Handle Buy Now - Open Place Order Modal
+  const handleBuyNow = (bookId) => {
+    setSelectedBookId(bookId);
+    setOrderModalOpen(true);
+  };
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setOrderModalOpen(false);
+    setSelectedBookId(null);
   };
 
   // Handle carousel navigation
@@ -242,7 +244,6 @@ const FeaturedBooksSection = ({
   const BookCard = ({ book }) => {
     const primaryTag = book.bookTags?.[0] || 'FEATURED';
     const tagInfo = getTagInfo(primaryTag);
-    const quantity = getQuantity(book.bookId);
     
     return (
       <div className={`${styles.bookCard} card h-100`}>
@@ -267,35 +268,6 @@ const FeaturedBooksSection = ({
             )}
           </div>
           
-          {/* Quantity Selector */}
-          <div className={`${styles.quantitySelector} d-flex align-items-center justify-content-center mb-3`}>
-            <button 
-              className="btn btn-outline-secondary btn-sm"
-              onClick={() => handleQuantityChange(book.bookId, quantity - 1)}
-              disabled={quantity <= 1}
-              type="button"
-            >
-              -
-            </button>
-            <input 
-              type="number"
-              className={`${styles.quantityInput} form-control form-control-sm text-center mx-2`}
-              value={quantity}
-              onChange={(e) => handleQuantityChange(book.bookId, parseInt(e.target.value) || 1)}
-              min="1"
-              max="99"
-              style={{ width: '70px' }}
-            />
-            <button 
-              className="btn btn-outline-secondary btn-sm"
-              onClick={() => handleQuantityChange(book.bookId, quantity + 1)}
-              disabled={quantity >= 99}
-              type="button"
-            >
-              +
-            </button>
-          </div>
-          
           <div className="d-grid gap-2 mt-auto">
             <button 
               className={`${styles.addToCartBtn} btn btn-primary`}
@@ -315,7 +287,11 @@ const FeaturedBooksSection = ({
                 </>
               )}
             </button>
-            <button className="btn btn-success" type="button">
+            <button 
+              className="btn btn-success" 
+              type="button"
+              onClick={() => handleBuyNow(book.bookId)}
+            >
               <Zap size={16} className="me-2" />
               Buy Now
             </button>
@@ -537,7 +513,12 @@ const FeaturedBooksSection = ({
         </div>
       </div>
       
-
+      {/* Place Order Modal */}
+      <PlaceOrderModal
+        isOpen={orderModalOpen}
+        onClose={handleModalClose}
+        bookId={selectedBookId}
+      />
     </div>
   );
 };

@@ -1,0 +1,701 @@
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.modalHeader {
+  padding: 24px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon {
+  font-size: 28px;
+}
+
+.closeButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Modal Body */
+.modalBody {
+  padding: 32px;
+  overflow-y: auto;
+  flex: 1;
+  background: #f8fafc;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  font-size: 16px;
+  color: #64748b;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Alert Messages */
+.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.errorIcon, .successIcon {
+  font-size: 20px;
+}
+
+/* Section Styles */
+.orderSection, .customerSection {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.sectionTitle {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.sectionIcon {
+  font-size: 24px;
+}
+
+/* Table Styles */
+.orderTable {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: white;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead {
+  background: #f8fafc;
+}
+
+.table th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 20px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* Table Cell Styles */
+.itemDetails {
+  min-width: 300px;
+}
+
+.bookTitle {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.bookMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.author {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.category {
+  font-size: 12px;
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 4px 8px;
+  border-radius: 16px;
+  display: inline-block;
+  width: fit-content;
+  font-weight: 500;
+}
+
+.description {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+  margin-top: 8px;
+}
+
+.price, .total {
+  font-weight: 700;
+  font-size: 16px;
+  color: #059669;
+}
+
+/* Quantity Control */
+.quantityCell {
+  min-width: 140px;
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #f3f4f6;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+}
+
+.quantityBtn {
+  background: #e5e7eb;
+  border: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+.quantityBtn:hover {
+  background: #d1d5db;
+  color: #1f2937;
+}
+
+.quantityBtn:active {
+  transform: scale(0.95);
+}
+
+.quantityInput {
+  border: none;
+  width: 50px;
+  height: 36px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  background: white;
+  color: #1f2937;
+  outline: none;
+}
+
+.quantityInput::-webkit-outer-spin-button,
+.quantityInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantityInput[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Customer Form */
+.customerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.labelText {
+  color: #374151;
+}
+
+.required {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.input, .textarea {
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+  font-family: inherit;
+}
+
+.input:focus, .textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input:hover, .textarea:hover {
+  border-color: #d1d5db;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+/* Final Total */
+.finalTotal {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.totalAmount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.totalLabel {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+}
+
+.totalValue {
+  font-size: 32px;
+  font-weight: 800;
+  color: #fbbf24;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal Footer */
+.modalFooter {
+  padding: 24px 32px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  padding: 12px 24px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.placeOrderButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.placeOrderButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.placeOrderButton:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.placeOrderButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.buttonSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.buttonIcon {
+  font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95%;
+    max-height: 95vh;
+    margin: 20px;
+  }
+
+  .modalHeader {
+    padding: 20px 24px;
+  }
+
+  .modalTitle {
+    font-size: 20px;
+  }
+
+  .modalBody {
+    padding: 20px;
+  }
+
+  .orderSection, .customerSection {
+    padding: 20px;
+  }
+
+  .sectionTitle {
+    font-size: 18px;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .table {
+    font-size: 12px;
+  }
+
+  .table th,
+  .table td {
+    padding: 12px 8px;
+  }
+
+  .bookTitle {
+    font-size: 14px;
+  }
+
+  .itemDetails {
+    min-width: 200px;
+  }
+
+  .quantityControl {
+    flex-wrap: nowrap;
+  }
+
+  .totalAmount {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .totalLabel {
+    font-size: 16px;
+  }
+
+  .totalValue {
+    font-size: 28px;
+  }
+
+  .modalFooter {
+    padding: 20px 24px;
+    flex-direction: column;
+  }
+
+  .cancelButton,
+  .placeOrderButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Processing and Result screens responsive */
+  .orderProcessing,
+  .orderResult {
+    min-height: 300px;
+  }
+
+  .resultContent {
+    padding: 30px 20px;
+    margin: 0 10px;
+  }
+
+  .processingTitle {
+    font-size: 24px;
+  }
+
+  .resultTitle {
+    font-size: 20px;
+  }
+
+  .successIcon,
+  .errorIcon {
+    font-size: 60px;
+  }
+
+  .exitButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalContent {
+    width: 98%;
+    margin: 10px;
+  }
+
+  .modalBody {
+    padding: 16px;
+  }
+
+  .orderSection, .customerSection {
+    padding: 16px;
+  }
+
+  .finalTotal {
+    padding: 20px;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 6px;
+  }
+
+  .quantityCell {
+    min-width: 120px;
+  }
+
+  .quantityControl {
+    gap: 0;
+  }
+
+  .quantityBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .quantityInput {
+    width: 40px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .modalOverlay,
+  .modalContent,
+  .spinner,
+  .buttonSpinner {
+    animation: none;
+  }
+
+  * {
+    transition: none !important;
+  }
+}
+
+/* Focus styles for better accessibility */
+.input:focus,
+.textarea:focus,
+.quantityInput:focus,
+.cancelButton:focus,
+.placeOrderButton:focus,
+.closeButton:focus,
+.quantityBtn:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .modalContent {
+    border: 2px solid #000;
+  }
+
+  .input,
+  .textarea {
+    border-color: #000;
+  }
+
+  .table th,
+  .table td {
+    border-color: #000;
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { addItemToCart } from "../../api/addItemToCart";
+import PlaceOrderModal from "../Order/PlaceOrderModal";
 import styles from "./BookViewCard.module.css";
 
 const BookViewCard = ({ books = [], loading, error, showPagination = true }) => {
@@ -16,6 +17,10 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
   
   // State for cached images
   const [cachedImages, setCachedImages] = useState({});
+
+  // State for Place Order Modal
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
+  const [selectedBookId, setSelectedBookId] = useState(null);
 
   // Extract search parameters - this will trigger re-renders when URL changes
   const searchQuery = searchParams.get("search");
@@ -169,6 +174,18 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     } finally {
       setCartLoading(prev => ({ ...prev, [bookId]: false }));
     }
+  };
+
+  // Handle Buy Now - Open Place Order Modal
+  const handleBuyNow = (bookId) => {
+    setSelectedBookId(bookId);
+    setOrderModalOpen(true);
+  };
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setOrderModalOpen(false);
+    setSelectedBookId(null);
   };
 
   // Get message styling based on status
@@ -397,7 +414,11 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                               </>
                             )}
                           </button>
-                          <button className={styles.checkoutButton} type="button">
+                          <button 
+                            className={styles.checkoutButton} 
+                            type="button"
+                            onClick={() => handleBuyNow(bookId)}
+                          >
                             Buy Now
                           </button>
                         </div>
@@ -473,6 +494,13 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
           )}
         </>
       )}
+
+      {/* Place Order Modal */}
+      <PlaceOrderModal
+        isOpen={orderModalOpen}
+        onClose={handleModalClose}
+        bookId={selectedBookId}
+      />
     </div>
   );
 };
