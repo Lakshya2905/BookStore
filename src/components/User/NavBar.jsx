@@ -130,14 +130,6 @@ const handleCategoriesClick = useCallback(() => {
   }, 100);
 }, [navigate]);
 
-  const handleAuthorsClick = useCallback(() => {
-    if (location.pathname === "/landing") {
-      navigate("/landing#authors");
-    } else {
-      navigate("/landing#authors");
-    }
-    window.location.reload();
-  }, [location.pathname, navigate]);
 
   const handleNavigation = useCallback(
     (path) => {
@@ -373,12 +365,7 @@ const handleCategoriesClick = useCallback(() => {
                   Categories
                 </button>
 
-                <button
-                  className={styles.mobileNavButton}
-                  onClick={() => closeMobileMenuAndRunAction(handleAuthorsClick)}
-                >
-                  Authors
-                </button>
+          
               </>
             )}
 
