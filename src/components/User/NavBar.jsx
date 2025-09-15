@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useEffect,useState, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Search, Heart, ShoppingCart, User, Menu, X } from "lucide-react";
+import { Search, Heart, ShoppingCart, User, Menu, X, Settings, Plus, FileText, Edit, TrendingUp } from "lucide-react";
 import CartSidebar from "../Cart/CartSidebar";
 import styles from "./NavBar.module.css";
 import Logo from "../images/logo.jpg";
@@ -16,14 +16,24 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
     try {
       const user = JSON.parse(sessionStorage.getItem("user"));
       const token = sessionStorage.getItem("token");
-      return { user, token, role: user?.role || null };
+      return { user, token, role: user?.userRole || null };
     } catch (error) {
       console.error("Error parsing user data:", error);
       return { user: null, token: null, role: null };
     }
   }, []);
 
-  const { user } = useMemo(() => getUserData(), [getUserData]);
+  const { user, role } = useMemo(() => getUserData(), [getUserData]);
+
+  // Check if user is owner
+  const isOwner = useMemo(() => role === 'OWNER', [role]);
+
+  // Handle default navigation for owners after login
+  useEffect(() => {
+    if (isOwner && location.pathname === '/landing') {
+      navigate('/admin/invoice');
+    }
+  }, [isOwner, location.pathname, navigate]);
 
   const handleSignOut = useCallback(() => {
     sessionStorage.removeItem("user");
@@ -38,7 +48,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
       e.preventDefault();
       if (searchQuery.trim()) {
         navigate(`/landing?search=${encodeURIComponent(searchQuery.trim())}`);
-        window.location.reload(); // 👈 force reload
+        window.location.reload();
       }
     },
     [searchQuery, navigate]
@@ -46,7 +56,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
 
   const handleCategoriesClick = useCallback(() => {
     navigate("/landing#categories");
-    window.location.reload(); // 👈 force reload
+    window.location.reload();
   }, [navigate]);
 
   const handleAuthorsClick = useCallback(() => {
@@ -55,13 +65,13 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
     } else {
       navigate("/landing#authors");
     }
-    window.location.reload(); // 👈 force reload
+    window.location.reload();
   }, [location.pathname, navigate]);
 
   const handleNavigation = useCallback(
     (path) => {
       navigate(path);
-      window.location.reload(); // 👈 force reload
+      window.location.reload();
     },
     [navigate]
   );
@@ -103,7 +113,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
     (path) => {
       setMobileMenuOpen(false);
       navigate(path);
-      window.location.reload(); // 👈 force reload
+      window.location.reload();
     },
     [navigate]
   );
@@ -111,20 +121,30 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
   const closeMobileMenuAndRunAction = useCallback((action) => {
     setMobileMenuOpen(false);
     action();
-    window.location.reload(); // 👈 force reload
+    window.location.reload();
   }, []);
 
-  const navigationButtons = useMemo(
-    () => [
-      { label: "Home", path: "/landing" },
-      { label: "All Books", path: "/books" },
-      { label: "New Releases", path: "/books?tag=NEW_RELEASE" },
-      { label: "Best Sellers", path: "/books?tag=BESTSELLER" },
-      { label: "Top Rated", path: "/books?tag=TOP_RATED" },
-      { label: "Sale", path: "/books?tag=SALE" },
-    ],
-    []
-  );
+  // Navigation buttons based on user role
+  const navigationButtons = useMemo(() => {
+    if (isOwner) {
+      return [
+        { label: "Add Book", path: "/admin/book/add", icon: <Plus size={16} /> },
+        { label: "Add Category", path: "/admin/category/add", icon: <Plus size={16} /> },
+        { label: "Update Book", path: "/admin/book/update", icon: <Edit size={16} /> },
+        { label: "Priority Update", path: "/admin/book/priority/update", icon: <TrendingUp size={16} /> },
+        { label: "Invoice Export", path: "/admin/invoice", icon: <FileText size={16} /> },
+      ];
+    } else {
+      return [
+        { label: "Home", path: "/landing" },
+        { label: "All Books", path: "/books" },
+        { label: "New Releases", path: "/books?tag=NEW_RELEASE" },
+        { label: "Best Sellers", path: "/books?tag=BESTSELLER" },
+        { label: "Top Rated", path: "/books?tag=TOP_RATED" },
+        { label: "Sale", path: "/books?tag=SALE" },
+      ];
+    }
+  }, [isOwner]);
 
   return (
     <>
@@ -134,43 +154,62 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
           <div className={styles.headerContent}>
             <div
               className={styles.logo}
-              onClick={() => handleNavigation("/landing")}
+              onClick={() => handleNavigation(isOwner ? "/admin/dashboard" : "/landing")}
               style={{ cursor: "pointer" }}
             >
               <img src={Logo} alt="Shah Cart Logo" className={styles.logoImg} />
+              {isOwner && <span className={styles.adminBadge}>Admin</span>}
             </div>
 
-            <div className={styles.searchBar}>
-              <input
-                type="text"
-                placeholder="Search books, authors, genres..."
-                className={styles.searchInput}
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                onKeyPress={handleKeyPress}
-              />
-              <button
-                className={styles.searchButton}
-                onClick={handleSearchSubmit}
-                type="submit"
-              >
-                <Search size={20} />
-                Search
-              </button>
-            </div>
+            {/* Search Bar - Only show for non-owner users */}
+            {!isOwner && (
+              <div className={styles.searchBar}>
+                <input
+                  type="text"
+                  placeholder="Search books, authors, genres..."
+                  className={styles.searchInput}
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  onKeyPress={handleKeyPress}
+                />
+                <button
+                  className={styles.searchButton}
+                  onClick={handleSearchSubmit}
+                  type="submit"
+                >
+                  <Search size={20} />
+                  Search
+                </button>
+              </div>
+            )}
+
+            {/* Owner Panel Title */}
+            {isOwner && (
+              <div className={styles.adminTitle}>
+                <Settings size={24} />
+                <h2>Admin Panel</h2>
+              </div>
+            )}
 
             <div className={styles.headerActions}>
-              <button className={styles.actionButton}>
-                <Heart size={20} />
-              </button>
-              <button className={styles.actionButton} onClick={handleCartClick}>
-                <ShoppingCart size={20} />
-              </button>
+              {/* Heart and Cart - Only show for non-owner users */}
+              {!isOwner && (
+                <>
+                  <button className={styles.actionButton}>
+                    <Heart size={20} />
+                  </button>
+                  <button className={styles.actionButton} onClick={handleCartClick}>
+                    <ShoppingCart size={20} />
+                  </button>
+                </>
+              )}
+
               {user ? (
                 <div className={styles.userInfo}>
                   <User size={20} />
                   <span>
                     {user.fullName || user.name || user.email || "User"}
+                    {isOwner && <span className={styles.roleTag}>(Owner)</span>}
                   </span>
                   <button className={styles.signOutBtn} onClick={handleSignOut}>
                     Sign Out
@@ -203,22 +242,28 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
             {navigationButtons.map((item) => (
               <button
                 key={item.label}
-                className={styles.navButton}
+                className={`${styles.navButton} ${isOwner ? styles.adminNavButton : ''}`}
                 onClick={() => handleNavigation(item.path)}
               >
+                {item.icon && <span className={styles.navIcon}>{item.icon}</span>}
                 {item.label}
               </button>
             ))}
 
-            <button
-              className={styles.categoryBtn}
-              onClick={handleCategoriesClick}
-            >
-              Categories
-            </button>
-            <button className={styles.navButton} onClick={handleAuthorsClick}>
-              Authors
-            </button>
+            {/* Categories and Authors - Only show for non-owner users */}
+            {!isOwner && (
+              <>
+                <button
+                  className={styles.categoryBtn}
+                  onClick={handleCategoriesClick}
+                >
+                  Categories
+                </button>
+                <button className={styles.navButton} onClick={handleAuthorsClick}>
+                  Authors
+                </button>
+              </>
+            )}
           </div>
         </nav>
 
@@ -228,56 +273,66 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
             {navigationButtons.map((item) => (
               <button
                 key={`mobile-${item.label}`}
-                className={styles.mobileNavButton}
+                className={`${styles.mobileNavButton} ${isOwner ? styles.adminMobileNavButton : ''}`}
                 onClick={() => closeMobileMenuAndNavigate(item.path)}
               >
+                {item.icon && <span className={styles.navIcon}>{item.icon}</span>}
                 {item.label}
               </button>
             ))}
 
-            <button
-              className={styles.categoryBtn}
-              onClick={() =>
-                closeMobileMenuAndRunAction(handleCategoriesClick)
-              }
-            >
-              Categories
-            </button>
+            {/* Categories and Authors for mobile - Only show for non-owner users */}
+            {!isOwner && (
+              <>
+                <button
+                  className={styles.categoryBtn}
+                  onClick={() =>
+                    closeMobileMenuAndRunAction(handleCategoriesClick)
+                  }
+                >
+                  Categories
+                </button>
 
-            <button
-              className={styles.mobileNavButton}
-              onClick={() => closeMobileMenuAndRunAction(handleAuthorsClick)}
-            >
-              Authors
-            </button>
+                <button
+                  className={styles.mobileNavButton}
+                  onClick={() => closeMobileMenuAndRunAction(handleAuthorsClick)}
+                >
+                  Authors
+                </button>
+              </>
+            )}
 
-            {/* Mobile Search */}
-            <div className={styles.mobileSearchBar}>
-              <input
-                type="text"
-                placeholder="Search books..."
-                className={styles.mobileSearchInput}
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                onKeyPress={handleKeyPress}
-              />
-              <button
-                className={styles.mobileSearchButton}
-                onClick={handleSearchSubmit}
-              >
-                <Search size={18} />
-              </button>
-            </div>
+            {/* Mobile Search - Only show for non-owner users */}
+            {!isOwner && (
+              <div className={styles.mobileSearchBar}>
+                <input
+                  type="text"
+                  placeholder="Search books..."
+                  className={styles.mobileSearchInput}
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  onKeyPress={handleKeyPress}
+                />
+                <button
+                  className={styles.mobileSearchButton}
+                  onClick={handleSearchSubmit}
+                >
+                  <Search size={18} />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </header>
 
-      {/* Cart Sidebar */}
-      <CartSidebar
-        isOpen={cartOpen}
-        onClose={handleCartClose}
-        onCheckout={handleCheckout}
-      />
+      {/* Cart Sidebar - Only show for non-owner users */}
+      {!isOwner && (
+        <CartSidebar
+          isOpen={cartOpen}
+          onClose={handleCartClose}
+          onCheckout={handleCheckout}
+        />
+      )}
     </>
   );
 });

@@ -451,3 +451,119 @@
     font-size: 0.8rem;
   }
 }
+
+/* Add these styles to your existing NavBar.module.css file */
+
+/* Admin Badge */
+.adminBadge {
+  background: #dc2626;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Admin Title */
+.adminTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1f2937;
+  flex-grow: 1;
+  justify-content: center;
+}
+
+.adminTitle h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Admin Navigation Buttons */
+.adminNavButton {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: auto;
+}
+
+.adminNavButton:hover {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.adminMobileNavButton {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.adminMobileNavButton:hover {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+}
+
+/* Navigation Icon */
+.navIcon {
+  display: flex;
+  align-items: center;
+}
+
+/* Role Tag */
+.roleTag {
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
+
+/* Mobile responsive adjustments for admin panel */
+@media (max-width: 768px) {
+  .adminTitle {
+    display: none; /* Hide admin title on mobile to save space */
+  }
+  
+  .adminNavButton {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Admin panel specific header styling */
+.header:has(.adminTitle) .headerContent {
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* Ensure proper spacing when search bar is hidden */
+.headerContent:has(.adminTitle) {
+  justify-content: space-between;
+}
+
+.headerContent:has(.adminTitle) .logo {
+  flex-shrink: 0;
+}
+
+.headerContent:has(.adminTitle) .headerActions {
+  flex-shrink: 0;
+}

@@ -83,12 +83,41 @@ const AuthProvider = ({ children }) => {
 };
 
 // ========================
-// Protected Route
+// Protected Route (Basic Authentication)
 // ========================
 const ProtectedRoute = React.memo(({ children }) => {
   const token = sessionStorage.getItem("token");
 
   if (!token) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+});
+
+// ========================
+// Admin Protected Route (Role-based Authentication)
+// ========================
+const AdminProtectedRoute = React.memo(({ children }) => {
+  const token = sessionStorage.getItem("token");
+  const userString = sessionStorage.getItem("user");
+  
+  // Check if user is logged in
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Check if user data exists and parse it
+  let user = null;
+  try {
+    user = userString ? JSON.parse(userString) : null;
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    return <Navigate to="/" replace />;
+  }
+
+  // Check if user has OWNER role
+  if (!user || user.userRole !== 'OWNER') {
     return <Navigate to="/" replace />;
   }
 
@@ -229,15 +258,56 @@ const AppContent = React.memo(() => {
           />          
           <Route path="/categories" element={<CategoriesView />} />
 
-          <Route path="/admin/book/add" element={<AddBookPage />} />
-          <Route path="/admin/category/add" element={<AddCategory />} />
-          <Route path="/admin/invoice" element={<InvoiceExportPage />} />
-          <Route path="/admin/proprity/update" element={<PriorityUpdate />} />
-          <Route path="/admin/book/priority/update" element={<PriorityUpdate />} />
-          <Route path="/admin/book/update" element={<BookUpdate />} />
+          {/* Protected Admin Routes - Only accessible by users with OWNER role */}
+          <Route 
+            path="/admin/book/add" 
+            element={
+              <AdminProtectedRoute>
+                <AddBookPage />
+              </AdminProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/category/add" 
+            element={
+              <AdminProtectedRoute>
+                <AddCategory />
+              </AdminProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/invoice" 
+            element={
+              <AdminProtectedRoute>
+                <InvoiceExportPage />
+              </AdminProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/proprity/update" 
+            element={
+              <AdminProtectedRoute>
+                <PriorityUpdate />
+              </AdminProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/book/priority/update" 
+            element={
+              <AdminProtectedRoute>
+                <PriorityUpdate />
+              </AdminProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/book/update" 
+            element={
+              <AdminProtectedRoute>
+                <BookUpdate />
+              </AdminProtectedRoute>
+            } 
+          />
           
-          
-
           {/* Add more routes as needed */}
         </Routes>
       </main>
