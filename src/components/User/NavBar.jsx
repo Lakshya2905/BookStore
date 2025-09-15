@@ -195,9 +195,6 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
               {/* Heart and Cart - Only show for non-owner users */}
               {!isOwner && (
                 <>
-                  <button className={styles.actionButton}>
-                    <Heart size={20} />
-                  </button>
                   <button className={styles.actionButton} onClick={handleCartClick}>
                     <ShoppingCart size={20} />
                   </button>
