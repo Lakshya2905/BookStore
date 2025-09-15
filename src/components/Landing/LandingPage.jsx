@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Award, TrendingUp, Star } from 'lucide-react';
 import axios from 'axios';
 import CategoriesView from '../Books/CategoriesView';
@@ -24,8 +24,18 @@ const LandingPage = () => {
   const [error, setError] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
   const [imageLoadingProgress, setImageLoadingProgress] = useState(0);
+    const { hash } = useLocation();
 
   const navigate = useNavigate();
+
+
+    useEffect(() => {
+    if (hash) {
+      const el = document.getElementById(hash.replace("#", ""));
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [hash]);
+
   
   useEffect(() => {
     fetchData();

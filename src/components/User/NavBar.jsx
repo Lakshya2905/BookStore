@@ -114,17 +114,21 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
     (e) => {
       e.preventDefault();
       if (searchQuery.trim()) {
-        navigate(`/landing?search=${encodeURIComponent(searchQuery.trim())}`);
+        navigate(`/books?search=${encodeURIComponent(searchQuery.trim())}`);
         window.location.reload();
       }
     },
     [searchQuery, navigate]
   );
 
-  const handleCategoriesClick = useCallback(() => {
-    navigate("/landing#categories");
-    window.location.reload();
-  }, [navigate]);
+const handleCategoriesClick = useCallback(() => {
+  navigate("/landing#categories");
+  // Delay is often needed to let navigation finish before scrolling
+  setTimeout(() => {
+    const el = document.getElementById("categories");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  }, 100);
+}, [navigate]);
 
   const handleAuthorsClick = useCallback(() => {
     if (location.pathname === "/landing") {

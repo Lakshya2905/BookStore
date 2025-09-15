@@ -381,16 +381,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                       </div>
 
                       <div className={styles.bookActions}>
-                        <div className={styles.quantityControl}>
-                          <button className={styles.quantityButton} type="button" aria-label="Decrease quantity">
-                            −
-                          </button>
-                          <span className={styles.quantity}>1</span>
-                          <button className={styles.quantityButton} type="button" aria-label="Increase quantity">
-                            +
-                          </button>
-                        </div>
-                        
+                      
                         <div className={styles.actionButtons}>
                           <button 
                             className={`${styles.addToCartButton} ${cartLoading[bookId] ? styles.loading : ''}`}
