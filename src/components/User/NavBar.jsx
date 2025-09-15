@@ -131,13 +131,17 @@ const handleCategoriesClick = useCallback(() => {
 }, [navigate]);
 
 
-  const handleNavigation = useCallback(
-    (path) => {
-      navigate(path);
+const handleNavigation = useCallback(
+  (path) => {
+    navigate(path);
+
+    // Only reload if path does NOT start with /admin
+    if (!path.startsWith("/admin")) {
       window.location.reload();
-    },
-    [navigate]
-  );
+    }
+  },
+  [navigate]
+);
 
   const handleSearchInputChange = useCallback((e) => {
     setSearchQuery(e.target.value);
