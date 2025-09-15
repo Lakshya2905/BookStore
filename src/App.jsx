@@ -15,6 +15,7 @@ import WhatsAppFloatingButton from "./components/User/WhatsAppFloatingButton";
 import PriorityUpdate from "./components/Books/PriorityUpdate";
 import BookUpdate from "./components/Books/BookUpdate";
 import AddDiscoveryImage from "./components/Admin/AddDiscoveryImage";
+import DiscoveryImageEditPanel from "./components/Admin/DiscoveryImageEditPanel";
 
 // ========================
 // Auth Context
@@ -297,6 +298,15 @@ const AppContent = React.memo(() => {
             element={
               <AdminProtectedRoute>
                 <AddDiscoveryImage />
+              </AdminProtectedRoute>
+            } 
+          />
+
+                 <Route 
+            path="/admin/edit/discoveryImage" 
+            element={
+              <AdminProtectedRoute>
+                <DiscoveryImageEditPanel />
               </AdminProtectedRoute>
             } 
           />
