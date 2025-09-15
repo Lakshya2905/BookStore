@@ -25,6 +25,10 @@ export const BOOK_ADD_URL = `${API_BASE_URL}/book/addBook`;
 export const BOOK_CATEGORIES_FETCH_URL = `${API_BASE_URL}/book/categories`;
 export const BOOK_CATEGORIES_ADD_URL = `${API_BASE_URL}/book/category/add`;
 
+export const FIND_ALL_BOOK_URL = `${API_BASE_URL}/book/findAllBook`;
+export const BOOK_UPDATE_PRIORITY = `${API_BASE_URL}/book/update/priority`;
+export const BOOK_UPDATE = `${API_BASE_URL}/book/update/information`;
+
 
 
 export const CHECKOUT_CART_URL = `${API_BASE_URL}/order/create/cart`;

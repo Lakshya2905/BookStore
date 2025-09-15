@@ -12,6 +12,9 @@ import AddBookPage from "./components/Admin/AddBookPage";
 import AddCategory from "./components/Admin/AddCategory";
 import InvoiceExportPage from "./components/Admin/InvoiceExportPage";
 import WhatsAppFloatingButton from "./components/User/WhatsAppFloatingButton";
+import PriorityUpdate from "./components/Books/PriorityUpdate";
+import BookUpdate from "./components/Books/BookUpdate";
+
 
 // ========================
 // Auth Context
@@ -229,6 +232,11 @@ const AppContent = React.memo(() => {
           <Route path="/admin/book/add" element={<AddBookPage />} />
           <Route path="/admin/category/add" element={<AddCategory />} />
           <Route path="/admin/invoice" element={<InvoiceExportPage />} />
+          <Route path="/admin/proprity/update" element={<PriorityUpdate />} />
+          <Route path="/admin/book/priority/update" element={<PriorityUpdate />} />
+          <Route path="/admin/book/update" element={<BookUpdate />} />
+          
+          
 
           {/* Add more routes as needed */}
         </Routes>

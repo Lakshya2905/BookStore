@@ -111,10 +111,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup }) => {
         // Store user data in sessionStorage
         sessionStorage.setItem('user', JSON.stringify(user));
         sessionStorage.setItem('token', token);
-        setSuccessMessage("Login successful! Redirecting to dashboard...");
-        
-        // Log successful login
-        console.log('Login successful for user:', user);
+        window.location.reload();
         
       } else {
         // Handle failed login
