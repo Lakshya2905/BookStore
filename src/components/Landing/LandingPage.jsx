@@ -387,7 +387,10 @@ const LandingPage = () => {
     }
   };
 
-  const handleExploreBooks = () => navigate('/books');
+  const handleExploreBooks = () => {
+  navigate('/books');
+  window.location.reload();
+};
 
   const handleViewAllCategories = () => {
     document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' });

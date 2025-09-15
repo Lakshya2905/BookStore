@@ -1,14 +1,19 @@
-import React, { useEffect,useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Search, Heart, ShoppingCart, User, Menu, X, Settings, Plus, FileText, Edit, TrendingUp } from "lucide-react";
 import CartSidebar from "../Cart/CartSidebar";
 import styles from "./NavBar.module.css";
 import Logo from "../images/logo.jpg";
+import axios from 'axios';
+import { CART_ITEM_URL } from '../../constants/apiConstants';
+
+
 
 const NavBar = React.memo(({ onSignIn, onSignUp }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -28,6 +33,67 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
   // Check if user is owner
   const isOwner = useMemo(() => role === 'OWNER', [role]);
 
+  // Function to fetch cart item count
+  const fetchCartItemCount = useCallback(async () => {
+    if (!user || isOwner) {
+      setCartItemCount(0);
+      return;
+    }
+
+    try {
+      const { user: userData, token } = getUserData();
+      if (!userData || !token) {
+        setCartItemCount(0);
+        return;
+      }
+
+      const requestData = {
+        user: userData,
+        token: token
+      };
+
+      // Replace with your actual API endpoint for getting cart total
+      const response = await axios.post(`${CART_ITEM_URL}`, requestData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.data && response.data.status === 'SUCCESS') {
+        // Assuming the response contains count in response.data.data
+        setCartItemCount(response.data.payload || 0);
+      } else {
+        setCartItemCount(0);
+      }
+    } catch (error) {
+      console.error('Error fetching cart item count:', error);
+      setCartItemCount(0);
+    }
+  }, [user, isOwner, getUserData]);
+
+  // Fetch cart count on component mount and when user changes
+  useEffect(() => {
+    fetchCartItemCount();
+  }, [fetchCartItemCount]);
+
+  // Listen for cart updates
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      fetchCartItemCount();
+    };
+
+    // Listen for custom cart update events
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    
+    // Also listen for focus events to refresh when user comes back to the page
+    window.addEventListener('focus', handleCartUpdate);
+
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+      window.removeEventListener('focus', handleCartUpdate);
+    };
+  }, [fetchCartItemCount]);
+
   // Handle default navigation for owners after login
   useEffect(() => {
     if (isOwner && location.pathname === '/landing') {
@@ -39,6 +105,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("role");
+    setCartItemCount(0); // Reset cart count on sign out
     navigate("/landing");
     window.location.reload();
   }, [navigate]);
@@ -99,7 +166,9 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
 
   const handleCartClose = useCallback(() => {
     setCartOpen(false);
-  }, []);
+    // Refresh cart count when cart is closed
+    fetchCartItemCount();
+  }, [fetchCartItemCount]);
 
   const handleCheckout = useCallback(
     (cartData) => {
@@ -195,8 +264,18 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
               {/* Heart and Cart - Only show for non-owner users */}
               {!isOwner && (
                 <>
-                  <button className={styles.actionButton} onClick={handleCartClick}>
-                    <ShoppingCart size={20} />
+                  <button 
+                    className={`${styles.actionButton} ${styles.cartButton}`} 
+                    onClick={handleCartClick}
+                  >
+                    <div className={styles.cartIconWrapper}>
+                      <ShoppingCart size={20} />
+                      {cartItemCount > 0 && (
+                        <span className={styles.cartBadge}>
+                          {cartItemCount > 99 ? '99+' : cartItemCount}
+                        </span>
+                      )}
+                    </div>
                   </button>
                 </>
               )}
