@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate,useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Award, TrendingUp, Star } from 'lucide-react';
 import axios from 'axios';
 import CategoriesView from '../Books/CategoriesView';
 import BookViewCard from '../Books/BookViewCard';
 import FeaturedBooksSection from '../Books/FeaturedBooksSection';
 import styles from './LandingPage.module.css';
-import { BOOK_FETCH_URL, CATRGORY_FETCH_URL, BOOK_IMAGE_FETCH_URL } from '../../constants/apiConstants';
+import { BOOK_FETCH_URL, CATRGORY_VIEW_URL, BOOK_IMAGE_FETCH_URL, CATEGORY_IMAGE_FETCH_URL } from '../../constants/apiConstants';
 import Discovery from './Discovery';
 
 const LandingPage = () => {
@@ -24,31 +24,31 @@ const LandingPage = () => {
   const [error, setError] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
   const [imageLoadingProgress, setImageLoadingProgress] = useState(0);
-    const { hash } = useLocation();
+  const [categoryImageLoading, setCategoryImageLoading] = useState(false);
+  const { hash } = useLocation();
 
   const navigate = useNavigate();
 
-    useEffect(() => {
+  useEffect(() => {
     // Only scroll to top if there's no hash in URL
     if (!hash) {
       window.scrollTo(0, 0);
     }
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     if (hash) {
       const el = document.getElementById(hash.replace("#", ""));
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
   }, [hash]);
 
-  
   useEffect(() => {
     fetchData();
     fetchStats();
   }, []);
 
-  // Function to get cached image from session storage
+  // Function to get cached book image from session storage
   const getCachedImage = (bookId) => {
     try {
       const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
@@ -59,7 +59,7 @@ const LandingPage = () => {
     }
   };
 
-  // Function to cache image in session storage
+  // Function to cache book image in session storage
   const cacheImage = (bookId, imageData) => {
     try {
       const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
@@ -77,6 +77,128 @@ const LandingPage = () => {
           console.error("Failed to cache image even after clearing:", e);
         }
       }
+    }
+  };
+
+  // Function to get cached category image from session storage
+  const getCachedCategoryImage = (categoryId) => {
+    try {
+      const cachedImages = JSON.parse(sessionStorage.getItem("categoryImages") || "{}");
+      return cachedImages[categoryId] || null;
+    } catch (error) {
+      console.error("Error reading cached category images:", error);
+      return null;
+    }
+  };
+
+  // Function to cache category image in session storage
+  const cacheCategoryImage = (categoryId, imageData) => {
+    try {
+      const cachedImages = JSON.parse(sessionStorage.getItem("categoryImages") || "{}");
+      cachedImages[categoryId] = imageData;
+      sessionStorage.setItem("categoryImages", JSON.stringify(cachedImages));
+    } catch (error) {
+      console.error("Error caching category image:", error);
+      // If storage is full, clear old cache and try again
+      if (error.name === 'QuotaExceededError') {
+        try {
+          sessionStorage.removeItem("categoryImages");
+          const newCache = { [categoryId]: imageData };
+          sessionStorage.setItem("categoryImages", JSON.stringify(newCache));
+        } catch (e) {
+          console.error("Failed to cache category image even after clearing:", e);
+        }
+      }
+    }
+  };
+
+  // Function to fetch single category image
+  const fetchSingleCategoryImage = async (category) => {
+    try {
+      // First check cache
+      const cachedImage = getCachedCategoryImage(category.categoryId);
+      if (cachedImage) {
+        return {
+          ...category,
+          imageUrl: cachedImage
+        };
+      }
+
+      // Fetch from server if not cached
+      const imageResponse = await axios.get(`${CATEGORY_IMAGE_FETCH_URL}?categoryId=${category.categoryId}`, {
+        responseType: 'blob',
+        timeout: 15000 // 15 second timeout
+      });
+
+      const blob = imageResponse.data;
+      
+      // Convert blob to base64 for caching
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result;
+          
+          // Cache the image
+          cacheCategoryImage(category.categoryId, base64data);
+          
+          resolve({
+            ...category,
+            imageUrl: base64data
+          });
+        };
+        reader.onerror = () => {
+          console.warn(`Failed to convert category image to base64 for category ${category.categoryId}`);
+          resolve({
+            ...category,
+            imageUrl: null
+          });
+        };
+        reader.readAsDataURL(blob);
+      });
+
+    } catch (error) {
+      console.warn(`Failed to load image for category ${category.categoryId}:`, error.message);
+      return {
+        ...category,
+        imageUrl: null
+      };
+    }
+  };
+
+  // Function to load category images
+  const loadCategoryImages = async (categories) => {
+    if (!categories || categories.length === 0) return categories;
+    
+    setCategoryImageLoading(true);
+    
+    try {
+      const categoriesWithImages = await Promise.all(
+        categories.map(async (category) => {
+          // Handle CategoryDto structure properly
+          if (!category.categoryId || !category.categoryName) {
+            console.warn('Invalid category structure:', category);
+            return category;
+          }
+          
+          const cachedImage = getCachedCategoryImage(category.categoryId);
+          if (cachedImage) {
+            return { ...category, imageUrl: cachedImage };
+          }
+          return await fetchSingleCategoryImage(category);
+        })
+      );
+
+      console.log(`Category image loading complete`);
+      return categoriesWithImages;
+
+    } catch (error) {
+      console.error("Error loading category images:", error);
+      return categories.map(category => ({
+        ...category,
+        imageUrl: getCachedCategoryImage(category.categoryId) || null
+      }));
+    } finally {
+      setCategoryImageLoading(false);
     }
   };
 
@@ -273,100 +395,158 @@ const LandingPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError(null);
       
-      // Check for cached categories
+      // Check for cached data first
       const cachedCategories = sessionStorage.getItem("allCategories");
-      let categoryData = [];
-      
-      if (cachedCategories) {
-        categoryData = JSON.parse(cachedCategories);
-        setCategories(categoryData);
-      }
-
-      // Check for cached books with images
       const cachedBooks = sessionStorage.getItem("allBooks");
       
-      if (cachedBooks) {
+      // If we have both cached categories and books, use them
+      if (cachedCategories && cachedBooks) {
         try {
+          const categoryData = JSON.parse(cachedCategories);
           const bookData = JSON.parse(cachedBooks);
           
-          // Verify cached books still have valid image URLs
-          const booksWithValidImages = bookData.map(book => ({
+          // Verify cached categories have proper structure
+          const validCachedCategories = categoryData.filter(category => 
+            category.categoryId && category.categoryName
+          ).map(category => ({
+            ...category,
+            imageUrl: getCachedCategoryImage(category.categoryId) || category.imageUrl
+          }));
+          
+          // Verify cached books
+          const validCachedBooks = bookData.map(book => ({
             ...book,
             coverImageUrl: getCachedImage(book.bookId) || book.coverImageUrl
           }));
           
-          setAllBooks(booksWithValidImages);
-          setFeaturedBooks(booksWithValidImages.slice(0, 6));
-          setPreviewBooks(booksWithValidImages.slice(0, 8));
-          
-          setStats(prev => ({
-            ...prev,
-            totalBooks: booksWithValidImages.length,
-            totalCategories: categoryData.length || prev.totalCategories
-          }));
-          
-          setLoading(false);
-          return;
+          if (validCachedCategories.length > 0 && validCachedBooks.length > 0) {
+            setCategories(validCachedCategories);
+            setAllBooks(validCachedBooks);
+            setFeaturedBooks(validCachedBooks.slice(0, 6));
+            setPreviewBooks(validCachedBooks.slice(0, 8));
+            
+            setStats(prev => ({
+              ...prev,
+              totalBooks: validCachedBooks.length,
+              totalCategories: validCachedCategories.length
+            }));
+            
+            setLoading(false);
+            return;
+          }
         } catch (error) {
-          console.error("Error parsing cached books:", error);
+          console.error("Error parsing cached data:", error);
           // Continue with fresh fetch if cache is corrupted
         }
       }
 
-      // Fetch fresh data
-      const requests = [];
+      // Step 1: Fetch categories first
+      console.log("Fetching categories...");
+      let categoriesData = [];
       
-      // Add category request if not cached
-      if (!cachedCategories) {
-        requests.push(axios.get(`${CATRGORY_FETCH_URL}`));
-      } else {
-        requests.push(Promise.resolve({ data: { status: "SUCCESS", payload: categoryData } }));
+      try {
+        const categoryResponse = await axios.get(`${CATRGORY_VIEW_URL}`);
+        
+        if (categoryResponse.data.status === "SUCCESS") {
+          const categoriesPayload = categoryResponse.data.payload || [];
+          
+          // Validate category structure
+          const validCategories = categoriesPayload.filter(category => {
+            if (!category.categoryId || !category.categoryName) {
+              console.warn('Invalid category structure received from API:', category);
+              return false;
+            }
+            return true;
+          });
+
+          if (validCategories.length === 0) {
+            console.warn('No valid categories received from API');
+          } else {
+            categoriesData = validCategories;
+            console.log(`Found ${categoriesData.length} valid categories`);
+            
+            // Set categories without images first
+            setCategories(categoriesData);
+            setStats(prev => ({
+              ...prev,
+              totalCategories: categoriesData.length
+            }));
+          }
+        } else {
+          console.error('Category API error:', categoryResponse.data);
+          setError(categoryResponse.data.message || "Failed to load categories");
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setError("Failed to load categories. Please check your connection.");
       }
+
+      // Step 2: Fetch books
+      console.log("Fetching books...");
+      let booksData = [];
       
-      // Add books request
-      requests.push(axios.get(`${BOOK_FETCH_URL}`));
-
-      const [categoryResponse, bookResponse] = await Promise.all(requests);
-
-      // Handle categories
-      if (categoryResponse.data.status === "SUCCESS") {
-        const categoriesPayload = categoryResponse.data.payload || [];
-        setCategories(categoriesPayload);
+      try {
+        const bookResponse = await axios.get(`${BOOK_FETCH_URL}`);
         
-        if (!cachedCategories) {
-          sessionStorage.setItem("allCategories", JSON.stringify(categoriesPayload));
+        if (bookResponse.data.status === "SUCCESS") {
+          const books = bookResponse.data.payload || [];
+          
+          if (books.length === 0) {
+            setError("No books found");
+          } else {
+            booksData = books;
+            console.log(`Found ${booksData.length} books`);
+            
+            setStats(prev => ({
+              ...prev,
+              totalBooks: booksData.length
+            }));
+          }
+        } else {
+          console.error('Books API error:', bookResponse.data);
+          setError(bookResponse.data.message || "Failed to load books");
         }
-      } else {
-        setError(categoryResponse.data.message || "Failed to load categories");
+      } catch (error) {
+        console.error("Error fetching books:", error);
+        setError("Failed to load books. Please check your connection.");
       }
 
-      // Handle books
-      if (bookResponse.data.status === "SUCCESS") {
-        const books = bookResponse.data.payload || [];
-        
-        if (books.length === 0) {
-          setError("No books found");
-          setLoading(false);
-          return;
+      // Step 3: Load category images (if categories were fetched successfully)
+      if (categoriesData.length > 0) {
+        console.log("Loading category images...");
+        try {
+          const categoriesWithImages = await loadCategoryImages(categoriesData);
+          setCategories(categoriesWithImages);
+          
+          // Cache categories with images
+          sessionStorage.setItem("allCategories", JSON.stringify(categoriesWithImages));
+          console.log("Categories cached with images");
+        } catch (error) {
+          console.error("Error loading category images:", error);
+          // Keep categories without images if image loading fails
         }
+      }
 
-        // Load images with priority approach
-        const booksWithImages = await loadImagesWithPriority(books);
-        
-        // Update stats
-        setStats(prev => ({
-          ...prev,
-          totalBooks: books.length,
-          totalCategories: categoryResponse.data.payload?.length || prev.totalCategories
-        }));
-
-      } else {
-        setError(bookResponse.data.message || "Failed to load books");
+      // Step 4: Load book images (if books were fetched successfully)
+      if (booksData.length > 0) {
+        console.log("Loading book images...");
+        try {
+          const booksWithImages = await loadImagesWithPriority(booksData);
+          // loadImagesWithPriority already updates the state and cache
+          console.log("Book images loaded and cached");
+        } catch (error) {
+          console.error("Error loading book images:", error);
+          // Set books without images if image loading fails
+          setAllBooks(booksData);
+          setFeaturedBooks(booksData.slice(0, 6));
+          setPreviewBooks(booksData.slice(0, 8));
+        }
       }
 
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error("Error in fetchData:", err);
       setError("Failed to load data. Please check your connection and try again.");
     } finally {
       setLoading(false);
@@ -385,37 +565,60 @@ const LandingPage = () => {
   // Function to clear image cache
   const clearImageCache = () => {
     sessionStorage.removeItem("bookImages");
-    console.log("Image cache cleared");
+    sessionStorage.removeItem("categoryImages");
+    sessionStorage.removeItem("allBooks");
+    sessionStorage.removeItem("allCategories");
+    console.log("Cache cleared");
   };
 
   // Function to get cache info for debugging
   const getCacheInfo = () => {
     try {
-      const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
-      const cacheSize = JSON.stringify(cachedImages).length;
-      const imageCount = Object.keys(cachedImages).length;
+      const cachedBookImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
+      const cachedCategoryImages = JSON.parse(sessionStorage.getItem("categoryImages") || "{}");
       
-      console.log(`Image cache: ${imageCount} images, ${(cacheSize / 1024 / 1024).toFixed(2)} MB`);
-      return { imageCount, cacheSize };
+      const bookCacheSize = JSON.stringify(cachedBookImages).length;
+      const categoryCacheSize = JSON.stringify(cachedCategoryImages).length;
+      const totalCacheSize = bookCacheSize + categoryCacheSize;
+      
+      const bookImageCount = Object.keys(cachedBookImages).length;
+      const categoryImageCount = Object.keys(cachedCategoryImages).length;
+      
+      console.log(`Book images cache: ${bookImageCount} images, ${(bookCacheSize / 1024 / 1024).toFixed(2)} MB`);
+      console.log(`Category images cache: ${categoryImageCount} images, ${(categoryCacheSize / 1024 / 1024).toFixed(2)} MB`);
+      console.log(`Total cache size: ${(totalCacheSize / 1024 / 1024).toFixed(2)} MB`);
+      
+      return { 
+        bookImageCount, 
+        categoryImageCount, 
+        bookCacheSize, 
+        categoryCacheSize, 
+        totalCacheSize 
+      };
     } catch (error) {
       console.error("Error getting cache info:", error);
-      return { imageCount: 0, cacheSize: 0 };
+      return { 
+        bookImageCount: 0, 
+        categoryImageCount: 0, 
+        bookCacheSize: 0, 
+        categoryCacheSize: 0, 
+        totalCacheSize: 0 
+      };
     }
   };
 
   const handleExploreBooks = () => {
-  navigate('/books');
-  window.location.reload();
-};
+    navigate('/books');
+    window.location.reload();
+  };
 
   const handleViewAllCategories = () => {
     document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleCategoryClick = (category) => {
-    navigate(`/books?category=${encodeURIComponent(category)}`);
-     window.location.reload();
-
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/books?category=${encodeURIComponent(categoryName)}`);
+    window.location.reload();
   };
 
   return (
@@ -456,11 +659,14 @@ const LandingPage = () => {
       </section>
 
       {/* Loading indicator for images */}
-      {imageLoading && (
+      {(imageLoading || categoryImageLoading) && (
         <div className={styles.imageLoadingIndicator}>
           <div className={styles.loadingContent}>
-            <p>Loading book covers... {imageLoadingProgress > 0 && `${imageLoadingProgress}%`}</p>
-            {imageLoadingProgress > 0 && (
+            <p>
+              {categoryImageLoading && "Loading category images..."}
+              {imageLoading && `Loading book covers... ${imageLoadingProgress > 0 ? `${imageLoadingProgress}%` : ''}`}
+            </p>
+            {imageLoading && imageLoadingProgress > 0 && (
               <div className={styles.progressBar}>
                 <div 
                   className={styles.progressFill} 
@@ -472,7 +678,13 @@ const LandingPage = () => {
         </div>
       )}
 
-
+      {/* Error Display */}
+      {error && (
+        <div className={styles.errorMessage}>
+          <p>⚠️ {error}</p>
+          <button onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      )}
 
       {/* Featured Books Section */}
       <FeaturedBooksSection 

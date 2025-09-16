@@ -1,26 +1,67 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './CategoriesView.module.css';
 
 const CategoriesView = ({ categories = [], books = [], onCategoryClick }) => {
-  const getCategoryIcon = (category) => {
+  const [imageErrors, setImageErrors] = useState({});
+
+  const getCategoryIcon = (categoryName) => {
     const icons = {
       Fantasy: '🐲',
       Romance: '❤️',
       Mystery: '🕵️‍♂️',
       'Sci-Fi': '🚀',
+      'Science Fiction': '🚀',
       History: '🏛️',
       Psychology: '🧠',
       Children: '😊',
-      Business: '💼'
+      Business: '💼',
+      Technology: '💻',
+      Thriller: '🔪',
+      Horror: '👻',
+      Comedy: '😄',
+      Drama: '🎭',
+      Adventure: '⛰️',
+      Biography: '👤',
+      Health: '💊',
+      Cooking: '👨‍🍳',
+      Travel: '✈️',
+      Art: '🎨',
+      Music: '🎵',
+      Sports: '⚽',
+      Science: '🔬',
+      Philosophy: '🤔',
+      Religion: '🙏',
+      Politics: '🏛️',
+      Economics: '💰',
+      Education: '🎓',
+      Parenting: '👶',
+      'Self-Help': '💪',
+      SelfHelp: '💪',
+      Fiction: '📖',
+      'Non-Fiction': '📚',
+      NonFiction: '📚'
     };
-    return icons[category] || '📚';
+    return icons[categoryName] || '📚';
   };
 
-  const getCategoryCount = (category) => {
-    return books.filter(book => book.category === category).length;
+  const getCategoryCount = (categoryName) => {
+    if (!books || !Array.isArray(books)) return 0;
+    return books.filter(book => 
+      book.category === categoryName || 
+      book.categoryName === categoryName ||
+      (book.categories && book.categories.includes(categoryName))
+    ).length;
   };
 
-if (!categories.length) {
+  const handleImageError = (categoryId) => {
+    setImageErrors(prev => ({ ...prev, [categoryId]: true }));
+  };
+
+  const handleImageLoad = (categoryId) => {
+    setImageErrors(prev => ({ ...prev, [categoryId]: false }));
+  };
+
+  if (!categories || !Array.isArray(categories) || categories.length === 0) {
     return (
       <div className={styles.noCategories}>
         <h2>No Categories Available</h2>
@@ -32,28 +73,71 @@ if (!categories.length) {
   return (
     <div className={styles.container}>
       <div className={styles.categoriesGrid}>
-        {categories.map((category) => (
-          <article 
-            key={category} 
-            className={styles.categoryCard}
-            onClick={() => onCategoryClick(category)}
-          >
-            <div className={styles.categoryIcon}>
-              {getCategoryIcon(category)}
-            </div>
-            <h3 className={styles.categoryTitle}>{category}</h3>
-            <p className={styles.categoryCount}>
-              {getCategoryCount(category).toLocaleString()} books
-            </p>
-            <div className={styles.categoryOverlay}>
-              <span>View Books →</span>
-            </div>
-          </article>
-        ))}
+        {categories.map((category) => {
+          // Handle the CategoryDto structure: {categoryId, categoryName}
+          const categoryName = category.categoryName || category.name || category;
+          const categoryId = category.categoryId || category.id || categoryName;
+          const categoryImage = category.imageUrl || null;
+          
+          const hasImageError = imageErrors[categoryId];
+          const shouldShowImage = categoryImage && !hasImageError;
+          const bookCount = getCategoryCount(categoryName);
+
+          if (!categoryName) {
+            console.warn('Category missing name:', category);
+            return null;
+          }
+
+          return (
+            <article 
+              key={categoryId} 
+              className={styles.categoryCard}
+              data-category={categoryName}
+              onClick={() => onCategoryClick?.(categoryName)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onCategoryClick?.(categoryName);
+                }
+              }}
+            >
+              <div className={styles.categoryImageContainer}>
+                {shouldShowImage ? (
+                  <img 
+                    src={categoryImage} 
+                    alt={`${categoryName} category`}
+                    className={styles.categoryImage}
+                    onError={() => handleImageError(categoryId)}
+                    onLoad={() => handleImageLoad(categoryId)}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className={styles.categoryIconFallback}>
+                    <span className={styles.categoryIcon}>
+                      {getCategoryIcon(categoryName)}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              <div className={styles.categoryContent}>
+                <h3 className={styles.categoryTitle}>{categoryName}</h3>
+                <p className={styles.categoryCount}>
+                  {bookCount.toLocaleString()} book{bookCount !== 1 ? 's' : ''}
+                </p>
+              </div>
+              
+              <div className={styles.categoryOverlay}>
+                <span>View Books →</span>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </div>
   );
-
 };
 
 export default CategoriesView;

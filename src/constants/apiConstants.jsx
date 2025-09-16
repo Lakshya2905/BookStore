@@ -11,6 +11,9 @@ export const BOOK_IMAGE_FETCH_URL = `${API_BASE_URL}/landing/book/image`;
 
 export const CATRGORY_FETCH_URL = `${API_BASE_URL}/landing/categories`;
 
+export const CATRGORY_VIEW_URL = `${API_BASE_URL}/landing/view/categories`;
+
+
 
 export const CART_VIEW_URL = `${API_BASE_URL}/cart/view`;
 export const CART_ITEM_ADD_URL = `${API_BASE_URL}/cart/addItem`;
@@ -22,6 +25,9 @@ export const CART_ITEM_DELETE_URL = `${API_BASE_URL}/cart/item/delete`;
 export const CART_ITEM_URL = `${API_BASE_URL}/cart/cartItems`;
 
 export const DISCOVERY_IMAGES = `${API_BASE_URL}/landing/images`;
+export const CATEGORY_IMAGE_FETCH_URL = `${API_BASE_URL}/landing/category/image`;
+
+
 
 export const ADD_DISCOVERY_IMAGE = `${API_BASE_URL}/book/discovery/addImage`;
 
