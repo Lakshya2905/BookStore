@@ -1,4 +1,4 @@
-/* CategoryView.module.css */
+/* CategoryView.module.css - Updated with fixed image fitting */
 
 /* Container and Layout */
 .container {
@@ -79,7 +79,7 @@
   border-color: #cbd5e1;
 }
 
-/* Category Image Container - NEW */
+/* Category Image Container - UPDATED */
 .categoryImageContainer {
   position: relative;
   height: 200px;
@@ -88,21 +88,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 8px; /* Added padding to prevent images from touching edges */
 }
 
-/* Category Image - NEW */
+/* Category Image - FIXED for no cropping */
 .categoryImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* Changed from 'cover' to 'contain' - prevents cropping */
+  object-position: center; /* Center the image */
   transition: transform 0.3s ease;
+  background: #f8fafc; /* Background for letterboxing */
+  border-radius: 8px; /* Slight rounding for better aesthetics */
 }
 
 .categoryCard:hover .categoryImage {
-  transform: scale(1.05);
+  transform: scale(1.02); /* Reduced scale to prevent overflow */
 }
 
-/* Category Icon Fallback - NEW */
+/* Category Icon Fallback - UPDATED */
 .categoryIconFallback {
   width: 100%;
   height: 100%;
@@ -110,6 +114,7 @@
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 8px;
 }
 
 /* Category Icon - UPDATED */
@@ -124,7 +129,7 @@
   transform: scale(1.1);
 }
 
-/* Category Content - NEW */
+/* Category Content - UPDATED */
 .categoryContent {
   padding: 24px 20px;
   flex-grow: 1;
@@ -186,7 +191,7 @@
   transform: translateY(0);
 }
 
-/* Special Category Styling - UPDATED */
+/* Special Category Styling - No changes needed */
 .categoryCard[data-category="Fantasy"] {
   border-left: 4px solid #8b5cf6;
 }
@@ -396,7 +401,7 @@
   color: #374151;
 }
 
-/* Mobile Responsive Design */
+/* Mobile Responsive Design - UPDATED */
 @media (max-width: 1200px) {
   .categoriesGrid {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -409,6 +414,7 @@
   
   .categoryImageContainer {
     height: 180px;
+    padding: 6px;
   }
 }
 
@@ -436,6 +442,7 @@
   
   .categoryImageContainer {
     height: 160px;
+    padding: 6px;
   }
   
   .categoryContent {
@@ -480,6 +487,7 @@
   
   .categoryImageContainer {
     height: 140px;
+    padding: 4px;
   }
   
   .categoryContent {
@@ -530,6 +538,7 @@
   
   .categoryImageContainer {
     height: 120px;
+    padding: 4px;
   }
   
   .categoryContent {
@@ -610,7 +619,7 @@
   }
 }
 
-/* Reduced motion support */
+/* Reduced motion support - UPDATED */
 @media (prefers-reduced-motion: reduce) {
   .categoryCard,
   .categoryIcon,
@@ -634,7 +643,7 @@
   }
 }
 
-/* Print styles */
+/* Print styles - UPDATED */
 @media print {
   .container {
     background: white;
@@ -664,6 +673,7 @@
   
   .categoryImageContainer {
     height: 150px;
+    padding: 4px;
   }
 }
 
