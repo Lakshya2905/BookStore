@@ -8,7 +8,9 @@ const CustomerOrderView = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [expandedInvoices, setExpandedInvoices] = useState(new Set());
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // EXACT same function as addItemToCart
   const getUserData = () => {
     try {
       const user = JSON.parse(sessionStorage.getItem("user"));
@@ -18,6 +20,14 @@ const CustomerOrderView = () => {
       console.error("Error parsing user data:", error);
       return { user: null, token: null };
     }
+  };
+
+  // Check if user is logged in
+  const checkLoginStatus = () => {
+    const { user, token } = getUserData();
+    const loggedIn = !!(user && token);
+    setIsLoggedIn(loggedIn);
+    return loggedIn;
   };
 
   // Format date to dd-mm-yyyy
@@ -42,50 +52,159 @@ const CustomerOrderView = () => {
     });
   };
 
+  // EXACT same pattern as addItemToCart - all logic inside the function
   const fetchOrders = async () => {
-    setLoading(true);
-    setError("");
-
     try {
+      setLoading(true);
+      setError("");
+      
       const { user, token } = getUserData();
       
-      // Same pattern as addItemToCart - check auth inside fetchOrders
       if (!user || !token) {
-        window.dispatchEvent(new Event("openLoginModal"));
+        setIsLoggedIn(false);
         setLoading(false);
-        return;
+        return null;
       }
-
-      const response = await axios.post(`${CUSTOMER_ORDER_VIEW_URL}`, {
+      
+      const requestData = {
         user: user,
         token: token
-      }, {
+      };
+      
+      const response = await axios.post(`${CUSTOMER_ORDER_VIEW_URL}`, requestData, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
       
-      if (response.data.status === "SUCCESS") {
+      if (response.data && response.data.status === 'SUCCESS') {
         setInvoices(response.data.payload);
+        setIsLoggedIn(true);
       } else {
         setError(response.data.message || "Failed to fetch invoices");
       }
-    } catch (e) {
-      console.error('Error fetching orders:', e);
+      
+      setLoading(false);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching orders:', error);
       setError("Network error, please try again later.");
+      setLoading(false);
+      throw error;
     }
-    setLoading(false);
   };
 
+  // Handle login button click
+  const handleLoginClick = () => {
+    window.dispatchEvent(new Event("openLoginModal"));
+  };
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    if (checkLoginStatus()) {
+      fetchOrders();
+    }
+  };
+
+  // Initial check on component mount
   useEffect(() => {
-    fetchOrders();
+    if (checkLoginStatus()) {
+      fetchOrders();
+    }
   }, []);
 
+  // Listen for login success events (optional)
+  useEffect(() => {
+    const handleLoginSuccess = () => {
+      if (checkLoginStatus()) {
+        fetchOrders();
+      }
+    };
+
+    window.addEventListener('loginSuccess', handleLoginSuccess);
+    return () => {
+      window.removeEventListener('loginSuccess', handleLoginSuccess);
+    };
+  }, []);
+
+  // SCREEN 1: Not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className={styles.orderViewContainer}>
+        <div className={styles.header}>
+          <h1 className={styles.heading}>My Orders</h1>
+          <p className={styles.subHeading}>Track and manage your book orders</p>
+        </div>
+
+        <div className={styles.loginRequiredScreen}>
+          <div className={styles.loginCard}>
+            <div className={styles.loginIcon}>🔐</div>
+            <h2 className={styles.loginTitle}>Login Required</h2>
+            <p className={styles.loginMessage}>
+              You need to log in to view your orders. Please sign in to your account to continue.
+            </p>
+            
+            <div className={styles.loginButtons}>
+              <button 
+                onClick={handleLoginClick}
+                className={styles.loginButton}
+              >
+                Login Now
+              </button>
+              
+              <button 
+                onClick={handleRefresh}
+                className={styles.refreshButton}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className={styles.miniSpinner}></div>
+                    Checking...
+                  </>
+                ) : (
+                  <>
+                    🔄 Refresh
+                  </>
+                )}
+              </button>
+            </div>
+
+            {error && (
+              <div className={styles.errorMessage}>
+                <span className={styles.errorIcon}>⚠️</span>
+                {error}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // SCREEN 2: Logged in - show orders
   return (
     <div className={styles.orderViewContainer}>
       <div className={styles.header}>
         <h1 className={styles.heading}>My Orders</h1>
         <p className={styles.subHeading}>Track and manage your book orders</p>
+        
+        <button 
+          onClick={handleRefresh}
+          className={styles.headerRefreshButton}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <div className={styles.miniSpinner}></div>
+              Loading...
+            </>
+          ) : (
+            <>
+              🔄 Refresh
+            </>
+          )}
+        </button>
       </div>
 
       {loading && (
@@ -101,6 +220,12 @@ const CustomerOrderView = () => {
           <div>
             <h3>Something went wrong</h3>
             <p>{error}</p>
+            <button 
+              onClick={handleRefresh} 
+              className={styles.retryButton}
+            >
+              Retry
+            </button>
           </div>
         </div>
       )}
