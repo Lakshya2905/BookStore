@@ -42,37 +42,44 @@ const CustomerOrderView = () => {
     });
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
   const fetchOrders = async () => {
     setLoading(true);
     setError("");
-    
-    const { user, token } = getUserData();
-
-    if (!user || !token) {
-      window.dispatchEvent(new Event("openLoginModal"));
-      return null;
-    }
-    
 
     try {
+      const { user, token } = getUserData();
+      
+      // Same pattern as addItemToCart - check auth inside fetchOrders
+      if (!user || !token) {
+        window.dispatchEvent(new Event("openLoginModal"));
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.post(`${CUSTOMER_ORDER_VIEW_URL}`, {
-        user,
-        token
+        user: user,
+        token: token
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
+      
       if (response.data.status === "SUCCESS") {
         setInvoices(response.data.payload);
       } else {
         setError(response.data.message || "Failed to fetch invoices");
       }
     } catch (e) {
+      console.error('Error fetching orders:', e);
       setError("Network error, please try again later.");
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   return (
     <div className={styles.orderViewContainer}>

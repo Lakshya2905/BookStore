@@ -285,15 +285,9 @@ const AppContent = React.memo(() => {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/return" element={<ReturnPolicy />} />
 
+         <Route path="/order/customer/view" element={<CustomerOrderView />} />
 
-          <Route 
-            path="/order/customer/view" 
-            element={
-              <CustomerProtectedRoute>
-                <CustomerOrderView />
-              </CustomerProtectedRoute>
-            } 
-          />
+
 
 
 
