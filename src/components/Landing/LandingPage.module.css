@@ -214,8 +214,9 @@
 
 /* Section Headers */
 .sectionHeader {
+  margin-top: -60px;
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 20px;
 }
 
 .sectionTitle {
@@ -235,6 +236,7 @@
 
 /* Categories Section */
 .categoriesSection {
+  margin-top: -10px;
   padding: 80px 20px;
   background: white;
 }

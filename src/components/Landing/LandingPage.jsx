@@ -28,6 +28,12 @@ const LandingPage = () => {
 
   const navigate = useNavigate();
 
+    useEffect(() => {
+    // Only scroll to top if there's no hash in URL
+    if (!hash) {
+      window.scrollTo(0, 0);
+    }
+  }, []);
 
     useEffect(() => {
     if (hash) {

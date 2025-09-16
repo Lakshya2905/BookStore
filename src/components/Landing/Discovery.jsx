@@ -252,38 +252,7 @@ const Discovery = () => {
                   ))}
                 </div>
                 
-                {/* Navigation Controls */}
-                {images.length > 1 && (
-                  <>
-                    <button
-                      className={`carousel-control-prev ${styles.carouselControlPrev}`}
-                      type="button"
-                      onClick={goToPrevious}
-                      aria-label="Previous"
-                    >
-                      <div className={styles.navButtonWrapper}>
-                        <svg width="20" height="20" fill="currentColor" className="text-dark" viewBox="0 0 16 16">
-                          <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-                        </svg>
-                      </div>
-                      <span className="visually-hidden">Previous</span>
-                    </button>
-                    
-                    <button
-                      className={`carousel-control-next ${styles.carouselControlNext}`}
-                      type="button"
-                      onClick={goToNext}
-                      aria-label="Next"
-                    >
-                      <div className={styles.navButtonWrapper}>
-                        <svg width="20" height="20" fill="currentColor" className="text-dark" viewBox="0 0 16 16">
-                          <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
-                      </div>
-                      <span className="visually-hidden">Next</span>
-                    </button>
-                  </>
-                )}
+           
 
                 {/* Pagination Indicators */}
                 {images.length > 1 && (

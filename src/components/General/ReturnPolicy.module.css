@@ -1,0 +1,433 @@
+/* Return Policy Styles */
+.container {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 0;
+  width: 100%;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #ffffff;
+  padding: 4rem 3rem;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 4rem;
+  padding-bottom: 3rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  margin: 0 -3rem 4rem -3rem;
+  padding: 4rem 3rem 3rem 3rem;
+}
+
+.title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 1rem;
+  letter-spacing: -0.025em;
+}
+
+.lastUpdated {
+  color: #6b7280;
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 3rem;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #ef4444;
+  position: relative;
+}
+
+.text {
+  color: #4b5563;
+  line-height: 1.8;
+  margin-bottom: 1.25rem;
+  font-size: 1.1rem;
+}
+
+/* Highlight Box */
+.highlightBox {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 1.5rem 0;
+  border-left: 4px solid #ef4444;
+}
+
+.highlightTitle {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.highlightText {
+  color: #7f1d1d;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Condition Grid */
+.conditionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.acceptedCondition {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border-left: 4px solid #22c55e;
+}
+
+.rejectedCondition {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border-left: 4px solid #ef4444;
+}
+
+.conditionTitle {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.acceptedCondition .conditionTitle {
+  color: #166534;
+}
+
+.rejectedCondition .conditionTitle {
+  color: #dc2626;
+}
+
+.conditionList {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #4b5563;
+}
+
+.conditionList li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.acceptedCondition .conditionList {
+  color: #166534;
+}
+
+.rejectedCondition .conditionList {
+  color: #7f1d1d;
+}
+
+/* Important Notice */
+.importantNotice {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  border-left: 4px solid #f59e0b;
+}
+
+.noticeTitle {
+  color: #d97706;
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.noticeText {
+  color: #92400e;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.chargesList {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+  color: #92400e;
+}
+
+.chargesList li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+/* Process Steps */
+.processSteps {
+  margin: 2rem 0;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.stepNumber {
+  background: #3b82f6;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-right: 1.5rem;
+}
+
+.stepContent {
+  flex: 1;
+}
+
+.stepTitle {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.stepText {
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Lists */
+.list {
+  margin: 1.25rem 0 2rem 2rem;
+  color: #4b5563;
+}
+
+.list li {
+  margin-bottom: 0.75rem;
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+.list li strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Contact Information */
+.contact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.contactMethod {
+  background: #f3f4f6;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  border: 1px solid #d1d5db;
+}
+
+.contactTitle {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.contactDetail {
+  color: #3b82f6;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.contactNote {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Notes List */
+.notesList {
+  margin: 2rem 0;
+}
+
+.note {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border-left: 3px solid #64748b;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.note strong {
+  color: #1e293b;
+}
+
+/* Footer */
+.footer {
+  margin-top: 4rem;
+  padding: 3rem 0 2rem 0;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  background: #f9fafb;
+  margin-left: -3rem;
+  margin-right: -3rem;
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
+.footerText {
+  color: #6b7280;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .content {
+    padding: 2rem 1.5rem;
+  }
+  
+  .header {
+    margin: 0 -1.5rem 3rem -1.5rem;
+    padding: 3rem 1.5rem 2rem 1.5rem;
+  }
+  
+  .title {
+    font-size: 2.5rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .conditionGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .contact {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .step {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .stepNumber {
+    margin: 0 0 1rem 0;
+  }
+
+  .footer {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 1.5rem 1rem;
+  }
+  
+  .header {
+    margin: 0 -1rem 2rem -1rem;
+    padding: 2rem 1rem 1.5rem 1rem;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.375rem;
+  }
+  
+  .text {
+    font-size: 1rem;
+  }
+
+  .footer {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .container {
+    background: white;
+  }
+  
+  .content {
+    background: white;
+    padding: 1rem;
+  }
+  
+  .header {
+    background: white;
+    margin: 0;
+    padding: 1rem 0;
+  }
+  
+  .title {
+    color: #000;
+  }
+  
+  .sectionTitle {
+    border-bottom-color: #000;
+  }
+
+  .footer {
+    background: white;
+    margin: 2rem 0 0 0;
+    padding: 1rem 0;
+  }
+
+  .highlightBox,
+  .importantNotice,
+  .acceptedCondition,
+  .rejectedCondition,
+  .step {
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+  }
+}

@@ -1,0 +1,82 @@
+.orderViewContainer {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 2rem;
+  background: #f5f6fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px 0 #c7d2fe75;
+  font-family: 'Segoe UI', sans-serif;
+}
+.heading {
+  color: #34495e;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 600;
+}
+.loading, .error, .empty {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #b71c1c;
+}
+.invoiceCard {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 3px 0 #e5eaf3;
+  border-left: 6px solid #4758d6;
+}
+.invoiceHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.ordersTableWrapper {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+.ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fafbfc;
+}
+.ordersTable th, .ordersTable td {
+  border: 1px solid #e0e0e0;
+  padding: 0.5rem 1rem;
+  text-align: left;
+}
+.ordersTable th {
+  background: #e3e7f7;
+  font-weight: 500;
+}
+.status,
+.PAID, .DUE, .PENDING, .DISPATCHED, .CANCELLED, .DELIVERED {
+  font-weight: bold;
+  padding: 0.3rem 1rem;
+  border-radius: 20px;
+  display: inline-block;
+}
+.PAID { background: #e8f5e9; color: #388e3c; }
+.DUE { background: #fce4ec; color: #d32f2f; }
+.PENDING { background: #fffde7; color: #fbc02d; }
+.DISPATCHED { background: #e3f2fd; color: #1976d2; }
+.CANCELLED { background: #ffebee; color: #c62828; }
+.DELIVERED { background: #e0f2f1; color: #009688; }
+.customerDetails {
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+}
+.invoiceFooter {
+  margin-top: 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.remark {
+  background: #ffecb3;
+  color: #8d6e63;
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  margin-left: 10px;
+}

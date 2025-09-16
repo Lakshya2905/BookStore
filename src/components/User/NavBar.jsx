@@ -193,6 +193,8 @@ const handleNavigation = useCallback(
     window.location.reload();
   }, []);
 
+
+  
   // Navigation buttons based on user role
   const navigationButtons = useMemo(() => {
     if (isOwner) {
@@ -214,6 +216,7 @@ const handleNavigation = useCallback(
         { label: "Best Sellers", path: "/books?tag=BESTSELLER" },
         { label: "Top Rated", path: "/books?tag=TOP_RATED" },
         { label: "Sale", path: "/books?tag=SALE" },
+        { label: "My Orders", path: "/order/customer/view" },
       ];
     }
   }, [isOwner]);

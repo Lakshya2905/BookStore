@@ -237,17 +237,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Book Collection</h1>
-        <p className={styles.subtitle}>
-          Discover your next great read from our curated collection
-        </p>
-        {/* Debug info - remove in production */}
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
-          {getFilterStatus()} | Showing {filteredBooks.length} of {sourceBooks.length} books
-        </div>
-      </div>
-      
+     
       {/* Cart Message Display */}
       {cartMessage && (
         <div className={`${styles.message} ${getMessageClass(messageType)}`}>
@@ -333,9 +323,9 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                         )}
                       </div>
                       
-<button className={styles.infoButton} type="button" aria-label="Book details">
-  ℹ
-</button>
+                      <button className={styles.infoButton} type="button" aria-label="Book details">
+                        ℹ
+                      </button>
 
 
                       <div className={styles.tooltip}>

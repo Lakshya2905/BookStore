@@ -17,6 +17,8 @@ import BookUpdate from "./components/Books/BookUpdate";
 import AddDiscoveryImage from "./components/Admin/AddDiscoveryImage";
 import DiscoveryImageEditPanel from "./components/Admin/DiscoveryImageEditPanel";
 import Privacy from "./components/General/Privacy";
+import ReturnPolicy from "./components/General/ReturnPolicy";
+import CustomerOrderView from "./components/User/CustomerOrderView";
 
 // ========================
 // Auth Context
@@ -120,6 +122,36 @@ const AdminProtectedRoute = React.memo(({ children }) => {
 
   // Check if user has OWNER role
   if (!user || user.userRole !== 'OWNER') {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+});
+
+
+// ========================
+// Customer Protected Route (Role-based Authentication)
+// ========================
+const CustomerProtectedRoute = React.memo(({ children }) => {
+  const token = sessionStorage.getItem("token");
+  const userString = sessionStorage.getItem("user");
+  
+  // Check if user is logged in
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Check if user data exists and parse it
+  let user = null;
+  try {
+    user = userString ? JSON.parse(userString) : null;
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    return <Navigate to="/" replace />;
+  }
+
+  // Check if user has OWNER role
+  if (!user || user.userRole !== 'CUSTOMER') {
     return <Navigate to="/" replace />;
   }
 
@@ -250,7 +282,20 @@ const AppContent = React.memo(() => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/landing" element={<LandingPage />} />
 
-            <Route path="/privacy" element={<Privacy />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/return" element={<ReturnPolicy />} />
+
+
+          <Route 
+            path="/order/customer/view" 
+            element={
+              <CustomerProtectedRoute>
+                <CustomerOrderView />
+              </CustomerProtectedRoute>
+            } 
+          />
+
+
 
           <Route 
             path="/books" 

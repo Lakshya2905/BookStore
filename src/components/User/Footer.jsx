@@ -22,8 +22,6 @@ const Footer = () => {
           <ul className={styles.list}>
             <li><a href="/about">About Us</a></li>
             <li><a href="/shop">Shop</a></li>
-            <li><a href="/signin">Sign In</a></li>
-            <li><a href="/signup">Sign Up</a></li>
           </ul>
         </div>
 
@@ -31,7 +29,6 @@ const Footer = () => {
         <div>
           <h3 className={styles.title}>Policies</h3>
           <ul className={styles.list}>
-            <li><a href="/terms">Terms and Condition</a></li>
             <li><a href="/privacy">Privacy Policy</a></li>
             <li><a href="/return">Return Policy</a></li>
           </ul>

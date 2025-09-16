@@ -46,6 +46,8 @@ export const CHECKOUT_CART_URL = `${API_BASE_URL}/order/create/cart`;
 export const BOOK_INFORMATION_URL = `${API_BASE_URL}/order/getBookInformation`;
 export const BOOK_CHECKOUT_URL = `${API_BASE_URL}/order/create/order/book`;
 
+export const CUSTOMER_ORDER_VIEW_URL = `${API_BASE_URL}/order/view`;
+
 
 export const INVOICE_ADMIN_FETCH_URL = `${API_BASE_URL}/invoice/findAllInvoice`;
 
