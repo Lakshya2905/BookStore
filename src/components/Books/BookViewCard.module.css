@@ -112,14 +112,15 @@
   border-color: #cbd5e1;
 }
 
+/* Fixed Image Container - Match FeaturedBooksSection */
 .bookImageContainer {
   position: relative;
-  height: 200px;
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  overflow: hidden;
+  height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
 .bookImage {
@@ -128,6 +129,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
   transition: transform 0.3s ease;
   position: relative;
 }
@@ -136,19 +138,36 @@
   transform: scale(1.02);
 }
 
+/* Fixed Book Cover - No cropping */
 .bookCover {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  position: absolute;
-  top: 0;
-  left: 0;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Fixed Placeholder - Match FeaturedBooksSection */
 .bookPlaceholder {
-  font-size: 3rem;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   color: #94a3b8;
-  z-index: 1;
+  background: linear-gradient(135deg, #f1f3f4 0%, #e9ecef 100%);
+}
+
+.placeholderIcon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.placeholderText {
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
 }
 
 .bookTag {
@@ -212,6 +231,32 @@
   border: 1px solid rgba(226, 232, 240, 0.5);
 }
 
+/* This is what you're missing - show the button on hover of parent container */
+.bookCard:hover .infoButton {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Button hover state */
+.infoButton:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #475569;
+  transform: scale(1.1);
+  border-color: rgba(226, 232, 240, 0.8);
+}
+
+/* Make sure the SVG inherits the color */
+.infoButton svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+/* Alternative: Show button always (for testing) */
+.infoButton.visible {
+  opacity: 1;
+  transform: scale(1);
+}
 .bookCard:hover .infoButton {
   opacity: 1;
   transform: scale(1);
@@ -705,6 +750,10 @@
     width: 40px;
     height: 40px;
   }
+  
+  .bookImageContainer {
+    height: 220px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -736,7 +785,7 @@
   }
   
   .bookImageContainer {
-    height: 180px;
+    height: 200px;
   }
   
   .bookInfo {
@@ -872,26 +921,4 @@
 
 .bookCard {
   scroll-snap-align: start;
-}
-
-
-.placeholderIcon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.placeholderText {
-  font-size: 0.75rem;
-  color: #666;
-  text-align: center;
-}
-
-.bookPlaceholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
-  border-radius: 4px;
 }

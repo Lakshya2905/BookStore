@@ -333,13 +333,10 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                         )}
                       </div>
                       
-                      <button className={styles.infoButton} type="button" aria-label="Book details">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                          <circle cx="12" cy="12" r="10"/>
-                          <line x1="12" y1="16" x2="12" y2="12"/>
-                          <line x1="12" y1="8" x2="12.01" y2="8"/>
-                        </svg>
-                      </button>
+<button className={styles.infoButton} type="button" aria-label="Book details">
+  ℹ
+</button>
+
 
                       <div className={styles.tooltip}>
                         <div className={styles.tooltipContent}>

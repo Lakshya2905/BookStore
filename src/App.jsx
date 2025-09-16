@@ -16,6 +16,7 @@ import PriorityUpdate from "./components/Books/PriorityUpdate";
 import BookUpdate from "./components/Books/BookUpdate";
 import AddDiscoveryImage from "./components/Admin/AddDiscoveryImage";
 import DiscoveryImageEditPanel from "./components/Admin/DiscoveryImageEditPanel";
+import Privacy from "./components/General/Privacy";
 
 // ========================
 // Auth Context
@@ -248,6 +249,9 @@ const AppContent = React.memo(() => {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/landing" element={<LandingPage />} />
+
+            <Route path="/privacy" element={<Privacy />} />
+
           <Route 
             path="/books" 
             element={
