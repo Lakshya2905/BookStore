@@ -92,9 +92,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup }) => {
     }
 
     try {
-      console.log('Attempting login with:', formData);
-
-      // Make API call using query parameters as per your backend
       const response = await axios.get(LOGIN_URL, {
         params: {
           userId: formData.userId,
@@ -102,15 +99,13 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup }) => {
         }
       });
 
-      console.log('Login response:', response.data);
-
-      // Check if login was successful based on your API response structure
       if (response.data && response.data.status === 'SUCCESS') {
         const { user, token } = response.data.payload;
         
         // Store user data in sessionStorage
         sessionStorage.setItem('user', JSON.stringify(user));
         sessionStorage.setItem('token', token);
+          onClose();
         window.location.reload();
         
       } else {
@@ -140,7 +135,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup }) => {
       setFormError({ general: errorMessage });
     } finally {
       setLoadingSubmit(false);
-      onClose();
+    
     }
   };
 

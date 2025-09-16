@@ -94,23 +94,32 @@ const FeaturedBooksSection = ({
     setImageErrors(prev => ({ ...prev, [bookId]: true }));
   };
 
-  // Organize books by tags
+  // Function to sort books by priority
+  const sortBooksByPriority = (books) => {
+    return [...books].sort((a, b) => {
+      const priorityA = a.priority || Number.MAX_SAFE_INTEGER;
+      const priorityB = b.priority || Number.MAX_SAFE_INTEGER;
+      return priorityA - priorityB;
+    });
+  };
+
+  // Organize books by tags with priority sorting
   const organizedBooks = useMemo(() => {
-    const newReleases = books.filter(book => 
+    const newReleases = sortBooksByPriority(books.filter(book => 
       book.bookTags?.includes('NEW_RELEASE')
-    );
-    const bestsellers = books.filter(book => 
+    ));
+    const bestsellers = sortBooksByPriority(books.filter(book => 
       book.bookTags?.includes('BESTSELLER')
-    );
-    const topRated = books.filter(book => 
+    ));
+    const topRated = sortBooksByPriority(books.filter(book => 
       book.bookTags?.includes('TOP_RATED')
-    );
+    ));
     
     return {
       newReleases,
       bestsellers,
       topRated,
-      all: books
+      all: sortBooksByPriority(books)
     };
   }, [books]);
 
@@ -269,6 +278,9 @@ const FeaturedBooksSection = ({
             {book.category && (
               <span className={styles.bookCategory}>{book.category}</span>
             )}
+            {book.priority !== undefined && (
+              <span className={styles.bookPriority}>Priority: {book.priority}</span>
+            )}
           </div>
 
           <div className={styles.bookActions}>
@@ -319,7 +331,7 @@ const FeaturedBooksSection = ({
             <span className={`${styles.categoryIcon} me-3`}>{icon}</span>
             <div>
               <h2 className={`${styles.categoryTitle} mb-0`}>{title}</h2>
-              <small className="text-muted">({books.length} books)</small>
+              <small className="text-muted">({books.length} books, sorted by priority)</small>
             </div>
           </div>
           <div className={`${styles.categoryControls} d-flex gap-2`}>
@@ -414,7 +426,7 @@ const FeaturedBooksSection = ({
         <div className={styles.header}>
           <h1 className={styles.title}>Featured Books</h1>
           <p className={styles.subtitle}>
-            Discover our carefully curated collection of exceptional reads
+            Discover our carefully curated collection of exceptional reads (sorted by priority)
           </p>
         </div>
 
@@ -453,11 +465,14 @@ const FeaturedBooksSection = ({
               <div className={styles.categorySection}>
                 <div className={`${styles.categoryHeader} d-flex align-items-center mb-4`}>
                   <span className={`${styles.categoryIcon} me-3`}>📚</span>
-                  <h2 className={`${styles.categoryTitle} mb-0`}>All Featured Books</h2>
+                  <div>
+                    <h2 className={`${styles.categoryTitle} mb-0`}>All Featured Books</h2>
+                    <small className="text-muted">(sorted by priority)</small>
+                  </div>
                 </div>
                 <div className="row g-4">
                   {books.length > 0 ? (
-                    books.slice(0, 8).map((book) => (
+                    organizedBooks.all.slice(0, 8).map((book) => (
                       <div key={book.bookId || book.id} className="col-xl-3 col-lg-4 col-md-6">
                         <BookCard book={book} categoryKey="all" />
                       </div>

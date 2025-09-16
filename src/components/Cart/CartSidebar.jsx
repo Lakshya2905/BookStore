@@ -1,8 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, ShoppingBag, MapPin, Phone, User, CreditCard } from 'lucide-react';
+import { X, Trash2, ShoppingBag, MapPin, Phone, User, CreditCard, CheckCircle, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import styles from './CartSidebar.module.css';
 import { CART_VIEW_URL, CART_ITEM_QUANTITY_URL, CART_ITEM_DELETE_URL, CHECKOUT_CART_URL } from '../../constants/apiConstants';
+
+// Notification Component
+const Notification = ({ type, message, isVisible, onClose }) => {
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 5000); // Auto close after 5 seconds
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className={`${styles.notification} ${styles[type]}`}>
+      <div className={styles.notificationContent}>
+        <div className={styles.notificationIcon}>
+          {type === 'success' ? (
+            <CheckCircle size={20} />
+          ) : (
+            <AlertCircle size={20} />
+          )}
+        </div>
+        <div className={styles.notificationMessage}>
+          <p>{message}</p>
+        </div>
+        <button 
+          className={styles.notificationClose}
+          onClick={onClose}
+          aria-label="Close notification"
+        >
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // Checkout Modal Component
 const CheckoutModal = ({ isOpen, onClose, cartData, onPlaceOrder }) => {
@@ -301,6 +340,30 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
   const [error, setError] = useState('');
   const [updatingItems, setUpdatingItems] = useState(new Set());
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  
+  // Notification state
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    type: 'success', // 'success' or 'error'
+    message: ''
+  });
+
+  // Show notification function
+  const showNotification = (type, message) => {
+    setNotification({
+      isVisible: true,
+      type,
+      message
+    });
+  };
+
+  // Hide notification function
+  const hideNotification = () => {
+    setNotification(prev => ({
+      ...prev,
+      isVisible: false
+    }));
+  };
 
   // Get user data from sessionStorage
   const getUserData = () => {
@@ -366,12 +429,15 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
 
       if (response.data.status === 'SUCCESS') {
         await fetchCartData();
+        showNotification('success', 'Quantity updated successfully');
       } else {
         setError(response.data.message || 'Failed to update quantity');
+        showNotification('error', response.data.message || 'Failed to update quantity');
       }
     } catch (error) {
       console.error('Error updating quantity:', error);
       setError('Failed to update quantity');
+      showNotification('error', 'Failed to update quantity');
     } finally {
       setUpdatingItems(prev => {
         const newSet = new Set(prev);
@@ -397,12 +463,15 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
 
       if (response.data.status === 'SUCCESS') {
         await fetchCartData();
+        showNotification('success', 'Item removed from cart successfully');
       } else {
         setError(response.data.message || 'Failed to remove item');
+        showNotification('error', response.data.message || 'Failed to remove item');
       }
     } catch (error) {
       console.error('Error removing item:', error);
       setError('Failed to remove item');
+      showNotification('error', 'Failed to remove item');
     } finally {
       setUpdatingItems(prev => {
         const newSet = new Set(prev);
@@ -445,14 +514,14 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
           onCheckout(response.data);
         }
         
-        // Show success message (you can customize this)
-        alert(response.data.message);
+        // Show success notification
+        showNotification('success', response.data.message || 'Order placed successfully! Thank you for your purchase.');
       } else {
         throw new Error(response.data.message || 'Failed to place order');
       }
     } catch (error) {
       console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
+      showNotification('error', error.message || 'Failed to place order. Please try again.');
       throw error;
     }
   };
@@ -481,6 +550,14 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
 
   return (
     <>
+      {/* Notification */}
+      <Notification
+        type={notification.type}
+        message={notification.message}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+      />
+
       {/* Overlay */}
       {isOpen && <div className={styles.overlay} onClick={onClose} />}
       

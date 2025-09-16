@@ -134,9 +134,8 @@ const handleCategoriesClick = useCallback(() => {
 const handleNavigation = useCallback(
   (path) => {
     navigate(path);
-
-    // Only reload if path does NOT start with /admin
-    if (!path.startsWith("/admin")) {
+    // Only reload if path does NOT start with /admin or /order/customer/view
+    if (!path.startsWith("/admin") && !path.startsWith("/order/customer/view")) {
       window.location.reload();
     }
   },

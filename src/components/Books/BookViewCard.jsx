@@ -86,7 +86,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     });
   }, [sourceBooks, cachedImages]);
 
-  // Apply search + filters - Now properly reactive to URL changes
+  // Apply search + filters + sorting - Now properly reactive to URL changes
   const filteredBooks = useMemo(() => {
     console.log('Filtering books with:', { searchQuery, categoryFilter, tagFilter });
     
@@ -121,7 +121,14 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
       );
     }
 
-    console.log(`Filtered ${filtered.length} books from ${booksWithImages.length} total`);
+    // Sort by priority in ascending order
+    filtered.sort((a, b) => {
+      const priorityA = a.priority || Number.MAX_SAFE_INTEGER;
+      const priorityB = b.priority || Number.MAX_SAFE_INTEGER;
+      return priorityA - priorityB;
+    });
+
+    console.log(`Filtered and sorted ${filtered.length} books from ${booksWithImages.length} total`);
     return filtered;
   }, [booksWithImages, searchQuery, categoryFilter, tagFilter]);
 
@@ -327,7 +334,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                         ℹ
                       </button>
 
-
                       <div className={styles.tooltip}>
                         <div className={styles.tooltipContent}>
                           <div>
@@ -336,6 +342,9 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                             <div className={styles.tooltipDescription}>
                               {book.description || book.bookDescription || "No description available for this book."}
                             </div>
+                            {book.priority !== undefined && (
+                              <div className={styles.tooltipPriority}>Priority: {book.priority}</div>
+                            )}
                           </div>
                           <div className={styles.tooltipFooter}>
                             <span className={styles.tooltipPrice}>₹{book.price}</span>
@@ -364,6 +373,9 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                         <span className={styles.bookPrice}>₹{book.price}</span>
                         {book.category && (
                           <span className={styles.bookCategory}>{book.category}</span>
+                        )}
+                        {book.priority !== undefined && (
+                          <span className={styles.bookPriority}>Priority: {book.priority}</span>
                         )}
                       </div>
 

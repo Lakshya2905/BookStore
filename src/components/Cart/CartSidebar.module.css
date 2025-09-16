@@ -821,3 +821,104 @@
     grid-column: span 2;
   }
 }
+
+
+/* Notification Styles - Add these to your CartSidebar.module.css */
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  min-width: 320px;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  animation: slideInRight 0.3s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+.notification.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-left: 4px solid #047857;
+}
+
+.notification.error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-left: 4px solid #b91c1c;
+}
+
+.notificationContent {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  color: white;
+  gap: 12px;
+}
+
+.notificationIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notificationMessage {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.notificationMessage p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.notificationClose {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.notificationClose:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.notificationClose:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsive for notifications */
+@media (max-width: 768px) {
+  .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    max-width: none;
+  }
+  
+  .notificationContent {
+    padding: 12px;
+  }
+  
+  .notificationMessage {
+    font-size: 13px;
+  }
+}

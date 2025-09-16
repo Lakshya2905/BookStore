@@ -4,7 +4,7 @@
   position: sticky; 
   top: 0;
   z-index: 990;
-  margin-top: -20px;
+  margin-top: -30px;
   margin-bottom: 25px;
 }
 
@@ -63,7 +63,8 @@
 
 .headerContent {
   max-width: 100%; /* Changed from 1200px to 100% */
-  margin: 0;
+  margin-top: -25px !important;
+  margin-bottom: -15px;
   padding: 0 15px; /* Reduced from 20px */
   display: flex;
   align-items: center;
@@ -79,8 +80,9 @@
 }
 
 .logoImg {
-  width: 120px;   /* Reduced from 200px */
-  height: 60px;   /* Reduced from 200px and made rectangular */
+  margin-top: -5px;
+  width: 180px;   /* Reduced from 200px */
+  height: 120px;   /* Reduced from 200px and made rectangular */
   object-fit: contain;
 }
 
