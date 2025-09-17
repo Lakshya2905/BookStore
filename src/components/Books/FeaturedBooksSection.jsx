@@ -278,9 +278,7 @@ const FeaturedBooksSection = ({
             {book.category && (
               <span className={styles.bookCategory}>{book.category}</span>
             )}
-            {book.priority !== undefined && (
-              <span className={styles.bookPriority}>Priority: {book.priority}</span>
-            )}
+      
           </div>
 
           <div className={styles.bookActions}>

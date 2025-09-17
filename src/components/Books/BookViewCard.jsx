@@ -342,9 +342,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                             <div className={styles.tooltipDescription}>
                               {book.description || book.bookDescription || "No description available for this book."}
                             </div>
-                            {book.priority !== undefined && (
-                              <div className={styles.tooltipPriority}>Priority: {book.priority}</div>
-                            )}
                           </div>
                           <div className={styles.tooltipFooter}>
                             <span className={styles.tooltipPrice}>₹{book.price}</span>
