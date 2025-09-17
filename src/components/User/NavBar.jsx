@@ -7,8 +7,6 @@ import Logo from "../images/logo.jpg";
 import axios from 'axios';
 import { CART_ITEM_URL } from '../../constants/apiConstants';
 
-
-
 const NavBar = React.memo(({ onSignIn, onSignUp }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,6 +14,20 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
   const [cartItemCount, setCartItemCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Load Bootstrap CSS
+  const loadBootstrap = useCallback(() => {
+    if (document.getElementById('navbar-bootstrap')) return;
+    const link = document.createElement('link');
+    link.id = 'navbar-bootstrap';
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+    document.head.appendChild(link);
+  }, []);
+
+  useEffect(() => {
+    loadBootstrap();
+  }, [loadBootstrap]);
 
   const getUserData = useCallback(() => {
     try {
@@ -192,7 +204,6 @@ const handleNavigation = useCallback(
     window.location.reload();
   }, []);
 
-
   
   // Navigation buttons based on user role
   const navigationButtons = useMemo(() => {
@@ -225,175 +236,199 @@ const handleNavigation = useCallback(
       <header className={styles.header}>
         {/* Main Header */}
         <div className={styles.mainHeader}>
-          <div className={styles.headerContent}>
-            <div
-              className={styles.logo}
-              onClick={() => handleNavigation(isOwner ? "/admin/dashboard" : "/landing")}
-              style={{ cursor: "pointer" }}
-            >
-              <img src={Logo} alt="Shah Cart Logo" className={styles.logoImg} />
-              {isOwner && <span className={styles.adminBadge}>Admin</span>}
-            </div>
-
-            {/* Search Bar - Only show for non-owner users */}
-            {!isOwner && (
-              <div className={styles.searchBar}>
-                <input
-                  type="text"
-                  placeholder="Search books, authors, genres..."
-                  className={styles.searchInput}
-                  value={searchQuery}
-                  onChange={handleSearchInputChange}
-                  onKeyPress={handleKeyPress}
-                />
-                <button
-                  className={styles.searchButton}
-                  onClick={handleSearchSubmit}
-                  type="submit"
+          <div className="container-fluid">
+            <div className="row align-items-center g-2">
+              {/* Logo */}
+              <div className="col-auto">
+                <div
+                  className={`${styles.logo} d-flex align-items-center`}
+                  onClick={() => handleNavigation(isOwner ? "/admin/dashboard" : "/landing")}
+                  style={{ cursor: "pointer" }}
                 >
-                  <Search size={20} />
-                  Search
-                </button>
+                  <img src={Logo} alt="Shah Cart Logo" className={`${styles.logoImg} img-fluid`} />
+                  {isOwner && <span className={styles.adminBadge}>Admin</span>}
+                </div>
               </div>
-            )}
 
-            {/* Owner Panel Title */}
-            {isOwner && (
-              <div className={styles.adminTitle}>
-                <Settings size={24} />
-                <h2>Admin Panel</h2>
-              </div>
-            )}
-
-            <div className={styles.headerActions}>
-              {/* Heart and Cart - Only show for non-owner users */}
+              {/* Search Bar - Only show for non-owner users */}
               {!isOwner && (
-                <>
-                  <button 
-                    className={`${styles.actionButton} ${styles.cartButton}`} 
-                    onClick={handleCartClick}
-                  >
-                    <div className={styles.cartIconWrapper}>
+                <div className="col d-none d-md-block">
+                  <div className="input-group mx-3" style={{ maxWidth: "500px" }}>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Search books, authors, genres..."
+                      value={searchQuery}
+                      onChange={handleSearchInputChange}
+                      onKeyPress={handleKeyPress}
+                    />
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleSearchSubmit}
+                      type="submit"
+                    >
+                      <Search size={20} className="me-1" />
+                      <span className="d-none d-lg-inline">Search</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Owner Panel Title */}
+              {isOwner && (
+                <div className="col d-none d-md-flex justify-content-center">
+                  <div className={`${styles.adminTitle} d-flex align-items-center`}>
+                    <Settings size={24} className="me-2" />
+                    <h2 className="mb-0">Admin Panel</h2>
+                  </div>
+                </div>
+              )}
+
+              {/* Header Actions */}
+              <div className="col-auto">
+                <div className="d-flex align-items-center gap-2">
+                  {/* Heart and Cart - Only show for non-owner users */}
+                  {!isOwner && (
+                    <button 
+                      className={`btn btn-outline-secondary position-relative ${styles.cartButton}`} 
+                      onClick={handleCartClick}
+                    >
                       <ShoppingCart size={20} />
                       {cartItemCount > 0 && (
-                        <span className={styles.cartBadge}>
+                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                           {cartItemCount > 99 ? '99+' : cartItemCount}
                         </span>
                       )}
+                    </button>
+                  )}
+
+                  {user ? (
+                    <div className="d-flex align-items-center">
+                      <div className="d-none d-sm-flex align-items-center me-2 px-2 py-1 bg-light rounded">
+                        <User size={16} className="me-1" />
+                        <small>
+                          {user.fullName || user.name || user.email || "User"}
+                          {isOwner && <span className="text-danger fw-bold ms-1">(Owner)</span>}
+                        </small>
+                      </div>
+                      <button className="btn btn-danger btn-sm" onClick={handleSignOut}>
+                        Sign Out
+                      </button>
                     </div>
-                  </button>
-                </>
-              )}
+                  ) : (
+                    <div className="d-flex gap-2">
+                      <button className="btn btn-outline-primary btn-sm" onClick={onSignIn}>
+                        Sign In
+                      </button>
+                      <button className="btn btn-primary btn-sm" onClick={onSignUp}>
+                        Sign Up
+                      </button>
+                    </div>
+                  )}
 
-              {user ? (
-                <div className={styles.userInfo}>
-                  <User size={20} />
-                  <span>
-                    {user.fullName || user.name || user.email || "User"}
-                    {isOwner && <span className={styles.roleTag}>(Owner)</span>}
-                  </span>
-                  <button className={styles.signOutBtn} onClick={handleSignOut}>
-                    Sign Out
+                  <button
+                    className="btn btn-outline-secondary d-md-none"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  >
+                    {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                   </button>
                 </div>
-              ) : (
-                <div className={styles.signInButtons}>
-                  <button className={styles.signInBtn} onClick={onSignIn}>
-                    Sign In
-                  </button>
-                  <button className={styles.signUpBtn} onClick={onSignUp}>
-                    Sign Up
-                  </button>
-                </div>
-              )}
-
-              <button
-                className={styles.mobileMenuButton}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className={styles.navigation}>
-          <div className={styles.navContent}>
-            {navigationButtons.map((item) => (
-              <button
-                key={item.label}
-                className={`${styles.navButton} ${isOwner ? styles.adminNavButton : ''}`}
-                onClick={() => handleNavigation(item.path)}
-              >
-                {item.icon && <span className={styles.navIcon}>{item.icon}</span>}
-                {item.label}
-              </button>
-            ))}
+        {/* Navigation - Hidden on mobile, shown on larger screens */}
+        <nav className={`${styles.navigation} d-none d-md-block`}>
+          <div className="container-fluid">
+            <div className="row">
+              <div className="col">
+                <div className="d-flex gap-3 py-2 flex-wrap">
+                  {navigationButtons.map((item) => (
+                    <button
+                      key={item.label}
+                      className={`btn ${isOwner ? 'btn-primary btn-sm' : 'btn-link text-decoration-none'} d-flex align-items-center`}
+                      onClick={() => handleNavigation(item.path)}
+                    >
+                      {item.icon && <span className="me-1">{item.icon}</span>}
+                      {item.label}
+                    </button>
+                  ))}
 
-            {/* Categories and Authors - Only show for non-owner users */}
-            {!isOwner && (
-              <>
-                <button
-                  className={styles.categoryBtn}
-                  onClick={handleCategoriesClick}
-                >
-                  Categories
-                </button>
-              </>
-            )}
+                  {/* Categories - Only show for non-owner users */}
+                  {!isOwner && (
+                    <button
+                      className="btn btn-link text-decoration-none"
+                      onClick={handleCategoriesClick}
+                    >
+                      Categories
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </nav>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Only shown when mobileMenuOpen is true */}
         {mobileMenuOpen && (
-          <div className={styles.mobileMenu}>
-            {navigationButtons.map((item) => (
-              <button
-                key={`mobile-${item.label}`}
-                className={`${styles.mobileNavButton} ${isOwner ? styles.adminMobileNavButton : ''}`}
-                onClick={() => closeMobileMenuAndNavigate(item.path)}
-              >
-                {item.icon && <span className={styles.navIcon}>{item.icon}</span>}
-                {item.label}
-              </button>
-            ))}
+          <div className={`${styles.mobileMenu} d-md-none`}>
+            <div className="container-fluid">
+              {/* User Info for Mobile */}
+              {user && (
+                <div className="d-flex d-sm-none align-items-center mb-3 p-2 bg-light rounded">
+                  <User size={16} className="me-2" />
+                  <small>
+                    {user.fullName || user.name || user.email || "User"}
+                    {isOwner && <span className="text-danger fw-bold ms-1">(Owner)</span>}
+                  </small>
+                </div>
+              )}
 
-            {/* Categories and Authors for mobile - Only show for non-owner users */}
-            {!isOwner && (
-              <>
-                <button
-                  className={styles.categoryBtn}
-                  onClick={() =>
-                    closeMobileMenuAndRunAction(handleCategoriesClick)
-                  }
-                >
-                  Categories
-                </button>
+              {/* Mobile Navigation Buttons */}
+              <div className="d-grid gap-2 mb-3">
+                {navigationButtons.map((item) => (
+                  <button
+                    key={`mobile-${item.label}`}
+                    className={`btn ${isOwner ? 'btn-primary' : 'btn-outline-secondary'} d-flex align-items-center justify-content-start`}
+                    onClick={() => closeMobileMenuAndNavigate(item.path)}
+                  >
+                    {item.icon && <span className="me-2">{item.icon}</span>}
+                    {item.label}
+                  </button>
+                ))}
 
-          
-              </>
-            )}
-
-            {/* Mobile Search - Only show for non-owner users */}
-            {!isOwner && (
-              <div className={styles.mobileSearchBar}>
-                <input
-                  type="text"
-                  placeholder="Search books..."
-                  className={styles.mobileSearchInput}
-                  value={searchQuery}
-                  onChange={handleSearchInputChange}
-                  onKeyPress={handleKeyPress}
-                />
-                <button
-                  className={styles.mobileSearchButton}
-                  onClick={handleSearchSubmit}
-                >
-                  <Search size={18} />
-                </button>
+                {/* Categories for mobile - Only show for non-owner users */}
+                {!isOwner && (
+                  <button
+                    className="btn btn-outline-secondary d-flex align-items-center justify-content-start"
+                    onClick={() => closeMobileMenuAndRunAction(handleCategoriesClick)}
+                  >
+                    Categories
+                  </button>
+                )}
               </div>
-            )}
+
+              {/* Mobile Search - Only show for non-owner users */}
+              {!isOwner && (
+                <div className="input-group">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search books..."
+                    value={searchQuery}
+                    onChange={handleSearchInputChange}
+                    onKeyPress={handleKeyPress}
+                  />
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleSearchSubmit}
+                  >
+                    <Search size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </header>

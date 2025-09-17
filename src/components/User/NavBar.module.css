@@ -1,3 +1,4 @@
+/* Header Styles */
 .header {
   background-color: #fff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -8,371 +9,134 @@
   margin-bottom: 25px;
 }
 
-.topBar {
-  background-color: #1e40af;
-  color: white;
-  padding: 8px 0;
-  font-size: 14px;
-}
-
-.topBarContent {
-  max-width: 100%;
-  margin: 0;
-  padding: 0 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.authLinks {
-  display: flex;
-  gap: 20px;
-}
-
-.authLink {
-  cursor: pointer;
-  text-decoration: underline;
-  transition: opacity 0.2s;
-}
-
-.authLink:hover {
-  opacity: 0.8;
-}
-
-.signedIn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.signOutBtn {
-  padding: 4px 8px;
-  background-color: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  margin-left: 10px;
-}
-
+/* Main Header */
 .mainHeader {
-  padding: 8px 0; /* Reduced from 15px */
+  padding: 8px 0;
+  background-color: #fff;
 }
 
-.headerContent {
-  max-width: 100%; /* Changed from 1200px to 100% */
-  margin-top: -25px !important;
-  margin-bottom: -15px;
-  padding: 0 15px; /* Reduced from 20px */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px; /* Reduced from 20px */
-}
-
+/* Logo Styles */
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0; /* Prevent logo from shrinking */
+  cursor: pointer !important;
 }
 
 .logoImg {
-  margin-top: -5px;
-  width: 180px;   /* Reduced from 200px */
-  height: 120px;   /* Reduced from 200px and made rectangular */
+  width: 180px;
+  height: 120px;
   object-fit: contain;
 }
 
-.searchBar {
-  display: flex;
-  flex: 1;
-  max-width: 400px; /* Reduced from 500px */
-  margin: 0 15px; /* Reduced margins */
-}
-
-.searchInput {
-  flex: 1;
-  padding: 8px 12px; /* Reduced from 12px 16px */
-  border: 2px solid #e5e7eb;
-  border-right: none;
-  border-radius: 6px 0 0 6px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.searchInput:focus {
-  border-color: #1e40af;
-}
-
-.searchButton {
-  padding: 8px 16px; /* Reduced from 12px 20px */
-  background-color: #1e40af;
+/* Admin Badge */
+.adminBadge {
+  background: #dc2626;
   color: white;
-  border: none;
-  border-radius: 0 6px 6px 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px; /* Reduced from 8px */
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
-.searchButton:hover {
-  background-color: #1d4ed8;
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Reduced from 15px */
-  flex-shrink: 0; /* Prevent actions from shrinking */
-}
-
-.actionButton {
-  padding: 8px; /* Reduced from 10px */
-  background-color: transparent;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+/* Admin Title */
+.adminTitle h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
   color: #374151;
 }
 
-.actionButton:hover {
-  border-color: #1e40af;
-  color: #1e40af;
-}
-
-.userInfo {
-  display: flex;
-  align-items: center;
-  gap: 6px; /* Reduced from 8px */
-  padding: 6px 10px; /* Reduced from 8px 12px */
-  background-color: #f3f4f6;
-  border-radius: 8px;
-  font-size: 13px; /* Reduced from 14px */
-  font-weight: 500;
-}
-
-.signInButtons {
-  display: flex;
-  gap: 8px; /* Reduced from 10px */
-}
-
-.signInBtn {
-  padding: 6px 12px; /* Reduced from 8px 16px */
-  background-color: transparent;
-  color: #1e40af;
-  border: 2px solid #1e40af;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px; /* Reduced from 14px */
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.signInBtn:hover {
-  background-color: #1e40af;
-  color: white;
-}
-
-.signUpBtn {
-  padding: 6px 12px; /* Reduced from 8px 16px */
-  background-color: #1e40af;
-  color: white;
-  border: 2px solid #1e40af;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px; /* Reduced from 14px */
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.signUpBtn:hover {
-  background-color: #1d4ed8;
-}
-
-.mobileMenuButton {
-  display: none;
-  padding: 6px; /* Reduced from 8px */
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  color: #374151;
-}
-
+/* Navigation Styles */
 .navigation {
   background-color: #f8fafc;
   border-top: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
 }
 
-.navContent {
-  max-width: 100%; /* Changed from 1200px to 100% */
-  margin: 0;
-  padding: 0 15px; /* Reduced from 20px */
-  display: flex;
-  gap: 25px; /* Reduced from 30px */
-}
-
-/* Updated nav button styles to replace navLink */
-.navButton {
-  padding: 10px 0; /* Reduced from 15px */
-  background: none;
-  border: none;
-  color: #374151;
-  font-weight: 500;
-  font-size: 14px;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  outline: none;
-}
-
-.navButton:hover {
-  color: #1e40af;
-  border-bottom-color: #1e40af;
-}
-
-.navButton:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-.categoryBtn {
-  padding: 10px 0; /* Reduced from 15px */
-  text-decoration: none;
-  color: #374151;
-  font-weight: 500;
-  font-size: 14px;
-  border: none;
-  outline: none;
-  background: none;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.categoryBtn:hover {
-  color: #1e40af;
-  border-bottom-color: #1e40af;
-}
-
-.categoryBtn:focus {
-  outline: none;
-  box-shadow: none;
+/* Cart Button Styles */
+.cartButton {
+  position: relative;
 }
 
 /* Mobile Menu Styles */
 .mobileMenu {
   background-color: #fff;
   border-top: 1px solid #e5e7eb;
-  padding: 15px; /* Reduced from default */
+  padding: 15px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Updated mobile nav button styles to replace mobileNavLink */
-.mobileNavButton {
-  display: block;
-  width: 100%;
-  padding: 8px 0; /* Reduced padding */
-  background: none;
-  border: none;
+/* Custom button overrides to work with Bootstrap */
+.navigation .btn-link {
   color: #374151;
   font-weight: 500;
   font-size: 14px;
-  border-bottom: 1px solid #f3f4f6;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  outline: none;
+  padding: 10px 0;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  text-decoration: none !important;
 }
 
-.mobileNavButton:hover {
+.navigation .btn-link:hover {
   color: #1e40af;
+  border-bottom-color: #1e40af;
+  text-decoration: none !important;
 }
 
-.mobileNavButton:focus {
-  outline: none;
+.navigation .btn-link:focus {
   box-shadow: none;
 }
 
-.mobileSearchBar {
-  display: flex;
-  margin-top: 10px; /* Reduced from default */
-  gap: 8px;
-}
-
-.mobileSearchInput {
-  flex: 1;
-  padding: 8px 12px; /* Reduced padding */
-  border: 2px solid #e5e7eb;
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-}
-
-.mobileSearchInput:focus {
-  border-color: #1e40af;
-}
-
-.mobileSearchButton {
-  padding: 8px 12px; /* Reduced padding */
-  background-color: #1e40af;
-  color: white;
+/* Admin specific button styles */
+.navigation .btn-primary.btn-sm {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.navigation .btn-primary.btn-sm:hover {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 576px) {
+  .logoImg {
+    width: 120px;
+    height: 80px;
+  }
+  
+  .adminBadge {
+    font-size: 8px;
+    padding: 1px 4px;
+    margin-left: 4px;
+  }
 }
 
 @media (max-width: 768px) {
-  .searchBar {
-    display: none;
+  .mainHeader {
+    padding: 10px 0;
   }
-  .mobileMenuButton {
-    display: block;
-  }
-  .headerActions {
-    gap: 8px; /* Further reduced for mobile */
-  }
-  .headerContent {
-    padding: 0 10px; /* Reduced padding for mobile */
-    gap: 10px;
-  }
-  .navContent {
-    padding: 0 10px;
-    gap: 20px;
-  }
-}
-
-@media (max-width: 480px) {
+  
   .logoImg {
-    width: 100px;
-    height: 50px;
-  }
-  .headerContent {
-    padding: 0 8px;
-  }
-  .navContent {
-    padding: 0 8px;
-    gap: 15px;
+    width: 140px;
+    height: 90px;
   }
 }
 
-/* Tags Section Styles (keeping existing styles) */
+/* Ensure Bootstrap compatibility */
+.header .container-fluid {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Custom cart badge positioning for Bootstrap */
+.cartButton .badge {
+  font-size: 10px;
+  padding: 0.25em 0.4em;
+}
+
+/* Tags Section Styles (keeping existing styles for compatibility) */
 .tagsSection {
   padding: 4rem 2rem;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -454,177 +218,33 @@
   }
 }
 
-/* Add these styles to your existing NavBar.module.css file */
-
-/* Admin Badge */
-.adminBadge {
-  background: #dc2626;
-  color: white;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-left: 8px;
-  font-weight: 600;
-  text-transform: uppercase;
+/* Override Bootstrap's button focus styles for better UX */
+.btn:focus {
+  box-shadow: none;
 }
 
-/* Admin Title */
-.adminTitle {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #1f2937;
-  flex-grow: 1;
-  justify-content: center;
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
 }
 
-.adminTitle h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #374151;
+/* Ensure proper spacing in mobile menu */
+.mobileMenu .container-fluid {
+  padding-left: 15px;
+  padding-right: 15px;
 }
 
-/* Admin Navigation Buttons */
-.adminNavButton {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: auto;
-}
-
-.adminNavButton:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.adminMobileNavButton {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 6px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
+/* Custom mobile menu button styles */
+.mobileMenu .btn {
+  text-align: left;
   justify-content: flex-start;
 }
 
-.adminMobileNavButton:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+/* Remove default button styles that might conflict */
+button {
+  outline: none !important;
 }
 
-/* Navigation Icon */
-.navIcon {
-  display: flex;
-  align-items: center;
-}
-
-/* Role Tag */
-.roleTag {
-  color: #dc2626;
-  font-weight: 600;
-  font-size: 0.75rem;
-  margin-left: 4px;
-}
-
-/* Mobile responsive adjustments for admin panel */
-@media (max-width: 768px) {
-  .adminTitle {
-    display: none; /* Hide admin title on mobile to save space */
-  }
-  
-  .adminNavButton {
-    padding: 6px 12px;
-    font-size: 0.875rem;
-  }
-}
-
-/* Admin panel specific header styling */
-.header:has(.adminTitle) .headerContent {
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-  border-bottom: 2px solid #e5e7eb;
-}
-
-/* Ensure proper spacing when search bar is hidden */
-.headerContent:has(.adminTitle) {
-  justify-content: space-between;
-}
-
-.headerContent:has(.adminTitle) .logo {
-  flex-shrink: 0;
-}
-
-.headerContent:has(.adminTitle) .headerActions {
-  flex-shrink: 0;
-}
-
-/* Add these styles to your NavBar.module.css file */
-
-/* Updated cart badge styles - replace the existing ones in your NavBar.module.css */
-
-.cartButton {
-  position: relative;
-}
-
-.cartIconWrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cartBadge {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background-color: #ef4444; /* Red color for better visibility */
-  color: white;
-  border-radius: 50%;
-  min-width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  padding: 0;
-  border: 2px solid white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  z-index: 10;
-}
-
-/* Animation for when the count updates */
-@keyframes cartBadgePulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.15);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.cartBadge {
-  animation: cartBadgePulse 0.3s ease-in-out;
-}
-
-/* Ensure proper spacing for the action button */
-.actionButton {
-  position: relative;
-  z-index: 1;
+button:focus {
+  box-shadow: none !important;
 }
