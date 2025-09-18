@@ -4,29 +4,49 @@
 .discoverySection {
   background-color: white !important;
   color: white;
+  padding: 4rem 0 !important; /* Reduced from py-5 */
 }
 
 /* Card Styling */
 .loadingCard,
-.errorCard,
-.carouselCard {
-  height: 400px;
+.errorCard {
+  height: 300px; /* Reduced height */
   border-radius: 1rem !important;
+}
+
+.carouselCard {
+  height: auto !important; /* Let it adapt to content */
+  border-radius: 1rem !important;
+  overflow: hidden;
 }
 
 /* Carousel Styling */
 .carouselInner {
-  height: 400px;
+  height: auto !important; /* Remove fixed height */
+  min-height: 200px; /* Minimum height for loading states */
 }
 
 .carouselImage {
-  object-fit: cover;
-  object-position: center;
+  object-fit: contain !important; /* Changed from cover to contain */
+  object-position: center !important;
   transition: transform 0.3s ease;
+  width: 100% !important;
+  height: auto !important; /* Let height be automatic */
+  max-height: 400px; /* Maximum height constraint */
+  min-height: 200px; /* Minimum height */
+  background-color: #f8f9fa; /* Light background for letterboxing if needed */
 }
 
 .carouselImage:hover {
   transform: scale(1.02);
+}
+
+/* Carousel Item Styling */
+.carouselItem {
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Navigation Controls */
@@ -35,6 +55,7 @@
   width: auto;
   opacity: 0.8;
   transition: opacity 0.3s ease;
+  height: 100% !important;
 }
 
 .carouselControlPrev:hover,
@@ -44,18 +65,18 @@
 
 .carouselControlPrev {
   justify-content: flex-start;
-  padding-left: 2rem;
+  padding-left: 1rem; /* Reduced padding */
 }
 
 .carouselControlNext {
   justify-content: flex-end;
-  padding-right: 2rem;
+  padding-right: 1rem; /* Reduced padding */
 }
 
 .navButtonWrapper {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  padding: 0.75rem;
+  padding: 0.5rem; /* Reduced padding */
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
@@ -68,13 +89,13 @@
 
 /* Custom Indicators */
 .customIndicators {
-  bottom: 1.5rem !important;
+  bottom: 1rem !important; /* Reduced from 1.5rem */
   background: rgba(0, 0, 0, 0.3);
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem !important; /* Reduced padding */
   border-radius: 2rem;
   backdrop-filter: blur(10px);
-  max-width: 150px;
-  width: 100px !important;
+  max-width: 120px; /* Reduced width */
+  width: auto !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   margin: 0 !important;
@@ -88,7 +109,7 @@
   padding: 0 !important;
   background-color: rgba(255, 255, 255, 0.5) !important;
   transition: all 0.3s ease !important;
-  margin: 0 3px !important;
+  margin: 0 2px !important; /* Reduced margin */
   display: inline-block !important;
   box-sizing: border-box !important;
 }
@@ -113,108 +134,59 @@
   box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
 }
 
+/* Container adjustments for better fit */
+.discoverySection .container {
+  max-width: 1200px;
+  padding: 0 1rem;
+}
+
+.discoverySection .card {
+  margin: 0; /* Remove any default margins */
+}
+
+/* Image aspect ratio containers for different sizes */
+.imageContainer {
+  position: relative;
+  width: 100%;
+  background-color: #f8f9fa;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+/* For 1200x300 images (4:1 aspect ratio) */
+.imageContainer.ratio-4-1 {
+  aspect-ratio: 4 / 1;
+}
+
+/* For 1200x400 images (3:1 aspect ratio) */
+.imageContainer.ratio-3-1 {
+  aspect-ratio: 3 / 1;
+}
+
+/* Default aspect ratio */
+.imageContainer.ratio-auto {
+  min-height: 200px;
+  max-height: 400px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .discoverySection {
-    padding: 1.5rem 0;
+    padding: 1rem 0 !important; /* Further reduced */
+  }
+
+  .discoverySection .container {
+    padding: 0 0.5rem;
   }
 
   .loadingCard,
   .errorCard {
-    height: 250px;
+    height: 200px; /* Reduced height for mobile */
   }
 
-  .carouselInner {
-    height: 300px;
-  }
-
-  .carouselItem {
-    padding: 1.5rem 2rem;
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .textContent {
-    padding-right: 0;
-    padding-bottom: 1rem;
-  }
-
-  .imageContent {
-    max-width: 80%;
-  }
-
-  .bannerTitle {
-    font-size: 2rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .bannerSubtitle {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .bannerDescription {
-    font-size: 0.9rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .carouselControlPrev {
-    padding-left: 1rem;
-  }
-
-  .carouselControlNext {
-    padding-right: 1rem;
-  }
-
-  .navButtonWrapper {
-    padding: 0.75rem;
-  }
-
-  .customIndicators {
-    bottom: 1rem !important;
-    padding: 0.6rem 1rem;
-  }
-
-  .indicatorDot {
-    width: 12px;
-    height: 12px;
-    margin: 0 3px;
-  }
-}
-
-@media (max-width: 480px) {
-  .discoverySection {
-    padding: 1rem 0;
-  }
-
-  .loadingCard,
-  .errorCard {
-    height: 200px;
-  }
-
-  .carouselInner {
-    height: 250px;
-  }
-
-  .carouselItem {
-    padding: 1rem 1.5rem;
-  }
-
-  .bannerTitle {
-    font-size: 1.75rem;
-  }
-
-  .bannerSubtitle {
-    font-size: 0.95rem;
-  }
-
-  .bannerDescription {
-    font-size: 0.85rem;
-  }
-
-  .ctaButton {
-    padding: 0.6rem 1.5rem;
-    font-size: 0.9rem;
+  .carouselImage {
+    min-height: 150px; /* Reduced minimum height */
+    max-height: 250px; /* Reduced maximum height */
   }
 
   .carouselControlPrev {
@@ -226,18 +198,79 @@
   }
 
   .navButtonWrapper {
-    padding: 0.6rem;
+    padding: 0.4rem; /* Smaller buttons on mobile */
   }
 
   .customIndicators {
-    bottom: 0.8rem !important;
-    padding: 0.5rem 0.8rem;
+    bottom: 0.5rem !important;
+    padding: 0.4rem 0.6rem;
   }
 
   .indicatorDot {
-    width: 10px;
-    height: 10px;
-    margin: 0 2px;
+    width: 5px !important;
+    height: 5px !important;
+    margin: 0 1.5px !important;
+  }
+
+  /* Adjust aspect ratios for mobile */
+  .imageContainer.ratio-4-1 {
+    aspect-ratio: 3 / 1; /* Slightly taller on mobile */
+  }
+
+  .imageContainer.ratio-3-1 {
+    aspect-ratio: 2.5 / 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .discoverySection {
+    padding: 0.5rem 0 !important;
+  }
+
+  .discoverySection .container {
+    padding: 0 0.25rem;
+  }
+
+  .loadingCard,
+  .errorCard {
+    height: 150px;
+  }
+
+  .carouselImage {
+    min-height: 120px;
+    max-height: 200px;
+  }
+
+  .carouselControlPrev {
+    padding-left: 0.25rem;
+  }
+
+  .carouselControlNext {
+    padding-right: 0.25rem;
+  }
+
+  .navButtonWrapper {
+    padding: 0.3rem;
+  }
+
+  .customIndicators {
+    bottom: 0.3rem !important;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .indicatorDot {
+    width: 4px !important;
+    height: 4px !important;
+    margin: 0 1px !important;
+  }
+
+  /* More aggressive aspect ratio adjustments for very small screens */
+  .imageContainer.ratio-4-1 {
+    aspect-ratio: 2.5 / 1;
+  }
+
+  .imageContainer.ratio-3-1 {
+    aspect-ratio: 2 / 1;
   }
 }
 
@@ -255,6 +288,15 @@
 
 .discoverySection {
   animation: fadeIn 0.5s ease-out;
+}
+
+/* Remove gaps and margins */
+.discoverySection .row {
+  margin: 0 !important;
+}
+
+.discoverySection .col-12 {
+  padding: 0 !important;
 }
 
 /* Accessibility Improvements */
@@ -279,4 +321,16 @@
   .customIndicators {
     background: rgba(0, 0, 0, 0.8);
   }
+}
+
+/* Utility classes for hiding gaps */
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.no-gutters > .col,
+.no-gutters > [class*="col-"] {
+  padding-right: 0;
+  padding-left: 0;
 }

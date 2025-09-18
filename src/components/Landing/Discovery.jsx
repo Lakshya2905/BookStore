@@ -7,6 +7,7 @@ import styles from './Discovery.module.css';
 const Discovery = () => {
   const [images, setImages] = useState([]);
   const [imageNames, setImageNames] = useState([]);
+  const [imageDimensions, setImageDimensions] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -35,6 +36,38 @@ const Discovery = () => {
       svg: 'image/svg+xml',
     };
     return formatMap[extension] || 'image/jpeg';
+  }, []);
+
+  const getImageDimensions = useCallback((imageUrl) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve({ width: img.width, height: img.height });
+      };
+      img.onerror = () => {
+        resolve({ width: 1200, height: 300 }); // Default dimensions
+      };
+      img.src = imageUrl;
+    });
+  }, []);
+
+  const getAspectRatioClass = useCallback((width, height) => {
+    if (!width || !height) return 'ratio-auto';
+    
+    const ratio = width / height;
+    
+    // For 1200x300 (ratio = 4)
+    if (ratio >= 3.8 && ratio <= 4.2) {
+      return 'ratio-4-1';
+    }
+    // For 1200x400 (ratio = 3)
+    else if (ratio >= 2.8 && ratio <= 3.2) {
+      return 'ratio-3-1';
+    }
+    // For other ratios
+    else {
+      return 'ratio-auto';
+    }
   }, []);
 
   const base64ToBlobUrl = (base64String, fileName) => {
@@ -70,22 +103,40 @@ const Discovery = () => {
 
         const imageUrls = [];
         const names = [];
+        const dimensions = [];
 
-        Object.entries(imageData).forEach(([imageName, base64Str]) => {
-          if (typeof base64Str === 'string' && base64Str.trim()) {
-            try {
-              const imageUrl = base64ToBlobUrl(base64Str, imageName);
-              imageUrls.push(imageUrl);
-              names.push(imageName);
-            } catch (err) {
-              console.error('Error processing image:', err);
+        const processedImages = await Promise.all(
+          Object.entries(imageData).map(async ([imageName, base64Str]) => {
+            if (typeof base64Str === 'string' && base64Str.trim()) {
+              try {
+                const imageUrl = base64ToBlobUrl(base64Str, imageName);
+                const dims = await getImageDimensions(imageUrl);
+                return {
+                  url: imageUrl,
+                  name: imageName,
+                  dimensions: dims
+                };
+              } catch (err) {
+                console.error('Error processing image:', err);
+                return null;
+              }
             }
-          }
-        });
+            return null;
+          })
+        );
 
-        if (imageUrls.length > 0) {
+        const validImages = processedImages.filter(img => img !== null);
+
+        if (validImages.length > 0) {
+          validImages.forEach(img => {
+            imageUrls.push(img.url);
+            names.push(img.name);
+            dimensions.push(img.dimensions);
+          });
+
           setImages(imageUrls);
           setImageNames(names);
+          setImageDimensions(dimensions);
           setCurrentImageIndex(0);
         } else {
           throw new Error('No valid images could be processed');
@@ -115,7 +166,7 @@ const Discovery = () => {
     } finally {
       setLoading(false);
     }
-  }, [detectImageFormatFromName, images]);
+  }, [detectImageFormatFromName, getImageDimensions, images]);
 
   // Fetch images only once when component mounts
   useEffect(() => {
@@ -168,11 +219,11 @@ const Discovery = () => {
 
   if (loading) {
     return (
-      <section className="py-5 bg-light">
-        <div className="container">
-          <div className="row justify-content-center">
+      <section className={`${styles.discoverySection}`}>
+        <div className="container-fluid px-0">
+          <div className="row no-gutters justify-content-center">
             <div className="col-12">
-              <div className="card border-0 shadow-lg" style={{ height: '400px' }}>
+              <div className={`card border-0 shadow-lg ${styles.loadingCard}`}>
                 <div className="card-body d-flex flex-column align-items-center justify-content-center">
                   <div className="spinner-border text-primary mb-3" role="status" style={{ width: '3rem', height: '3rem' }}>
                     <span className="visually-hidden">Loading...</span>
@@ -189,11 +240,11 @@ const Discovery = () => {
 
   if (error && images.length === 0) {
     return (
-      <section className="py-5 bg-light">
-        <div className="container">
-          <div className="row justify-content-center">
+      <section className={`${styles.discoverySection}`}>
+        <div className="container-fluid px-0">
+          <div className="row no-gutters justify-content-center">
             <div className="col-12">
-              <div className="card border-0 shadow-lg" style={{ height: '400px' }}>
+              <div className={`card border-0 shadow-lg ${styles.errorCard}`}>
                 <div className="card-body d-flex flex-column align-items-center justify-content-center text-center">
                   <div className="mb-4">
                     <svg width="64" height="64" className="text-danger mb-3" fill="currentColor" viewBox="0 0 16 16">
@@ -204,7 +255,7 @@ const Discovery = () => {
                     <h5 className="alert-heading mb-2">Oops! Something went wrong</h5>
                     <p className="mb-3">{error}</p>
                     <button 
-                      className="btn btn-outline-danger btn-lg px-4"
+                      className={`btn btn-outline-danger btn-lg px-4 ${styles.retryButton}`}
                       onClick={handleRetry}
                     >
                       <svg width="16" height="16" className="me-2" fill="currentColor" viewBox="0 0 16 16">
@@ -228,31 +279,68 @@ const Discovery = () => {
   }
 
   return (
-    <section className={`py-5 ${styles.discoverySection}`}>
-      <div className="container">
-        <div className="row justify-content-center">
+    <section className={`${styles.discoverySection}`}>
+      <div className="container-fluid px-0">
+        <div className="row no-gutters justify-content-center">
           <div className="col-12">
             <div className={`card border-0 shadow-lg overflow-hidden ${styles.carouselCard}`}>
               <div id="discoveryCarousel" className="carousel slide position-relative" data-bs-ride="false">
                 <div className={`carousel-inner ${styles.carouselInner}`}>
-                  {images.map((image, index) => (
-                    <div
-                      key={`${index}-${imageNames[index] || index}`}
-                      className={`carousel-item ${index === currentImageIndex ? 'active' : ''}`}
-                      style={{ height: '100%' }}
-                    >
-                      <img
-                        src={image}
-                        className={`d-block w-100 h-100 ${styles.carouselImage}`}
-                        alt={`Banner ${index + 1}: ${imageNames[index] || `Slide ${index + 1}`}`}
-                        onError={handleImageError}
-                        loading={index === 0 ? "eager" : "lazy"}
-                      />
-                    </div>
-                  ))}
+                  {images.map((image, index) => {
+                    const dimensions = imageDimensions[index] || { width: 1200, height: 300 };
+                    const aspectRatioClass = getAspectRatioClass(dimensions.width, dimensions.height);
+                    
+                    return (
+                      <div
+                        key={`${index}-${imageNames[index] || index}`}
+                        className={`carousel-item ${index === currentImageIndex ? 'active' : ''} ${styles.carouselItem}`}
+                      >
+                        <div className={`${styles.imageContainer} ${styles[aspectRatioClass]}`}>
+                          <img
+                            src={image}
+                            className={`d-block w-100 h-100 ${styles.carouselImage}`}
+                            alt={`Banner ${index + 1}: ${imageNames[index] || `Slide ${index + 1}`}`}
+                            onError={handleImageError}
+                            loading={index === 0 ? "eager" : "lazy"}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                
-           
+
+                {/* Navigation Controls - Hidden for cleaner look as per your requirement */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      className={`carousel-control-prev ${styles.carouselControlPrev}`}
+                      type="button"
+                      onClick={goToPrevious}
+                      aria-label="Previous slide"
+                      style={{ opacity: 0 }} // Make completely invisible
+                    >
+                      <div className={styles.navButtonWrapper}>
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                          <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                        </svg>
+                      </div>
+                    </button>
+
+                    <button
+                      className={`carousel-control-next ${styles.carouselControlNext}`}
+                      type="button"
+                      onClick={goToNext}
+                      aria-label="Next slide"
+                      style={{ opacity: 0 }} // Make completely invisible
+                    >
+                      <div className={styles.navButtonWrapper}>
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                          <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                      </div>
+                    </button>
+                  </>
+                )}
 
                 {/* Pagination Indicators */}
                 {images.length > 1 && (
@@ -260,11 +348,8 @@ const Discovery = () => {
                     {images.map((_, index) => (
                       <button
                         key={index}
-                  
                         type="button"
-  className={`${styles.indicatorDot} ${index === currentImageIndex ? styles.active : ''}`}
-  style={{ width: '6px', height: '6px', borderRadius: '50%', padding: 0 }}
-
+                        className={`${styles.indicatorDot} ${index === currentImageIndex ? styles.active : ''}`}
                         onClick={() => goToSlide(index)}
                         aria-current={index === currentImageIndex ? 'true' : 'false'}
                         aria-label={`Slide ${index + 1}`}
