@@ -421,12 +421,6 @@ const FeaturedBooksSection = ({
 
       <div className="container-fluid py-5">
         {/* Main Header */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>Featured Books</h1>
-          <p className={styles.subtitle}>
-            Discover our carefully curated collection of exceptional reads (sorted by priority)
-          </p>
-        </div>
 
         {loading ? (
           <div className={styles.loading}>

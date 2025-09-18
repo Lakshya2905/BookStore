@@ -628,35 +628,7 @@ const LandingPage = () => {
         <Discovery />
       </div>
 
-      {/* Stats Section */}
-      <section className={styles.statsSection}>
-        <div className={styles.statsContainer}>
-          <div className={styles.statCard}>
-            <BookOpen className={styles.statIcon} />
-            <div className={styles.statNumber}>
-              {loading ? '...' : stats.totalBooks.toLocaleString()}
-            </div>
-            <div className={styles.statLabel}>Books Available</div>
-          </div>
-          <div className={styles.statCard}>
-            <Users className={styles.statIcon} />
-            <div className={styles.statNumber}>{stats.totalUsers.toLocaleString()}</div>
-            <div className={styles.statLabel}>Happy Readers</div>
-          </div>
-          <div className={styles.statCard}>
-            <Award className={styles.statIcon} />
-            <div className={styles.statNumber}>
-              {loading ? '...' : stats.totalCategories}
-            </div>
-            <div className={styles.statLabel}>Categories</div>
-          </div>
-          <div className={styles.statCard}>
-            <Star className={styles.statIcon} />
-            <div className={styles.statNumber}>{stats.averageRating}</div>
-            <div className={styles.statLabel}>Avg Rating</div>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Loading indicator for images */}
       {(imageLoading || categoryImageLoading) && (
@@ -709,10 +681,7 @@ const LandingPage = () => {
 
       {/* Books Preview Section */}
       <section className={styles.booksPreviewSection}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Popular Books</h2>
-          <p className={styles.sectionSubtitle}>Browse some of our most popular titles</p>
-        </div>
+  
         <BookViewCard 
           books={previewBooks}
           loading={loading}
@@ -730,7 +699,7 @@ const LandingPage = () => {
       {/* Why Choose Us Section */}
       <section className={styles.whyChooseSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Why Choose BookHaven?</h2>
+          <h2 className={styles.sectionTitle}>Why Choose ShaaKkart?</h2>
           <p className={styles.sectionSubtitle}>More than just a bookstore</p>
         </div>
         <div className={styles.featuresGrid}>
@@ -779,6 +748,38 @@ const LandingPage = () => {
           </button>
         </div>
       </section>
+
+{/* Stats Section */}
+      <section className={styles.statsSection}>
+        <div className={styles.statsContainer}>
+          <div className={styles.statCard}>
+            <BookOpen className={styles.statIcon} />
+            <div className={styles.statNumber}>
+              {loading ? '...' : stats.totalBooks.toLocaleString()}
+            </div>
+            <div className={styles.statLabel}>Books Available</div>
+          </div>
+          <div className={styles.statCard}>
+            <Users className={styles.statIcon} />
+            <div className={styles.statNumber}>{stats.totalUsers.toLocaleString()}</div>
+            <div className={styles.statLabel}>Happy Readers</div>
+          </div>
+          <div className={styles.statCard}>
+            <Award className={styles.statIcon} />
+            <div className={styles.statNumber}>
+              {loading ? '...' : stats.totalCategories}
+            </div>
+            <div className={styles.statLabel}>Categories</div>
+          </div>
+          <div className={styles.statCard}>
+            <Star className={styles.statIcon} />
+            <div className={styles.statNumber}>{stats.averageRating}</div>
+            <div className={styles.statLabel}>Avg Rating</div>
+          </div>
+        </div>
+      </section>
+
+
     </div>
   );
 };
