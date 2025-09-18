@@ -320,7 +320,7 @@ const AppContent = React.memo(() => {
             } 
           />
           <Route 
-            path="/admin/invoice" 
+            path="/admin/orders" 
             element={
               <AdminProtectedRoute>
                 <InvoiceExportPage />
