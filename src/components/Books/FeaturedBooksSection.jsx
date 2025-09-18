@@ -329,7 +329,6 @@ const FeaturedBooksSection = ({
             <span className={`${styles.categoryIcon} me-3`}>{icon}</span>
             <div>
               <h2 className={`${styles.categoryTitle} mb-0`}>{title}</h2>
-              <small className="text-muted">({books.length} books, sorted by priority)</small>
             </div>
           </div>
           <div className={`${styles.categoryControls} d-flex gap-2`}>

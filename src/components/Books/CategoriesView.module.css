@@ -155,6 +155,23 @@
   color: #3b82f6;
 }
 
+.categoryHeading {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 16px;
+  justify-content: center;
+  
+}
+
+.categorySubHeading {
+  font-size: 1.2rem;
+  color: #64748b;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
 /* Category Count - UPDATED */
 .categoryCount {
   font-size: 0.95rem;

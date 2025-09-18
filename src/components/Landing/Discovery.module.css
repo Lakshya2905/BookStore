@@ -4,7 +4,7 @@
 .discoverySection {
   background-color: white !important;
   color: white;
-  padding: 4rem 0 !important; /* Reduced from py-5 */
+  margin-bottom: -50px;
 }
 
 /* Card Styling */
@@ -32,7 +32,7 @@
   transition: transform 0.3s ease;
   width: 100% !important;
   height: auto !important; /* Let height be automatic */
-  max-height: 460px; /* Maximum height constraint */
+  max-height: 98%; /* Maximum height constraint */
   min-height: 200px; /* Minimum height */
   background-color: #f8f9fa; /* Light background for letterboxing if needed */
 }

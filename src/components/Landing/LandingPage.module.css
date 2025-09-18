@@ -363,7 +363,7 @@
 /* ===== CATEGORIES SECTION ===== */
 .categoriesSection {
   margin-top: -4%;
-  padding: 80px 20px;
+  padding: 10px -5px;
   background: white;
 }
 
@@ -395,7 +395,7 @@
 
 /* ===== BOOKS PREVIEW SECTION ===== */
 .booksPreviewSection {
-  padding: 80px 20px;
+  padding: 10px 20px;
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
 }
 
@@ -426,7 +426,7 @@
 
 /* ===== WHY CHOOSE SECTION (4 CARDS IN A ROW) ===== */
 .whyChooseSection {
-  padding: 80px 20px;
+  padding: 15px 30px;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
@@ -516,7 +516,7 @@
 
 /* ===== CTA SECTION ===== */
 .ctaSection {
-  padding: 100px 20px;
+  padding: 20px 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   text-align: center;
@@ -760,7 +760,7 @@
 /* ===== SECTION FOOTER (View All Buttons) ===== */
 .sectionFooter {
   text-align: center;
-  margin-top: 40px;
+  margin-top: 5px;
 }
 
 .viewAllButton {

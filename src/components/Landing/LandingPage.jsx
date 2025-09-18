@@ -628,8 +628,6 @@ const LandingPage = () => {
         <Discovery />
       </div>
 
-      
-
       {/* Loading indicator for images */}
       {(imageLoading || categoryImageLoading) && (
         <div className={styles.imageLoadingIndicator}>
@@ -667,37 +665,27 @@ const LandingPage = () => {
       />
 
       {/* Categories Section */}
-      <section id="categories" className={styles.categoriesSection}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Browse by Category</h2>
-          <p className={styles.sectionSubtitle}>Find your favorite genre and discover new worlds</p>
-        </div>
+      <div id="categories" className={styles.categoriesSection}>
         <CategoriesView 
           categories={categories} 
           books={previewBooks}
           onCategoryClick={handleCategoryClick} 
         />
-      </section>
+      </div>
 
       {/* Books Preview Section */}
-      <section className={styles.booksPreviewSection}>
-  
+      <div className={styles.booksPreviewSection}>
         <BookViewCard 
           books={previewBooks}
           loading={loading}
           error={error}
           showPagination={false}
         />
-        <div className={styles.sectionFooter}>
-          <button className={styles.viewAllButton} onClick={handleExploreBooks}>
-            View All {stats.totalBooks} Books
-            <ArrowRight size={18} />
-          </button>
-        </div>
-      </section>
+
+      </div>
 
       {/* Why Choose Us Section */}
-      <section className={styles.whyChooseSection}>
+      <div className={styles.whyChooseSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Why Choose ShaaKkart?</h2>
           <p className={styles.sectionSubtitle}>More than just a bookstore</p>
@@ -732,10 +720,10 @@ const LandingPage = () => {
             </p>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Call to Action Section */}
-      <section className={styles.ctaSection}>
+      <div className={styles.ctaSection}>
         <div className={styles.ctaContent}>
           <h2 className={styles.ctaTitle}>Ready to Start Reading?</h2>
           <p className={styles.ctaSubtitle}>
@@ -747,10 +735,10 @@ const LandingPage = () => {
             <ArrowRight size={20} />
           </button>
         </div>
-      </section>
+      </div>
 
-{/* Stats Section */}
-      <section className={styles.statsSection}>
+      {/* Stats Section */}
+      <div className={styles.statsSection}>
         <div className={styles.statsContainer}>
           <div className={styles.statCard}>
             <BookOpen className={styles.statIcon} />
@@ -777,9 +765,7 @@ const LandingPage = () => {
             <div className={styles.statLabel}>Avg Rating</div>
           </div>
         </div>
-      </section>
-
-
+      </div>
     </div>
   );
 };

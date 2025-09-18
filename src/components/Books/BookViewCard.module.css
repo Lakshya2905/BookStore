@@ -1,7 +1,7 @@
 /* Bootstrap-like grid system */
 .container {
-  min-height: 100vh;
-  padding: 40px 20px;
+  min-height: 70vh;
+  padding: 10px 10px;
   background: #f8fafc;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   position: relative; /* Add this to establish stacking context */
