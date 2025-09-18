@@ -695,7 +695,7 @@ const LandingPage = () => {
             <div className={styles.featureIcon}>📦</div>
             <h3 className={styles.featureTitle}>Free Shipping</h3>
             <p className={styles.featureDescription}>
-              Free shipping on all orders over $35. Get your books delivered right to your doorstep.
+              Free shipping on all orders. Get your books delivered right to your doorstep.
             </p>
           </div>
           <div className={styles.featureCard}>
