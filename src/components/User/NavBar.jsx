@@ -109,7 +109,7 @@ const NavBar = React.memo(({ onSignIn, onSignUp }) => {
   // Handle default navigation for owners after login
   useEffect(() => {
     if (isOwner && location.pathname === '/landing') {
-      navigate('/admin/invoice');
+      navigate('/admin/orders');
     }
   }, [isOwner, location.pathname, navigate]);
 
