@@ -9,9 +9,15 @@ const AddBookPage = () => {
     description: '',
     category: '',
     authorName: '',
-    price: '',
+    price: 0, // This will be calculated automatically
     bookTags: [],
-    categoryId: ''
+    categoryId: '',
+    mrp: '',
+    discount: '',
+    publisher: '',
+    isbn: '',
+    year: '',
+    edition: ''
   });
   
   const [coverImage, setCoverImage] = useState(null);
@@ -37,6 +43,25 @@ const AddBookPage = () => {
       return { user: null, token: null };
     }
   };
+
+  // Function to calculate discounted price
+  const getDiscountPrice = (mrp, discountInPercent) => {
+    if (!mrp || !discountInPercent) return 0;
+    const discountedPrice = mrp - (mrp * discountInPercent / 100);
+    return Math.round(discountedPrice * 100.0) / 100.0;
+  };
+
+  // Update price when MRP or discount changes
+  useEffect(() => {
+    const calculatedPrice = getDiscountPrice(
+      parseFloat(formData.mrp) || 0, 
+      parseFloat(formData.discount) || 0
+    );
+    setFormData(prev => ({
+      ...prev,
+      price: calculatedPrice
+    }));
+  }, [formData.mrp, formData.discount]);
 
   useEffect(() => {
     fetchCategories();
@@ -121,16 +146,16 @@ const AddBookPage = () => {
       setMessage({ text: 'Author name is required', type: 'error' });
       return false;
     }
-    if (!formData.description.trim()) {
-      setMessage({ text: 'Description is required', type: 'error' });
-      return false;
-    }
     if (!formData.categoryId) {
       setMessage({ text: 'Please select a category', type: 'error' });
       return false;
     }
-    if (!formData.price || parseFloat(formData.price) <= 0) {
-      setMessage({ text: 'Please enter a valid price', type: 'error' });
+    if (!formData.mrp || parseFloat(formData.mrp) <= 0) {
+      setMessage({ text: 'Please enter a valid MRP', type: 'error' });
+      return false;
+    }
+    if (!formData.discount || parseFloat(formData.discount) < 0 || parseFloat(formData.discount) > 100) {
+      setMessage({ text: 'Please enter a valid discount (0-100)', type: 'error' });
       return false;
     }
     if (!coverImage) {
@@ -161,6 +186,8 @@ const AddBookPage = () => {
       const bookDto = {
         ...formData,
         price: parseFloat(formData.price),
+        mrp: parseFloat(formData.mrp),
+        discount: parseFloat(formData.discount),
         categoryId: parseInt(formData.categoryId)
       };
 
@@ -190,9 +217,15 @@ const AddBookPage = () => {
           description: '',
           category: '',
           authorName: '',
-          price: '',
+          price: 0,
           bookTags: [],
-          categoryId: ''
+          categoryId: '',
+          mrp: '',
+          discount: '',
+          publisher: '',
+          isbn: '',
+          year: '',
+          edition: ''
         });
         setCoverImage(null);
         setImagePreview(null);
@@ -213,147 +246,243 @@ const AddBookPage = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.formContainer}>
+      <div className={styles.header}>
         <h1 className={styles.title}>Add New Book</h1>
-        
         {message.text && (
           <div className={`${styles.message} ${styles[message.type]}`}>
             {message.text}
           </div>
         )}
+      </div>
 
+      <div className={styles.mainContent}>
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label htmlFor="bookName" className={styles.label}>
-              Book Name *
-            </label>
-            <input
-              type="text"
-              id="bookName"
-              name="bookName"
-              value={formData.bookName}
-              onChange={handleInputChange}
-              className={styles.input}
-              placeholder="Enter book name"
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="authorName" className={styles.label}>
-              Author Name *
-            </label>
-            <input
-              type="text"
-              id="authorName"
-              name="authorName"
-              value={formData.authorName}
-              onChange={handleInputChange}
-              className={styles.input}
-              placeholder="Enter author name"
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="description" className={styles.label}>
-              Description *
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              className={styles.textarea}
-              placeholder="Enter book description"
-              rows="4"
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="categoryId" className={styles.label}>
-              Category *
-            </label>
-            <select
-              id="categoryId"
-              name="categoryId"
-              value={formData.categoryId}
-              onChange={handleInputChange}
-              className={styles.select}
-              required
-            >
-              <option value="">Select a category</option>
-              {categories.map(category => (
-                <option key={category.categoryId} value={category.categoryId}>
-                  {category.categoryName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="price" className={styles.label}>
-              Price *
-            </label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handleInputChange}
-              className={styles.input}
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Book Tags</label>
-            <div className={styles.checkboxGroup}>
-              {bookTagsOptions.map(tag => (
-                <label key={tag.value} className={styles.checkboxLabel}>
+          {/* Left Column */}
+          <div className={styles.leftColumn}>
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>Basic Information</h3>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="bookName" className={styles.label}>Book Name *</label>
                   <input
-                    type="checkbox"
-                    value={tag.value}
-                    checked={formData.bookTags.includes(tag.value)}
-                    onChange={handleTagsChange}
-                    className={styles.checkbox}
+                    type="text"
+                    id="bookName"
+                    name="bookName"
+                    value={formData.bookName}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Enter book name"
+                    required
                   />
-                  {tag.label}
-                </label>
-              ))}
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="authorName" className={styles.label}>Author Name *</label>
+                  <input
+                    type="text"
+                    id="authorName"
+                    name="authorName"
+                    value={formData.authorName}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Enter author name"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className={styles.field}>
+                <label htmlFor="description" className={styles.label}>Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className={styles.textarea}
+                  placeholder="Enter book description (optional)"
+                  rows="3"
+                />
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="categoryId" className={styles.label}>Category *</label>
+                  <select
+                    id="categoryId"
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleInputChange}
+                    className={styles.select}
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map(category => (
+                      <option key={category.categoryId} value={category.categoryId}>
+                        {category.categoryName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="publisher" className={styles.label}>Publisher</label>
+                  <input
+                    type="text"
+                    id="publisher"
+                    name="publisher"
+                    value={formData.publisher}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Enter publisher name"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>Publication Details</h3>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="isbn" className={styles.label}>ISBN</label>
+                  <input
+                    type="text"
+                    id="isbn"
+                    name="isbn"
+                    value={formData.isbn}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Enter ISBN"
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="year" className={styles.label}>Year</label>
+                  <input
+                    type="text"
+                    id="year"
+                    name="year"
+                    value={formData.year}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Publication year"
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="edition" className={styles.label}>Edition</label>
+                  <input
+                    type="text"
+                    id="edition"
+                    name="edition"
+                    value={formData.edition}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Edition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>Pricing</h3>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="mrp" className={styles.label}>MRP *</label>
+                  <input
+                    type="number"
+                    id="mrp"
+                    name="mrp"
+                    value={formData.mrp}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="discount" className={styles.label}>Discount (%) *</label>
+                  <input
+                    type="number"
+                    id="discount"
+                    name="discount"
+                    value={formData.discount}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="0"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="price" className={styles.label}>Final Price</label>
+                  <input
+                    type="number"
+                    id="price"
+                    name="price"
+                    value={formData.price}
+                    className={`${styles.input} ${styles.disabledInput}`}
+                    disabled
+                    readOnly
+                  />
+                  <small className={styles.helpText}>Auto-calculated</small>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="coverImage" className={styles.label}>
-              Cover Image * (JPG, JPEG, PNG only)
-            </label>
-            <input
-              type="file"
-              id="coverImage"
-              accept=".jpg,.jpeg,.png"
-              onChange={handleFileChange}
-              className={styles.fileInput}
-              required
-            />
-            {imagePreview && (
-              <div className={styles.imagePreview}>
-                <img src={imagePreview} alt="Cover preview" className={styles.previewImage} />
+          {/* Right Column */}
+          <div className={styles.rightColumn}>
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>Book Tags</h3>
+              <div className={styles.tagGrid}>
+                {bookTagsOptions.map(tag => (
+                  <label key={tag.value} className={styles.tagLabel}>
+                    <input
+                      type="checkbox"
+                      value={tag.value}
+                      checked={formData.bookTags.includes(tag.value)}
+                      onChange={handleTagsChange}
+                      className={styles.tagCheckbox}
+                    />
+                    <span className={styles.tagText}>{tag.label}</span>
+                  </label>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
 
-          <button 
-            type="submit" 
-            className={styles.submitButton}
-            disabled={loading}
-          >
-            {loading ? 'Adding Book...' : 'Add Book'}
-          </button>
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>Cover Image *</h3>
+              <div className={styles.imageUploadArea}>
+                <input
+                  type="file"
+                  id="coverImage"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={handleFileChange}
+                  className={styles.fileInput}
+                  required
+                />
+                <label htmlFor="coverImage" className={styles.fileLabel}>
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Cover preview" className={styles.previewImage} />
+                  ) : (
+                    <div className={styles.uploadPlaceholder}>
+                      <div className={styles.uploadIcon}>📁</div>
+                      <div className={styles.uploadText}>Click to upload cover image</div>
+                      <div className={styles.uploadSubtext}>JPG, JPEG, PNG only</div>
+                    </div>
+                  )}
+                </label>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              className={styles.submitButton}
+              disabled={loading}
+            >
+              {loading ? 'Adding Book...' : 'Add Book'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

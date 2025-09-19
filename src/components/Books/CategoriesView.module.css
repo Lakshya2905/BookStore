@@ -160,8 +160,7 @@
   font-weight: 700;
   color: #1e293b;
   margin-bottom: 16px;
-  justify-content: center;
-  
+  text-align: center; /* Fixes centering */
 }
 
 .categorySubHeading {
@@ -170,7 +169,10 @@
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
+  text-align: center; /* Ensures text is centered */
+  padding-bottom: 10px;
 }
+
 
 /* Category Count - UPDATED */
 .categoryCount {
