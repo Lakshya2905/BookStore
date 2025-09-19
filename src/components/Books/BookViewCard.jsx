@@ -18,7 +18,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
   // State for slideshow
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [slideshowIntervals, setSlideshowIntervals] = useState({});
-  const [globalSlideshow, setGlobalSlideshow] = useState({});
 
   // State for Place Order Modal
   const [orderModalOpen, setOrderModalOpen] = useState(false);
@@ -50,6 +49,15 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     console.log('Filters changed:', { searchQuery, categoryFilter, tagFilter });
     setCurrentPage(1);
   }, [searchQuery, categoryFilter, tagFilter, forceUpdateKey]);
+
+  // Cleanup slideshow intervals on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(slideshowIntervals).forEach(interval => {
+        if (interval) clearInterval(interval);
+      });
+    };
+  }, [slideshowIntervals]);
 
   // Load stored books from sessionStorage if no props given
   const storedBooks = useMemo(() => {
@@ -119,63 +127,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     : filteredBooks;
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
-  // Cleanup slideshow intervals on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(slideshowIntervals).forEach(interval => {
-        if (interval) clearInterval(interval);
-      });
-      Object.values(globalSlideshow).forEach(interval => {
-        if (interval) clearInterval(interval);
-      });
-    };
-  }, [slideshowIntervals, globalSlideshow]);
-
-  // Global slideshow for all books with multiple images
-  useEffect(() => {
-    if (currentBooks.length > 0) {
-      // Clear existing global intervals
-      Object.values(globalSlideshow).forEach(interval => {
-        if (interval) clearInterval(interval);
-      });
-
-      const newGlobalIntervals = {};
-      
-      currentBooks.forEach(book => {
-        const bookId = book.bookId || book.id;
-        const allImages = book.allImages || [];
-        
-        if (allImages.length > 1) {
-          const interval = setInterval(() => {
-            setCurrentImageIndex(prev => ({
-              ...prev,
-              [bookId]: ((prev[bookId] || 0) + 1) % allImages.length
-            }));
-          }, 3000); // Change image every 3 seconds
-          
-          newGlobalIntervals[bookId] = interval;
-        }
-      });
-
-      setGlobalSlideshow(newGlobalIntervals);
-    }
-  }, [currentBooks]);
-
-  // Initialize image indices for new books
-  useEffect(() => {
-    const newIndices = {};
-    currentBooks.forEach(book => {
-      const bookId = book.bookId || book.id;
-      if (!(bookId in currentImageIndex)) {
-        newIndices[bookId] = 0;
-      }
-    });
-    
-    if (Object.keys(newIndices).length > 0) {
-      setCurrentImageIndex(prev => ({ ...prev, ...newIndices }));
-    }
-  }, [currentBooks, currentImageIndex]);
-
   // Function to get current image for a book
   const getCurrentImage = (book) => {
     const bookId = book.bookId || book.id;
@@ -189,20 +140,11 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     return allImages[currentIndex]?.imageUrl || book.coverImageUrl || null;
   };
 
-  // Function to start slideshow for a book (hover effect)
+  // Function to start slideshow for a book
   const startSlideshow = (bookId, images) => {
     if (images.length <= 1) return;
     
-    // Clear global interval for this book to avoid conflicts
-    if (globalSlideshow[bookId]) {
-      clearInterval(globalSlideshow[bookId]);
-      setGlobalSlideshow(prev => {
-        const { [bookId]: removed, ...rest } = prev;
-        return rest;
-      });
-    }
-    
-    // Clear existing hover interval if any
+    // Clear existing interval if any
     if (slideshowIntervals[bookId]) {
       clearInterval(slideshowIntervals[bookId]);
     }
@@ -210,9 +152,9 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     const interval = setInterval(() => {
       setCurrentImageIndex(prev => ({
         ...prev,
-        [bookId]: ((prev[bookId] || 0) + 1) % images.length
+        [bookId]: (prev[bookId] + 1) % images.length
       }));
-    }, 1500); // Faster on hover - every 1.5 seconds
+    }, 3000); // Change image every 3 seconds
     
     setSlideshowIntervals(prev => ({
       ...prev,
@@ -220,33 +162,14 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     }));
   };
 
-  // Function to stop slideshow for a book (hover effect)
+  // Function to stop slideshow for a book
   const stopSlideshow = (bookId) => {
-    // Clear hover interval
     if (slideshowIntervals[bookId]) {
       clearInterval(slideshowIntervals[bookId]);
       setSlideshowIntervals(prev => {
         const { [bookId]: removed, ...rest } = prev;
         return rest;
       });
-    }
-
-    // Restart global interval for this book
-    const book = currentBooks.find(b => (b.bookId || b.id) === bookId);
-    const allImages = book?.allImages || [];
-    
-    if (allImages.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentImageIndex(prev => ({
-          ...prev,
-          [bookId]: ((prev[bookId] || 0) + 1) % allImages.length
-        }));
-      }, 3000); // Back to normal speed - every 3 seconds
-      
-      setGlobalSlideshow(prev => ({
-        ...prev,
-        [bookId]: interval
-      }));
     }
   };
 
@@ -457,17 +380,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                             )}
                           </div>
                           <div className={styles.tooltipFooter}>
-                            <div className={styles.tooltipPriceContainer}>
-                              {book.discount > 0 ? (
-                                <>
-                                  <span className={styles.tooltipMrp}>₹{book.mrp}</span>
-                                  <span className={styles.tooltipPrice}>₹{book.price}</span>
-                                  <span className={styles.tooltipDiscount}>{Math.round(book.discount)}% OFF</span>
-                                </>
-                              ) : (
-                                <span className={styles.tooltipPrice}>₹{book.price}</span>
-                              )}
-                            </div>
+                            <span className={styles.tooltipPrice}>₹{book.price}</span>
                             {book.category && (
                               <span className={styles.tooltipCategory}>{book.category}</span>
                             )}
@@ -490,17 +403,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                       </p>
                       
                       <div className={styles.bookFooter}>
-                        <div className={styles.priceContainer}>
-                          {book.discount > 0 ? (
-                            <>
-                              <span className={styles.bookMrp}>₹{book.mrp}</span>
-                              <span className={styles.bookPrice}>₹{book.price}</span>
-                              <span className={styles.bookDiscount}>{Math.round(book.discount)}% OFF</span>
-                            </>
-                          ) : (
-                            <span className={styles.bookPrice}>₹{book.price}</span>
-                          )}
-                        </div>
+                        <span className={styles.bookPrice}>₹{book.price}</span>
                         {book.category && (
                           <span className={styles.bookCategory}>{book.category}</span>
                         )}
