@@ -21,10 +21,12 @@ const AddBookPage = () => {
   });
   
   const [coverImage, setCoverImage] = useState(null);
+  const [secondaryImages, setSecondaryImages] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [imagePreview, setImagePreview] = useState(null);
+  const [secondaryImagePreviews, setSecondaryImagePreviews] = useState([]);
 
   const bookTagsOptions = [
     { value: 'NEW_RELEASE', label: 'New Release' },
@@ -100,24 +102,29 @@ const AddBookPage = () => {
     }));
   };
 
-  const handleFileChange = (e) => {
+  const validateImageFile = (file, fieldName) => {
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      setMessage({ text: `Please select a valid image file for ${fieldName} (JPG, JPEG, or PNG)`, type: 'error' });
+      return false;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setMessage({ text: `File size for ${fieldName} must be less than 5MB`, type: 'error' });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleCoverImageChange = (e) => {
     const file = e.target.files[0];
     
     if (file) {
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-      if (!allowedTypes.includes(file.type)) {
-        setMessage({ text: 'Please select a valid image file (JPG, JPEG, or PNG)', type: 'error' });
-        e.target.value = '';
-        setCoverImage(null);
-        setImagePreview(null);
-        return;
-      }
-
-      // Validate file size (5MB limit)
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (file.size > maxSize) {
-        setMessage({ text: 'File size must be less than 5MB', type: 'error' });
+      if (!validateImageFile(file, 'cover image')) {
         e.target.value = '';
         setCoverImage(null);
         setImagePreview(null);
@@ -135,6 +142,60 @@ const AddBookPage = () => {
       
       setMessage({ text: '', type: '' });
     }
+  };
+
+  const handleSecondaryImagesChange = (e) => {
+    const files = Array.from(e.target.files);
+    
+    if (files.length === 0) return;
+
+    // Validate maximum number of secondary images (e.g., 5)
+    const maxSecondaryImages = 5;
+    if (files.length > maxSecondaryImages) {
+      setMessage({ text: `You can upload maximum ${maxSecondaryImages} secondary images`, type: 'error' });
+      e.target.value = '';
+      return;
+    }
+
+    // Validate each file
+    for (let file of files) {
+      if (!validateImageFile(file, 'secondary image')) {
+        e.target.value = '';
+        return;
+      }
+    }
+
+    setSecondaryImages(files);
+    
+    // Create previews
+    const previews = [];
+    let loadedCount = 0;
+    
+    files.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previews[index] = e.target.result;
+        loadedCount++;
+        
+        if (loadedCount === files.length) {
+          setSecondaryImagePreviews([...previews]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    setMessage({ text: '', type: '' });
+  };
+
+  const removeSecondaryImage = (indexToRemove) => {
+    const updatedImages = secondaryImages.filter((_, index) => index !== indexToRemove);
+    const updatedPreviews = secondaryImagePreviews.filter((_, index) => index !== indexToRemove);
+    
+    setSecondaryImages(updatedImages);
+    setSecondaryImagePreviews(updatedPreviews);
+    
+    // Reset file input
+    document.getElementById('secondaryImages').value = '';
   };
 
   const validateForm = () => {
@@ -198,10 +259,19 @@ const AddBookPage = () => {
       };
 
       const formDataToSend = new FormData();
+      
+      // Add request body
       formDataToSend.append('requestBody', new Blob([JSON.stringify(requestBody)], {
         type: 'application/json'
       }));
-      formDataToSend.append('file', coverImage);
+      
+      // Add cover image
+      formDataToSend.append('coverImage', coverImage);
+      
+      // Add secondary images
+      secondaryImages.forEach((image, index) => {
+        formDataToSend.append('secondaryImages', image);
+      });
 
       const response = await axios.post(`${BOOK_ADD_URL}`, formDataToSend, {
         headers: {
@@ -228,8 +298,11 @@ const AddBookPage = () => {
           edition: ''
         });
         setCoverImage(null);
+        setSecondaryImages([]);
         setImagePreview(null);
+        setSecondaryImagePreviews([]);
         document.getElementById('coverImage').value = '';
+        document.getElementById('secondaryImages').value = '';
       } else {
         setMessage({ text: response.data.message || 'Failed to add book', type: 'error' });
       }
@@ -457,7 +530,7 @@ const AddBookPage = () => {
                   type="file"
                   id="coverImage"
                   accept=".jpg,.jpeg,.png"
-                  onChange={handleFileChange}
+                  onChange={handleCoverImageChange}
                   className={styles.fileInput}
                   required
                 />
@@ -473,6 +546,53 @@ const AddBookPage = () => {
                   )}
                 </label>
               </div>
+            </div>
+
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>Secondary Images</h3>
+              <div className={styles.imageUploadArea}>
+                <input
+                  type="file"
+                  id="secondaryImages"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={handleSecondaryImagesChange}
+                  className={styles.fileInput}
+                  multiple
+                />
+                <label htmlFor="secondaryImages" className={styles.fileLabel}>
+                  <div className={styles.uploadPlaceholder}>
+                    <div className={styles.uploadIcon}>📷</div>
+                    <div className={styles.uploadText}>Click to upload secondary images</div>
+                    <div className={styles.uploadSubtext}>Multiple JPG, JPEG, PNG (Max 5)</div>
+                  </div>
+                </label>
+              </div>
+              
+              {/* Secondary Images Preview */}
+              {secondaryImagePreviews.length > 0 && (
+                <div className={styles.secondaryImagesPreview}>
+                  <h4 className={styles.previewTitle}>Secondary Images Preview:</h4>
+                  <div className={styles.imagePreviewGrid}>
+                    {secondaryImagePreviews.map((preview, index) => (
+                      <div key={index} className={styles.previewImageContainer}>
+                        <img 
+                          src={preview} 
+                          alt={`Secondary preview ${index + 1}`} 
+                          className={styles.secondaryPreviewImage} 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeSecondaryImage(index)}
+                          className={styles.removeImageButton}
+                          title="Remove image"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <button 

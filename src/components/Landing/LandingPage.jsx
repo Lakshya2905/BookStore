@@ -48,22 +48,22 @@ const LandingPage = () => {
     fetchStats();
   }, []);
 
-  // Function to get cached book image from session storage
-  const getCachedImage = (bookId) => {
+  // Function to get cached image from session storage using imageId
+  const getCachedImageById = (imageId) => {
     try {
       const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
-      return cachedImages[bookId] || null;
+      return cachedImages[imageId] || null;
     } catch (error) {
       console.error("Error reading cached images:", error);
       return null;
     }
   };
 
-  // Function to cache book image in session storage
-  const cacheImage = (bookId, imageData) => {
+  // Function to cache image in session storage using imageId
+  const cacheImageById = (imageId, imageData) => {
     try {
       const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
-      cachedImages[bookId] = imageData;
+      cachedImages[imageId] = imageData;
       sessionStorage.setItem("bookImages", JSON.stringify(cachedImages));
     } catch (error) {
       console.error("Error caching image:", error);
@@ -71,7 +71,7 @@ const LandingPage = () => {
       if (error.name === 'QuotaExceededError') {
         try {
           sessionStorage.removeItem("bookImages");
-          const newCache = { [bookId]: imageData };
+          const newCache = { [imageId]: imageData };
           sessionStorage.setItem("bookImages", JSON.stringify(newCache));
         } catch (e) {
           console.error("Failed to cache image even after clearing:", e);
@@ -109,6 +109,59 @@ const LandingPage = () => {
           console.error("Failed to cache category image even after clearing:", e);
         }
       }
+    }
+  };
+
+  // Function to get cover image from book's image list
+  const getCoverImage = (bookImageList) => {
+    if (!bookImageList || bookImageList.length === 0) return null;
+    
+    // First try to find COVER type image
+    const coverImage = bookImageList.find(img => img.imageType === 'COVER');
+    if (coverImage) return coverImage;
+    
+    // Fallback to first image if no cover type found
+    return bookImageList[0];
+  };
+
+  // Function to fetch single image by imageId
+  const fetchSingleImageById = async (imageId) => {
+    try {
+      // First check cache
+      const cachedImage = getCachedImageById(imageId);
+      if (cachedImage) {
+        return cachedImage;
+      }
+
+      // Fetch from server if not cached using new endpoint
+      const imageResponse = await axios.get(`${BOOK_IMAGE_FETCH_URL}?imageId=${imageId}`, {
+        responseType: 'blob',
+        timeout: 15000 // 15 second timeout
+      });
+
+      const blob = imageResponse.data;
+      
+      // Convert blob to base64 for caching
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result;
+          
+          // Cache the image
+          cacheImageById(imageId, base64data);
+          
+          resolve(base64data);
+        };
+        reader.onerror = () => {
+          console.warn(`Failed to convert image to base64 for imageId ${imageId}`);
+          reject(new Error(`Failed to process image ${imageId}`));
+        };
+        reader.readAsDataURL(blob);
+      });
+
+    } catch (error) {
+      console.warn(`Failed to load image for imageId ${imageId}:`, error.message);
+      throw error;
     }
   };
 
@@ -202,52 +255,48 @@ const LandingPage = () => {
     }
   };
 
-  // Function to fetch single book image
-  const fetchSingleBookImage = async (book) => {
+  // Function to load cover image for a single book
+  const loadBookCoverImage = async (book) => {
     try {
-      // First check cache
-      const cachedImage = getCachedImage(book.bookId);
-      if (cachedImage) {
+      // Get the cover image from book's image list
+      const coverImageInfo = getCoverImage(book.bookImageList);
+      
+      if (!coverImageInfo) {
         return {
           ...book,
-          coverImageUrl: cachedImage
+          coverImageUrl: null
         };
       }
 
-      // Fetch from server if not cached
-      const imageResponse = await axios.get(`${BOOK_IMAGE_FETCH_URL}?bookId=${book.bookId}`, {
-        responseType: 'blob',
-        timeout: 15000 // 15 second timeout
-      });
+      // Check if image is already cached
+      const cachedImage = getCachedImageById(coverImageInfo.imageId);
+      if (cachedImage) {
+        return {
+          ...book,
+          coverImageUrl: cachedImage,
+          coverImageId: coverImageInfo.imageId
+        };
+      }
 
-      const blob = imageResponse.data;
-      
-      // Convert blob to base64 for caching
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64data = reader.result;
-          
-          // Cache the image
-          cacheImage(book.bookId, base64data);
-          
-          resolve({
-            ...book,
-            coverImageUrl: base64data
-          });
+      // Fetch image from server
+      try {
+        const imageUrl = await fetchSingleImageById(coverImageInfo.imageId);
+        return {
+          ...book,
+          coverImageUrl: imageUrl,
+          coverImageId: coverImageInfo.imageId
         };
-        reader.onerror = () => {
-          console.warn(`Failed to convert image to base64 for book ${book.bookId}`);
-          resolve({
-            ...book,
-            coverImageUrl: null
-          });
+      } catch (error) {
+        console.warn(`Failed to load cover image for book ${book.bookId}:`, error);
+        return {
+          ...book,
+          coverImageUrl: null,
+          coverImageId: coverImageInfo.imageId
         };
-        reader.readAsDataURL(blob);
-      });
+      }
 
     } catch (error) {
-      console.warn(`Failed to load image for book ${book.bookId}:`, error.message);
+      console.warn(`Failed to process book ${book.bookId}:`, error);
       return {
         ...book,
         coverImageUrl: null
@@ -270,28 +319,41 @@ const LandingPage = () => {
       for (let i = 0; i < books.length; i++) {
         const book = books[i];
         
-        // Check cache first
-        const cachedImage = getCachedImage(book.bookId);
+        // Get cover image info
+        const coverImageInfo = getCoverImage(book.bookImageList);
         
-        if (cachedImage) {
-          // Use cached image
+        if (!coverImageInfo) {
+          // No images available for this book
           booksWithImages.push({
             ...book,
-            coverImageUrl: cachedImage
+            coverImageUrl: null
           });
-          cachedCount++;
         } else {
-          // Fetch from server
-          try {
-            const bookWithImage = await fetchSingleBookImage(book);
-            booksWithImages.push(bookWithImage);
-            fetchedCount++;
-          } catch (error) {
-            console.warn(`Failed to process image for book ${book.bookId}:`, error);
+          // Check cache first
+          const cachedImage = getCachedImageById(coverImageInfo.imageId);
+          
+          if (cachedImage) {
+            // Use cached image
             booksWithImages.push({
               ...book,
-              coverImageUrl: null
+              coverImageUrl: cachedImage,
+              coverImageId: coverImageInfo.imageId
             });
+            cachedCount++;
+          } else {
+            // Fetch from server
+            try {
+              const bookWithImage = await loadBookCoverImage(book);
+              booksWithImages.push(bookWithImage);
+              fetchedCount++;
+            } catch (error) {
+              console.warn(`Failed to process image for book ${book.bookId}:`, error);
+              booksWithImages.push({
+                ...book,
+                coverImageUrl: null,
+                coverImageId: coverImageInfo.imageId
+              });
+            }
           }
         }
         
@@ -310,10 +372,14 @@ const LandingPage = () => {
 
     } catch (error) {
       console.error("Error in sequential image loading:", error);
-      return books.map(book => ({
-        ...book,
-        coverImageUrl: getCachedImage(book.bookId) || null
-      }));
+      return books.map(book => {
+        const coverImageInfo = getCoverImage(book.bookImageList);
+        return {
+          ...book,
+          coverImageUrl: coverImageInfo ? getCachedImageById(coverImageInfo.imageId) : null,
+          coverImageId: coverImageInfo?.imageId
+        };
+      });
     } finally {
       setImageLoading(false);
       setImageLoadingProgress(0);
@@ -334,21 +400,34 @@ const LandingPage = () => {
       // Load priority images first
       const priorityBooksWithImages = await Promise.all(
         priorityBooks.map(async (book) => {
-          const cachedImage = getCachedImage(book.bookId);
-          if (cachedImage) {
-            return { ...book, coverImageUrl: cachedImage };
+          const coverImageInfo = getCoverImage(book.bookImageList);
+          if (!coverImageInfo) {
+            return { ...book, coverImageUrl: null };
           }
-          return await fetchSingleBookImage(book);
+          
+          const cachedImage = getCachedImageById(coverImageInfo.imageId);
+          if (cachedImage) {
+            return { 
+              ...book, 
+              coverImageUrl: cachedImage,
+              coverImageId: coverImageInfo.imageId 
+            };
+          }
+          return await loadBookCoverImage(book);
         })
       );
 
       // Update state with priority books immediately
       const initialBooksWithImages = [
         ...priorityBooksWithImages,
-        ...remainingBooks.map(book => ({ 
-          ...book, 
-          coverImageUrl: getCachedImage(book.bookId) || null 
-        }))
+        ...remainingBooks.map(book => {
+          const coverImageInfo = getCoverImage(book.bookImageList);
+          return { 
+            ...book, 
+            coverImageUrl: coverImageInfo ? getCachedImageById(coverImageInfo.imageId) : null,
+            coverImageId: coverImageInfo?.imageId
+          };
+        })
       ];
 
       setAllBooks(initialBooksWithImages);
@@ -359,11 +438,20 @@ const LandingPage = () => {
       if (remainingBooks.length > 0) {
         const remainingBooksWithImages = await Promise.all(
           remainingBooks.map(async (book) => {
-            const cachedImage = getCachedImage(book.bookId);
-            if (cachedImage) {
-              return { ...book, coverImageUrl: cachedImage };
+            const coverImageInfo = getCoverImage(book.bookImageList);
+            if (!coverImageInfo) {
+              return { ...book, coverImageUrl: null };
             }
-            return await fetchSingleBookImage(book);
+            
+            const cachedImage = getCachedImageById(coverImageInfo.imageId);
+            if (cachedImage) {
+              return { 
+                ...book, 
+                coverImageUrl: cachedImage,
+                coverImageId: coverImageInfo.imageId 
+              };
+            }
+            return await loadBookCoverImage(book);
           })
         );
 
@@ -383,10 +471,14 @@ const LandingPage = () => {
 
     } catch (error) {
       console.error("Error in priority image loading:", error);
-      return books.map(book => ({
-        ...book,
-        coverImageUrl: getCachedImage(book.bookId) || null
-      }));
+      return books.map(book => {
+        const coverImageInfo = getCoverImage(book.bookImageList);
+        return {
+          ...book,
+          coverImageUrl: coverImageInfo ? getCachedImageById(coverImageInfo.imageId) : null,
+          coverImageId: coverImageInfo?.imageId
+        };
+      });
     } finally {
       setImageLoading(false);
     }
@@ -415,11 +507,15 @@ const LandingPage = () => {
             imageUrl: getCachedCategoryImage(category.categoryId) || category.imageUrl
           }));
           
-          // Verify cached books
-          const validCachedBooks = bookData.map(book => ({
-            ...book,
-            coverImageUrl: getCachedImage(book.bookId) || book.coverImageUrl
-          }));
+          // Verify cached books and restore cover images from cache
+          const validCachedBooks = bookData.map(book => {
+            const coverImageInfo = getCoverImage(book.bookImageList);
+            return {
+              ...book,
+              coverImageUrl: coverImageInfo ? getCachedImageById(coverImageInfo.imageId) : null,
+              coverImageId: coverImageInfo?.imageId
+            };
+          });
           
           if (validCachedCategories.length > 0 && validCachedBooks.length > 0) {
             setCategories(validCachedCategories);
