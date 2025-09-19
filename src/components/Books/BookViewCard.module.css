@@ -922,3 +922,311 @@
 .bookCard {
   scroll-snap-align: start;
 }
+
+/* Add these styles to your existing BookViewCard.module.css */
+
+/* Image navigation buttons */
+.imageNavButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  z-index: 3;
+}
+
+.imageNavButton:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.imageNavLeft {
+  left: 8px;
+}
+
+.imageNavRight {
+  right: 8px;
+}
+
+.bookImageContainer:hover .imageNavButton {
+  opacity: 1;
+}
+
+/* Image indicators (dots) */
+.imageIndicators {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 3;
+}
+
+.imageIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.imageIndicator.active {
+  background: rgba(255, 255, 255, 1);
+}
+
+.imageIndicator:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Image counter */
+.imageCounter {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 3;
+}
+
+.bookImageContainer:hover .imageCounter {
+  opacity: 1;
+}
+
+/* Image count in book footer */
+.imageCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #666;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* Tooltip image info */
+.tooltipImageInfo {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Enhanced book image container for slideshow */
+.bookImageContainer {
+  position: relative;
+  overflow: hidden;
+}
+
+.bookImage {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.bookCover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.bookImage:hover .bookCover {
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .imageNavButton {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .imageNavLeft {
+    left: 4px;
+  }
+  
+  .imageNavRight {
+    right: 4px;
+  }
+  
+  .imageCounter {
+    font-size: 0.7rem;
+    padding: 1px 4px;
+  }
+  
+  .imageIndicator {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .imageIndicators {
+    gap: 3px;
+    bottom: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .imageNavButton {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .imageCounter {
+    top: 4px;
+    right: 4px;
+    font-size: 0.65rem;
+  }
+  
+  .imageCount {
+    font-size: 0.7rem;
+    padding: 1px 4px;
+  }
+}
+
+/* Animation for smooth image transitions */
+.bookCover {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Loading state for images */
+.bookImage.loading .bookCover {
+  opacity: 0.7;
+}
+
+/* Prevent text selection on navigation elements */
+.imageNavButton,
+.imageIndicator,
+.imageCounter {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Enhanced hover effects */
+.bookImageContainer:hover .imageIndicators {
+  opacity: 1;
+}
+
+.imageIndicators {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Focus states for accessibility */
+.imageNavButton:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.imageIndicator:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 1px;
+}
+
+/* Add these styles to your BookViewCard.module.css file */
+
+.priceContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bookMrp {
+  color: #999;
+  text-decoration: line-through;
+  font-size: 0.9em;
+  font-weight: normal;
+}
+
+.bookPrice {
+  color: #28a745;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.bookDiscount {
+  background-color: #ff4444;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+/* Tooltip pricing styles */
+.tooltipPriceContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.tooltipMrp {
+  color: #999;
+  text-decoration: line-through;
+  font-size: 0.9em;
+  font-weight: normal;
+}
+
+.tooltipPrice {
+  color: #28a745;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.tooltipDiscount {
+  background-color: #ff4444;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.tooltipFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Ensure proper spacing in book footer */
+.bookFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+/* Make sure category and image count are properly positioned */
+.bookCategory,
+.imageCount {
+  font-size: 0.8em;
+  color: #666;
+}
