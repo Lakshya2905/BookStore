@@ -1,7 +1,7 @@
 // Discovery.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { DISCOVERY_IMAGES } from '../../constants/apiConstants';
+import { FIND_DISCOVERY_IMAGES, FIND_DISCOVERY_IMAGES_LIST } from '../../constants/apiConstants';
 import styles from './Discovery.module.css';
 
 const Discovery = () => {
@@ -34,6 +34,7 @@ const Discovery = () => {
       webp: 'image/webp',
       bmp: 'image/bmp',
       svg: 'image/svg+xml',
+      jfif: 'image/jpeg', // Added JFIF support
     };
     return formatMap[extension] || 'image/jpeg';
   }, []);
@@ -70,81 +71,159 @@ const Discovery = () => {
     }
   }, []);
 
-  const base64ToBlobUrl = (base64String, fileName) => {
-    const mimeType = detectImageFormatFromName(fileName);
-    const byteCharacters = atob(base64String);
-    const byteNumbers = new Array(byteCharacters.length)
-      .fill(0)
-      .map((_, i) => byteCharacters.charCodeAt(i));
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: mimeType });
-    return URL.createObjectURL(blob);
-  };
+  // Cache management functions
+  const getCacheKey = () => 'headerImages';
+  
+  const getCachedImages = useCallback(() => {
+    try {
+      const cached = sessionStorage.getItem(getCacheKey());
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      console.error('Error reading cached images:', error);
+      return null;
+    }
+  }, []);
+
+  const setCachedImages = useCallback((imageData) => {
+    try {
+      sessionStorage.setItem(getCacheKey(), JSON.stringify(imageData));
+    } catch (error) {
+      console.error('Error caching images:', error);
+      // Handle storage quota exceeded
+      if (error.name === 'QuotaExceededError') {
+        sessionStorage.removeItem(getCacheKey());
+        console.warn('Session storage full, cleared image cache');
+      }
+    }
+  }, []);
+
+  // Fetch individual image by ID and convert to blob URL
+  const fetchImageById = useCallback(async (imageId, fileName) => {
+    try {
+      const response = await axios.get(`${FIND_DISCOVERY_IMAGES}`, {
+        params: { imageId },
+        responseType: 'blob',
+        timeout: 10000,
+      });
+
+      const blob = response.data;
+      const mimeType = detectImageFormatFromName(fileName);
+      
+      // Ensure correct MIME type
+      const correctedBlob = new Blob([blob], { type: mimeType });
+      const imageUrl = URL.createObjectURL(correctedBlob);
+      
+      return imageUrl;
+    } catch (error) {
+      console.error(`Error fetching image ${imageId}:`, error);
+      return null;
+    }
+  }, [detectImageFormatFromName]);
+
+  const processImageList = useCallback(async (imageList) => {
+    console.log(`Processing ${imageList.length} images from list`);
+    
+    // Revoke old blob URLs
+    images.forEach((imageUrl) => {
+      if (imageUrl && imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    });
+
+    const imageUrls = [];
+    const names = [];
+    const dimensions = [];
+    const cacheData = {};
+
+    // Process each image sequentially
+    for (const imageItem of imageList) {
+      const { discoveryId, fileName } = imageItem;
+      
+      try {
+        console.log(`Processing image: ${fileName} (ID: ${discoveryId})`);
+        
+        const imageUrl = await fetchImageById(discoveryId, fileName);
+        if (imageUrl) {
+          const dims = await getImageDimensions(imageUrl);
+          
+          imageUrls.push(imageUrl);
+          names.push(fileName);
+          dimensions.push(dims);
+          
+          // Store in cache with fileName as key and discoveryId as value
+          cacheData[fileName] = {
+            discoveryId: discoveryId,
+            fileName: fileName
+          };
+          
+          console.log(`Successfully processed: ${fileName}, dimensions:`, dims);
+        }
+      } catch (err) {
+        console.error(`Error processing image ${fileName}:`, err);
+      }
+    }
+
+    console.log(`Successfully processed ${imageUrls.length} images`);
+
+    if (imageUrls.length > 0) {
+      setImages(imageUrls);
+      setImageNames(names);
+      setImageDimensions(dimensions);
+      setCurrentImageIndex(0);
+      
+      // Cache the image list data (not the blob URLs)
+      setCachedImages({
+        imageList: cacheData,
+        timestamp: Date.now(),
+        version: '1.0'
+      });
+      
+      return true;
+    }
+    return false;
+  }, [fetchImageById, getImageDimensions, images, setCachedImages]);
 
   const fetchImages = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await axios.get(DISCOVERY_IMAGES, {
+      // First, try to load from cache
+      const cachedData = getCachedImages();
+      if (cachedData && cachedData.imageList && Object.keys(cachedData.imageList).length > 0) {
+        console.log(`Loading ${Object.keys(cachedData.imageList).length} images from cache`);
+        
+        // Convert cached data back to imageList format
+        const cachedImageList = Object.values(cachedData.imageList);
+        const success = await processImageList(cachedImageList);
+        if (success) {
+          setLoading(false);
+          return;
+        }
+      }
+
+      // If cache miss or failed, fetch from API
+      console.log('Fetching image list from API');
+      const response = await axios.get(`${FIND_DISCOVERY_IMAGES_LIST}`, {
         headers: { Accept: 'application/json' },
         timeout: 10000,
       });
 
-      const imageData = response.data;
+      console.log('API Response:', response.data);
 
-      if (imageData && Object.keys(imageData).length > 0) {
-        // Revoke old blob URLs
-        images.forEach((imageUrl) => {
-          if (imageUrl && imageUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(imageUrl);
-          }
-        });
+      if (response.data && response.data.status === 'SUCCESS' && response.data.payload) {
+        const imageList = response.data.payload;
+        console.log(`API Response - image count: ${imageList.length}`);
 
-        const imageUrls = [];
-        const names = [];
-        const dimensions = [];
-
-        const processedImages = await Promise.all(
-          Object.entries(imageData).map(async ([imageName, base64Str]) => {
-            if (typeof base64Str === 'string' && base64Str.trim()) {
-              try {
-                const imageUrl = base64ToBlobUrl(base64Str, imageName);
-                const dims = await getImageDimensions(imageUrl);
-                return {
-                  url: imageUrl,
-                  name: imageName,
-                  dimensions: dims
-                };
-              } catch (err) {
-                console.error('Error processing image:', err);
-                return null;
-              }
-            }
-            return null;
-          })
-        );
-
-        const validImages = processedImages.filter(img => img !== null);
-
-        if (validImages.length > 0) {
-          validImages.forEach(img => {
-            imageUrls.push(img.url);
-            names.push(img.name);
-            dimensions.push(img.dimensions);
-          });
-
-          setImages(imageUrls);
-          setImageNames(names);
-          setImageDimensions(dimensions);
-          setCurrentImageIndex(0);
-        } else {
+        const success = await processImageList(imageList);
+        if (!success) {
           throw new Error('No valid images could be processed');
         }
       } else {
         throw new Error('No images received from server');
       }
     } catch (err) {
+      console.error('Error in fetchImages:', err);
       let errorMessage = 'Failed to load discovery images';
       if (err.code === 'ECONNABORTED') {
         errorMessage = 'Request timed out. Please try again.';
@@ -166,19 +245,20 @@ const Discovery = () => {
     } finally {
       setLoading(false);
     }
-  }, [detectImageFormatFromName, getImageDimensions, images]);
+  }, [getCachedImages, processImageList]);
 
   // Fetch images only once when component mounts
   useEffect(() => {
+    console.log('Discovery component mounted, fetching images...');
     fetchImages();
   }, []); // Empty dependency array - fetch only once
 
-  // Auto-slide functionality
+  // Auto-slide functionality - Changed to 4 seconds
   useEffect(() => {
     if (images.length > 1) {
       const interval = setInterval(() => {
         setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-      }, 5000); // 5 seconds per slide
+      }, 4000); // Changed to 4 seconds
       return () => clearInterval(interval);
     }
   }, [images.length]);
@@ -195,6 +275,8 @@ const Discovery = () => {
   }, [images]);
 
   const handleRetry = () => {
+    // Clear cache on retry to force fresh fetch
+    sessionStorage.removeItem(getCacheKey());
     setError(null);
     fetchImages();
   };
@@ -309,7 +391,7 @@ const Discovery = () => {
                   })}
                 </div>
 
-                {/* Navigation Controls - Hidden for cleaner look as per your requirement */}
+                {/* Navigation Controls - Made visible */}
                 {images.length > 1 && (
                   <>
                     <button
@@ -317,7 +399,6 @@ const Discovery = () => {
                       type="button"
                       onClick={goToPrevious}
                       aria-label="Previous slide"
-                      style={{ opacity: 0 }} // Make completely invisible
                     >
                       <div className={styles.navButtonWrapper}>
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
@@ -331,7 +412,6 @@ const Discovery = () => {
                       type="button"
                       onClick={goToNext}
                       aria-label="Next slide"
-                      style={{ opacity: 0 }} // Make completely invisible
                     >
                       <div className={styles.navButtonWrapper}>
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
