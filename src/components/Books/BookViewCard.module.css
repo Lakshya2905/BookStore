@@ -139,13 +139,14 @@
   transform: scale(1.02);
 }
 
-/* Book Cover */
+/* Book Cover with smooth transition */
 .bookCover {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
 }
 
 /* Placeholder */
@@ -471,19 +472,31 @@
   transform: translateY(-1px);
 }
 
-/* Image Popup Styles */
+/* Enhanced Professional Image Popup Styles */
 .imagePopupOverlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
   animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(20px);
+}
+
+.imagePopupBlur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(15px);
+  z-index: -1;
 }
 
 .imagePopupContent {
@@ -494,30 +507,43 @@
   flex-direction: column;
   align-items: center;
   animation: scaleIn 0.3s ease-out;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .popupCloseButton {
   position: absolute;
-  top: -50px;
-  right: 0;
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
+  top: -15px;
+  left: -15px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #374151;
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 24px;
+  width: 45px;
+  height: 45px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10001;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.8);
 }
 
 .popupCloseButton:hover {
-  background: rgba(255, 255, 255, 1);
-  transform: scale(1.1);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  color: #ef4444;
+}
+
+.popupCloseButton:active {
+  transform: scale(0.95) rotate(90deg);
 }
 
 .popupImageContainer {
@@ -527,89 +553,113 @@
   justify-content: center;
   max-width: 80vw;
   max-height: 70vh;
+  margin: 20px 0;
 }
 
 .popupImage {
   max-width: 100%;
   max-height: 70vh;
   object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
 .popupNavButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+  color: #374151;
   border: none;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  font-size: 18px;
+  width: 55px;
+  height: 55px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10001;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
 }
 
 .popupNavButton:hover {
-  background: rgba(255, 255, 255, 1);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 0.95) 100%);
   transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  color: #3b82f6;
+}
+
+.popupNavButton:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
 .popupNavLeft {
-  left: -70px;
+  left: -80px;
 }
 
 .popupNavRight {
-  right: -70px;
+  right: -80px;
 }
 
 .popupImageInfo {
-  margin-top: 20px;
+  margin-top: 15px;
   text-align: center;
   color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .popupImageInfo h3 {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   margin: 0 0 8px 0;
   font-weight: 600;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .popupImageInfo p {
-  font-size: 0.9rem;
+  font-size: 1rem;
   margin: 0;
-  opacity: 0.8;
+  opacity: 0.9;
+  font-weight: 500;
 }
 
 .popupImageIndicators {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
 }
 
 .popupIndicator {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.4);
   background: transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .popupIndicator:hover {
   border-color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.2);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .popupIndicator.active {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-color: #3b82f6;
+  transform: scale(1.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 /* Loading and Error States */
@@ -810,7 +860,8 @@
   
   .popupNavLeft { left: -60px; }
   .popupNavRight { right: -60px; }
-  .popupNavButton { width: 45px; height: 45px; }
+  .popupNavButton { width: 50px; height: 50px; }
+  .popupCloseButton { width: 40px; height: 40px; top: -10px; left: -10px; }
 }
 
 @media (max-width: 768px) {
@@ -821,12 +872,18 @@
     top: 10px;
   }
   
-  .popupNavLeft { left: 10px; }
-  .popupNavRight { right: 10px; }
-  .popupCloseButton { top: 10px; right: 10px; }
-  .imagePopupContent { max-width: 95vw; max-height: 95vh; }
-  .popupImageContainer { max-width: 90vw; max-height: 80vh; }
-  .popupImage { max-height: 80vh; }
+  .popupNavLeft { left: 15px; }
+  .popupNavRight { right: 15px; }
+  .popupCloseButton { top: 15px; left: 15px; }
+  .imagePopupContent { 
+    max-width: 95vw; 
+    max-height: 95vh; 
+    margin: 20px;
+    padding: 15px;
+  }
+  .popupImageContainer { max-width: 85vw; max-height: 75vh; }
+  .popupImage { max-height: 75vh; }
+  .popupNavButton { width: 45px; height: 45px; }
 }
 
 @media (max-width: 600px) {
@@ -842,8 +899,9 @@
   .pageNumber { width: 36px; height: 36px; }
   .scrollButton { width: 36px; height: 36px; }
   
-  .popupNavButton { width: 40px; height: 40px; font-size: 16px; }
-  .popupCloseButton { width: 35px; height: 35px; font-size: 20px; }
+  .popupNavButton { width: 40px; height: 40px; }
+  .popupCloseButton { width: 35px; height: 35px; }
+  .popupIndicator { width: 12px; height: 12px; }
 }
 
 @media (max-width: 480px) {
@@ -860,8 +918,10 @@
   .message { top: 10px; left: 10px; right: 10px; }
   
   .popupNavButton { width: 35px; height: 35px; }
-  .popupCloseButton { width: 32px; height: 32px; font-size: 18px; }
-  .popupIndicator { width: 10px; height: 10px; }
+  .popupCloseButton { width: 32px; height: 32px; }
+  .popupNavLeft { left: 10px; }
+  .popupNavRight { right: 10px; }
+  .imagePopupContent { padding: 10px; }
 }
 
 /* Performance optimizations */
@@ -880,4 +940,36 @@
 
 .bookCard {
   scroll-snap-align: start;
+}
+
+.bookImage {
+  position: relative;
+  overflow: hidden;
+}
+
+.bookCover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+.fadeIn {
+  animation: fadeInScale 0.5s ease-in-out;
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.bookCover:hover {
+  transform: scale(1.02);
+  transition: transform 0.3s ease;
 }

@@ -9,13 +9,14 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 12;
   const scrollContainerRef = useRef(null);
+
   
   // State for cart operations
   const [cartLoading, setCartLoading] = useState({});
   const [cartMessage, setCartMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   
-  // State for slideshow
+  // State for slideshow - Changed to 5 seconds
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [slideshowIntervals, setSlideshowIntervals] = useState({});
 
@@ -37,6 +38,20 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
   // Force re-render trigger
   const [forceUpdateKey, setForceUpdateKey] = useState(0);
 
+  // Load stored books from sessionStorage if no props given
+  const storedBooks = useMemo(() => {
+    try {
+      const saved = sessionStorage.getItem("allBooks");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Error reading books from sessionStorage:", e);
+      return [];
+    }
+  }, []);
+
+  // Decide which set of books to use - MOVED UP before any useEffect that uses it
+  const sourceBooks = books.length > 0 ? books : storedBooks;
+
   // Listen for navigation changes from NavBar
   useEffect(() => {
     const handleNavigationChange = (event) => {
@@ -55,6 +70,47 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     console.log('Filters changed:', { searchQuery, categoryFilter, tagFilter });
     setCurrentPage(1);
   }, [searchQuery, categoryFilter, tagFilter, forceUpdateKey]);
+
+  
+  // Initialize current image indices for all books
+  useEffect(() => {
+    const initialIndices = {};
+    sourceBooks.forEach(book => {
+      const bookId = book.bookId || book.id;
+      if (book.allImages && book.allImages.length > 0) {
+        initialIndices[bookId] = 0;
+      }
+    });
+    setCurrentImageIndex(prev => ({ ...prev, ...initialIndices }));
+  }, [sourceBooks]);
+
+  // Auto-slideshow for all books with multiple images - 5 second intervals
+  useEffect(() => {
+    const intervals = {};
+    
+    sourceBooks.forEach(book => {
+      const bookId = book.bookId || book.id;
+      const allImages = book.allImages || [];
+      
+      if (allImages.length > 1) {
+        intervals[bookId] = setInterval(() => {
+          setCurrentImageIndex(prev => ({
+            ...prev,
+            [bookId]: ((prev[bookId] || 0) + 1) % allImages.length
+          }));
+        }, 5000); // 5 seconds
+      }
+    });
+    
+    setSlideshowIntervals(intervals);
+    
+    // Cleanup on unmount
+    return () => {
+      Object.values(intervals).forEach(interval => {
+        if (interval) clearInterval(interval);
+      });
+    };
+  }, [sourceBooks]);
 
   // Cleanup slideshow intervals on unmount
   useEffect(() => {
@@ -82,20 +138,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [imagePopupOpen, popupCurrentIndex, popupImages.length]);
-
-  // Load stored books from sessionStorage if no props given
-  const storedBooks = useMemo(() => {
-    try {
-      const saved = sessionStorage.getItem("allBooks");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Error reading books from sessionStorage:", e);
-      return [];
-    }
-  }, []);
-
-  // Decide which set of books to use
-  const sourceBooks = books.length > 0 ? books : storedBooks;
 
   // Apply search + filters + sorting - Now properly reactive to URL changes
   const filteredBooks = useMemo(() => {
@@ -164,39 +206,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     return allImages[currentIndex]?.imageUrl || book.coverImageUrl || null;
   };
 
-  // Function to start slideshow for a book
-  const startSlideshow = (bookId, images) => {
-    if (images.length <= 1) return;
-    
-    // Clear existing interval if any
-    if (slideshowIntervals[bookId]) {
-      clearInterval(slideshowIntervals[bookId]);
-    }
-    
-    const interval = setInterval(() => {
-      setCurrentImageIndex(prev => ({
-        ...prev,
-        [bookId]: (prev[bookId] + 1) % images.length
-      }));
-    }, 3000); // Change image every 3 seconds
-    
-    setSlideshowIntervals(prev => ({
-      ...prev,
-      [bookId]: interval
-    }));
-  };
-
-  // Function to stop slideshow for a book
-  const stopSlideshow = (bookId) => {
-    if (slideshowIntervals[bookId]) {
-      clearInterval(slideshowIntervals[bookId]);
-      setSlideshowIntervals(prev => {
-        const { [bookId]: removed, ...rest } = prev;
-        return rest;
-      });
-    }
-  };
-
   // Function to handle image click - open popup
   const handleImageClick = (book) => {
     const allImages = book.allImages || [];
@@ -215,9 +224,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     setPopupCurrentIndex(currentImageIndex[bookId] || 0);
     setPopupBookName(book.bookName);
     setImagePopupOpen(true);
-    
-    // Stop any active slideshow
-    stopSlideshow(bookId);
   };
 
   // Function to close image popup
@@ -399,17 +405,21 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                     <div className={styles.bookImageContainer}>
                       <div 
                         className={styles.bookImage}
-                        onMouseEnter={() => hasMultipleImages && startSlideshow(bookId, allImages)}
-                        onMouseLeave={() => hasMultipleImages && stopSlideshow(bookId)}
                         onClick={() => handleImageClick(book)}
                       >
                         {currentImage ? (
                           <img 
+                            key={`${bookId}-${currentIndex}`}
                             src={currentImage} 
                             alt={`${book.bookName} - Image ${currentIndex + 1}`}
-                            className={styles.bookCover}
+                            className={`${styles.bookCover} ${styles.fadeIn}`}
                             loading="lazy"
                             onError={() => handleImageError(bookId)}
+                            style={{
+                              transition: 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out',
+                              opacity: 1,
+                              transform: 'scale(1)'
+                            }}
                           />
                         ) : (
                           <div className={styles.bookPlaceholder}>
@@ -578,6 +588,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
       {/* Image Popup Modal */}
       {imagePopupOpen && (
         <div className={styles.imagePopupOverlay} onClick={closeImagePopup}>
+          <div className={styles.imagePopupBlur}></div>
           <div className={styles.imagePopupContent} onClick={(e) => e.stopPropagation()}>
             <button 
               className={styles.popupCloseButton}
@@ -585,7 +596,10 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
               type="button"
               aria-label="Close image popup"
             >
-              ×
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
             </button>
             
             <div className={styles.popupImageContainer}>
@@ -596,7 +610,9 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                   type="button"
                   aria-label="Previous image"
                 >
-                  ←
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="15,18 9,12 15,6"></polyline>
+                  </svg>
                 </button>
               )}
               
@@ -613,7 +629,9 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                   type="button"
                   aria-label="Next image"
                 >
-                  →
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="9,18 15,12 9,6"></polyline>
+                  </svg>
                 </button>
               )}
             </div>
