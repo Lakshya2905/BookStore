@@ -267,8 +267,9 @@ const handleNavigation = useCallback(
         { label: "Priority Update", path: "/admin/book/priority/update", icon: <TrendingUp size={16} /> },
         { label: "Add Header Image", path: "/admin/add/discoveryImage", icon: <TrendingUp size={16} /> },
         { label: "Edit Header Image", path: "/admin/edit/discoveryImage", icon: <TrendingUp size={16} /> },
-        
         { label: "Order Management", path: "/admin/orders", icon: <FileText size={16} /> },
+         { label: "Blog Management", path: "/admin/blog/update", icon: <FileText size={16} /> }
+
       ];
     } else {
       return [
@@ -279,6 +280,7 @@ const handleNavigation = useCallback(
         { label: "Top Rated", path: "/books?tag=TOP_RATED" },
         { label: "Sale", path: "/books?tag=SALE" },
         { label: "My Orders", path: "/order/customer/view" },
+         { label: "Blogs", path: "/blogs" }
       ];
     }
   }, [isOwner]);
