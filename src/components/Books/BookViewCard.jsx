@@ -23,6 +23,12 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
 
+  // State for Image Popup
+  const [imagePopupOpen, setImagePopupOpen] = useState(false);
+  const [popupImages, setPopupImages] = useState([]);
+  const [popupCurrentIndex, setPopupCurrentIndex] = useState(0);
+  const [popupBookName, setPopupBookName] = useState("");
+
   // Extract search parameters - this will trigger re-renders when URL changes
   const searchQuery = searchParams.get("search");
   const categoryFilter = searchParams.get("category");
@@ -58,6 +64,24 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
       });
     };
   }, [slideshowIntervals]);
+
+  // Handle escape key for image popup
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (!imagePopupOpen) return;
+      
+      if (event.key === 'Escape') {
+        closeImagePopup();
+      } else if (event.key === 'ArrowLeft') {
+        navigatePopupImage(-1);
+      } else if (event.key === 'ArrowRight') {
+        navigatePopupImage(1);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [imagePopupOpen, popupCurrentIndex, popupImages.length]);
 
   // Load stored books from sessionStorage if no props given
   const storedBooks = useMemo(() => {
@@ -173,6 +197,49 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     }
   };
 
+  // Function to handle image click - open popup
+  const handleImageClick = (book) => {
+    const allImages = book.allImages || [];
+    const bookId = book.bookId || book.id;
+    
+    // If no additional images, use cover image
+    const imagesToShow = allImages.length > 0 
+      ? allImages.map(img => img.imageUrl) 
+      : book.coverImageUrl 
+        ? [book.coverImageUrl] 
+        : [];
+    
+    if (imagesToShow.length === 0) return;
+    
+    setPopupImages(imagesToShow);
+    setPopupCurrentIndex(currentImageIndex[bookId] || 0);
+    setPopupBookName(book.bookName);
+    setImagePopupOpen(true);
+    
+    // Stop any active slideshow
+    stopSlideshow(bookId);
+  };
+
+  // Function to close image popup
+  const closeImagePopup = () => {
+    setImagePopupOpen(false);
+    setPopupImages([]);
+    setPopupCurrentIndex(0);
+    setPopupBookName("");
+  };
+
+  // Function to navigate in popup
+  const navigatePopupImage = (direction) => {
+    if (popupImages.length <= 1) return;
+    
+    setPopupCurrentIndex(prev => {
+      const newIndex = prev + direction;
+      if (newIndex < 0) return popupImages.length - 1;
+      if (newIndex >= popupImages.length) return 0;
+      return newIndex;
+    });
+  };
+
   // Function to handle image load error
   const handleImageError = (bookId) => {
     console.warn(`Failed to load image for book ${bookId}`);
@@ -252,15 +319,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
         behavior: 'smooth'
       });
     }
-  };
-
-  // Show current filter status for debugging
-  const getFilterStatus = () => {
-    const filters = [];
-    if (searchQuery) filters.push(`Search: "${searchQuery}"`);
-    if (categoryFilter) filters.push(`Category: "${categoryFilter}"`);
-    if (tagFilter) filters.push(`Tag: "${tagFilter}"`);
-    return filters.length > 0 ? filters.join(', ') : 'No filters applied';
   };
 
   if (loading) return <div className={styles.loading}><div className={styles.spinner}></div><p>Loading books...</p></div>;
@@ -343,6 +401,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                         className={styles.bookImage}
                         onMouseEnter={() => hasMultipleImages && startSlideshow(bookId, allImages)}
                         onMouseLeave={() => hasMultipleImages && stopSlideshow(bookId)}
+                        onClick={() => handleImageClick(book)}
                       >
                         {currentImage ? (
                           <img 
@@ -351,7 +410,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                             className={styles.bookCover}
                             loading="lazy"
                             onError={() => handleImageError(bookId)}
-                            onLoad={() => console.log(`Image loaded for book: ${book.bookName}`)}
                           />
                         ) : (
                           <div className={styles.bookPlaceholder}>
@@ -413,7 +471,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                       </div>
 
                       <div className={styles.bookActions}>
-                      
                         <div className={styles.actionButtons}>
                           <button 
                             className={`${styles.addToCartButton} ${cartLoading[bookId] ? styles.loading : ''}`}
@@ -516,6 +573,75 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
             </nav>
           )}
         </>
+      )}
+
+      {/* Image Popup Modal */}
+      {imagePopupOpen && (
+        <div className={styles.imagePopupOverlay} onClick={closeImagePopup}>
+          <div className={styles.imagePopupContent} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.popupCloseButton}
+              onClick={closeImagePopup}
+              type="button"
+              aria-label="Close image popup"
+            >
+              ×
+            </button>
+            
+            <div className={styles.popupImageContainer}>
+              {popupImages.length > 1 && (
+                <button
+                  className={`${styles.popupNavButton} ${styles.popupNavLeft}`}
+                  onClick={() => navigatePopupImage(-1)}
+                  type="button"
+                  aria-label="Previous image"
+                >
+                  ←
+                </button>
+              )}
+              
+              <img
+                src={popupImages[popupCurrentIndex]}
+                alt={`${popupBookName} - Image ${popupCurrentIndex + 1}`}
+                className={styles.popupImage}
+              />
+              
+              {popupImages.length > 1 && (
+                <button
+                  className={`${styles.popupNavButton} ${styles.popupNavRight}`}
+                  onClick={() => navigatePopupImage(1)}
+                  type="button"
+                  aria-label="Next image"
+                >
+                  →
+                </button>
+              )}
+            </div>
+            
+            <div className={styles.popupImageInfo}>
+              <h3>{popupBookName}</h3>
+              {popupImages.length > 1 && (
+                <p>Image {popupCurrentIndex + 1} of {popupImages.length}</p>
+              )}
+            </div>
+            
+            {popupImages.length > 1 && (
+              <div className={styles.popupImageIndicators}>
+                {popupImages.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`${styles.popupIndicator} ${
+                      index === popupCurrentIndex ? styles.active : ''
+                    }`}
+                    onClick={() => setPopupCurrentIndex(index)}
+                    type="button"
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Place Order Modal */}
