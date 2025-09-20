@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { REGISTER_URL } from '../../constants/apiConstants';
-import styles from './LoginModal.module.css'; // Using the same CSS file as LoginModal
+import styles from './SignupModal.module.css'; // New separate CSS file
 
 const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   const [formError, setFormError] = useState({});
@@ -149,8 +149,8 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
       });
 
       // Check if response indicates success
-      if (response.data) {
-        setSuccessMessage("User registered successfully! Please contact admin for account activation.");
+      if (response.data.status=='SUCCESSS') {
+        setSuccessMessage("User registered successfully!S");
         resetForm();
       } else {
         setFormError({ general: "Registration failed. Please try again." });
@@ -189,8 +189,8 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
           {/* Modal Header */}
           <div className={`${styles.modalHeader} modal-header border-0`}>
             <div className={`${styles.logoContainer} w-100 text-center`}>
-              <div className="d-flex align-items-center justify-content-center mb-3">
-                <i className="bi bi-book-fill fs-1 text-primary me-3"></i>
+              <div className="d-flex align-items-center justify-content-center mb-2">
+                <i className="bi bi-book-fill text-primary me-2"></i>
                 <h3 className="mb-0 fw-bold text-primary">ShahKart</h3>
               </div>
               <p className="text-muted mb-0">Create your ShahKart account</p>
@@ -201,15 +201,15 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
               onClick={handleClose}
               aria-label="Close"
             >
-              X
+              ×
             </button>
           </div>
 
           {/* Modal Body */}
-          <div className="modal-body px-4 pb-4">
+          <div className="modal-body">
             {/* Success Message */}
             {successMessage && (
-              <div className="alert alert-success d-flex align-items-center mb-4" role="alert">
+              <div className="alert alert-success d-flex align-items-center mb-3" role="alert">
                 <i className="bi bi-check-circle-fill me-2"></i>
                 <div>{successMessage}</div>
               </div>
@@ -217,7 +217,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
 
             {/* Error Message */}
             {formError.general && (
-              <div className="alert alert-danger d-flex align-items-center mb-4" role="alert">
+              <div className="alert alert-danger d-flex align-items-center mb-3" role="alert">
                 <i className="bi bi-exclamation-triangle-fill me-2"></i>
                 <div>{formError.general}</div>
               </div>
@@ -226,8 +226,8 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
             {/* Signup Form */}
             <form onSubmit={handleSubmit} noValidate>
               {/* Full Name Input */}
-              <div className="mb-4">
-                <label htmlFor="name" className="form-label fw-semibold">
+              <div className={`${styles.formGroup} form-group`}>
+                <label htmlFor="name" className="form-label">
                   <i className="bi bi-person-fill me-2 text-primary"></i>
                   Full Name
                 </label>
@@ -254,38 +254,71 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                 </div>
               </div>
 
-              {/* Email Input */}
-              <div className="mb-4">
-                <label htmlFor="emailId" className="form-label fw-semibold">
-                  <i className="bi bi-envelope-fill me-2 text-primary"></i>
-                  Email Address
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0">
-                    <i className="bi bi-at text-primary"></i>
-                  </span>
-                  <input
-                    type="email"
-                    className={`form-control border-start-0 ${formError.emailId ? 'is-invalid' : ''}`}
-                    id="emailId"
-                    name="emailId"
-                    placeholder="Enter your email address"
-                    value={formData.emailId}
-                    onChange={handleChange}
-                    autoComplete="email"
-                  />
-                  {formError.emailId && (
-                    <div className="invalid-feedback d-flex align-items-center">
-                      <i className="bi bi-exclamation-circle-fill me-1"></i>
-                      {formError.emailId}
-                    </div>
-                  )}
+              {/* Email and Phone Row */}
+              <div className={`${styles.formRow} form-row`}>
+                {/* Email Input */}
+                <div className={`${styles.formGroup} form-group`}>
+                  <label htmlFor="emailId" className="form-label">
+                    <i className="bi bi-envelope-fill me-2 text-primary"></i>
+                    Email
+                  </label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-end-0">
+                      <i className="bi bi-at text-primary"></i>
+                    </span>
+                    <input
+                      type="email"
+                      className={`form-control border-start-0 ${formError.emailId ? 'is-invalid' : ''}`}
+                      id="emailId"
+                      name="emailId"
+                      placeholder="Enter email"
+                      value={formData.emailId}
+                      onChange={handleChange}
+                      autoComplete="email"
+                    />
+                    {formError.emailId && (
+                      <div className="invalid-feedback d-flex align-items-center">
+                        <i className="bi bi-exclamation-circle-fill me-1"></i>
+                        {formError.emailId}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mobile Number Input */}
+                <div className={`${styles.formGroup} form-group`}>
+                  <label htmlFor="mobileNo" className="form-label">
+                    <i className="bi bi-phone-fill me-2 text-primary"></i>
+                    Mobile
+                  </label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-end-0">
+                      <i className="bi bi-telephone-fill text-primary"></i>
+                    </span>
+                    <input
+                      type="tel"
+                      className={`form-control border-start-0 ${formError.mobileNo ? 'is-invalid' : ''}`}
+                      id="mobileNo"
+                      name="mobileNo"
+                      placeholder="10-digit number"
+                      value={formData.mobileNo}
+                      onChange={handleChange}
+                      autoComplete="tel"
+                      maxLength="10"
+                    />
+                    {formError.mobileNo && (
+                      <div className="invalid-feedback d-flex align-items-center">
+                        <i className="bi bi-exclamation-circle-fill me-1"></i>
+                        {formError.mobileNo}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Password Input */}
-              <div className="mb-4">
-                <label htmlFor="password" className="form-label fw-semibold">
+              <div className={`${styles.formGroup} form-group`}>
+                <label htmlFor="password" className="form-label">
                   <i className="bi bi-lock-fill me-2 text-primary"></i>
                   Password
                 </label>
@@ -312,47 +345,17 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                 </div>
               </div>
 
-              {/* Mobile Number Input */}
-              <div className="mb-4">
-                <label htmlFor="mobileNo" className="form-label fw-semibold">
-                  <i className="bi bi-phone-fill me-2 text-primary"></i>
-                  Mobile Number
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0">
-                    <i className="bi bi-telephone-fill text-primary"></i>
-                  </span>
-                  <input
-                    type="tel"
-                    className={`form-control border-start-0 ${formError.mobileNo ? 'is-invalid' : ''}`}
-                    id="mobileNo"
-                    name="mobileNo"
-                    placeholder="Enter 10-digit mobile number"
-                    value={formData.mobileNo}
-                    onChange={handleChange}
-                    autoComplete="tel"
-                    maxLength="10"
-                  />
-                  {formError.mobileNo && (
-                    <div className="invalid-feedback d-flex align-items-center">
-                      <i className="bi bi-exclamation-circle-fill me-1"></i>
-                      {formError.mobileNo}
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Submit Button */}
               <div className="d-grid">
                 <button 
                   type="submit" 
-                  className={`${styles.loginBtn} btn btn-primary btn-lg py-3`}
+                  className={`${styles.loginBtn} btn btn-primary btn-lg`}
                   disabled={loadingSubmit}
                 >
                   {loadingSubmit ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Creating Account...
+                      Creating...
                     </>
                   ) : (
                     <>
@@ -365,8 +368,8 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
             </form>
 
             {/* Footer Links */}
-            <div className="text-center mt-4">
-              <div className="mb-3">
+            <div className={`${styles.footerLinks} text-center`}>
+              <div className="mb-2">
                 <span className="text-muted">Already have an account? </span>
                 <button 
                   type="button"
@@ -378,7 +381,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                 </button>
               </div>
               
-              <div className="text-muted small">
+              <div className={`${styles.footerText} text-muted small`}>
                 <i className="bi bi-shield-check me-1"></i>
                 By creating an account, you agree to our Terms of Service
               </div>
