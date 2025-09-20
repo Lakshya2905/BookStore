@@ -23,6 +23,20 @@ import BlogPage from "./components/Landing/BlogPage";
 import AdminBlogManagement from "./components/Admin/AdminBlogManagement";
 
 // ========================
+// Scroll to Top Component
+// ========================
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Scroll to top when route changes
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
+// ========================
 // Auth Context
 // ========================
 const AuthContext = createContext();
@@ -308,6 +322,9 @@ const AppContent = React.memo(() => {
 
   return (
     <div className={styles.appContainer}>
+      {/* Scroll to top on route change */}
+      <ScrollToTop />
+      
       {displayFlags.shouldShowNavbar && (
         <NavBar
           onSignIn={openLogin}
