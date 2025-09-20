@@ -251,6 +251,17 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     console.warn(`Failed to load image for book ${bookId}`);
   };
 
+  // Function to calculate discount percentage
+  const calculateDiscountPercentage = (book) => {
+    if (!book.mrp || !book.discount || book.discount <= 0) return 0;
+    return Math.round((book.discount / book.mrp) * 100);
+  };
+
+  // Function to get display price
+  const getDisplayPrice = (book) => {
+    return book.price || book.mrp || 0;
+  };
+
   // Handle Add to Cart
   const handleAddToCart = async (bookId) => {
     setCartLoading(prev => ({ ...prev, [bookId]: true }));
@@ -399,6 +410,8 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                 const currentImage = getCurrentImage(book);
                 const hasMultipleImages = allImages.length > 1;
                 const currentIndex = currentImageIndex[bookId] || 0;
+                const discountPercentage = book.discount;
+                const displayPrice = getDisplayPrice(book);
                 
                 return (
                   <article key={bookId} className={styles.bookCard}>
@@ -428,6 +441,13 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                           </div>
                         )}
                       </div>
+
+                      {/* Discount Badge */}
+                      {discountPercentage > 0 && (
+                        <div className={styles.discountBadge}>
+                          {discountPercentage}% OFF
+                        </div>
+                      )}
                       
                       <button className={styles.infoButton} type="button" aria-label="Book details">
                         ℹ
@@ -441,6 +461,35 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                             <div className={styles.tooltipDescription}>
                               {book.description || book.bookDescription || "No description available for this book."}
                             </div>
+                            
+                            {/* Additional Book Details */}
+                            <div className={styles.tooltipDetails}>
+                              {book.publisher && (
+                                <div className={styles.tooltipDetailItem}>
+                                  <span className={styles.tooltipDetailLabel}>Publisher:</span>
+                                  <span className={styles.tooltipDetailValue}>{book.publisher}</span>
+                                </div>
+                              )}
+                              {book.isbn && (
+                                <div className={styles.tooltipDetailItem}>
+                                  <span className={styles.tooltipDetailLabel}>ISBN:</span>
+                                  <span className={styles.tooltipDetailValue}>{book.isbn}</span>
+                                </div>
+                              )}
+                              {book.year && (
+                                <div className={styles.tooltipDetailItem}>
+                                  <span className={styles.tooltipDetailLabel}>Year:</span>
+                                  <span className={styles.tooltipDetailValue}>{book.year}</span>
+                                </div>
+                              )}
+                              {book.edition && (
+                                <div className={styles.tooltipDetailItem}>
+                                  <span className={styles.tooltipDetailLabel}>Edition:</span>
+                                  <span className={styles.tooltipDetailValue}>{book.edition}</span>
+                                </div>
+                              )}
+                            </div>
+                            
                             {hasMultipleImages && (
                               <div className={styles.tooltipImageInfo}>
                                 {allImages.length} images available
@@ -448,7 +497,24 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                             )}
                           </div>
                           <div className={styles.tooltipFooter}>
-                            <span className={styles.tooltipPrice}>₹{book.price}</span>
+                            <div className={styles.tooltipPriceContainer}>
+                              {book.discount > 0 ? (
+                                <div className={styles.tooltipPriceWithDiscount}>
+                                  <span className={styles.tooltipPrice}>₹{displayPrice}</span>
+                                  <span className={styles.tooltipMrp}>₹{book.mrp}</span>
+                                  {book.gst > 0 && (
+                                    <div className={styles.tooltipGst}>Inclusive of GST</div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div>
+                                  <span className={styles.tooltipPrice}>₹{displayPrice}</span>
+                                  {book.gst > 0 && (
+                                    <div className={styles.tooltipGst}>Inclusive of GST</div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                             {book.category && (
                               <span className={styles.tooltipCategory}>{book.category}</span>
                             )}
@@ -471,13 +537,32 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                       </p>
                       
                       <div className={styles.bookFooter}>
-                        <span className={styles.bookPrice}>₹{book.price}</span>
-                        {book.category && (
-                          <span className={styles.bookCategory}>{book.category}</span>
-                        )}
-                        {hasMultipleImages && (
-                          <span className={styles.imageCount}>📷 {allImages.length}</span>
-                        )}
+                        <div className={styles.priceContainer}>
+                          {book.discount > 0 ? (
+                            <div className={styles.priceWithDiscount}>
+                              <span className={styles.bookPrice}>₹{displayPrice}</span>
+                              <span className={styles.bookMrp}>₹{book.mrp}</span>
+                              {book.gst > 0 && (
+                                <div className={styles.gstText}>Inclusive of GST</div>
+                              )}
+                            </div>
+                          ) : (
+                            <div>
+                              <span className={styles.bookPrice}>₹{displayPrice}</span>
+                              {book.gst > 0 && (
+                                <div className={styles.gstText}>Inclusive of GST</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className={styles.bookMeta}>
+                          {book.category && (
+                            <span className={styles.bookCategory}>{book.category}</span>
+                          )}
+                          {hasMultipleImages && (
+                            <span className={styles.imageCount}>📷 {allImages.length}</span>
+                          )}
+                        </div>
                       </div>
 
                       <div className={styles.bookActions}>

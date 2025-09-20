@@ -76,6 +76,7 @@ const CategoriesView = ({ categories = [], books = [], onCategoryClick }) => {
         <h2 className={styles.categoryHeading}>Browse by Category</h2>
         <p className={styles.categorySubHeading}>Find your favorite genre and discover new worlds</p>
     
+    
       <div className={styles.categoriesGrid}>
         {categories.map((category) => {
           // Handle the CategoryDto structure: {categoryId, categoryName}
