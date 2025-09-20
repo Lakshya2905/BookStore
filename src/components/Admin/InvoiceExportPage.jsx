@@ -1,11 +1,268 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Loader, AlertCircle, CheckCircle, FileSpreadsheet, Filter, CreditCard, Truck, Package, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { FileText, Download, Loader, AlertCircle, CheckCircle, FileSpreadsheet, Filter, CreditCard, Truck, Package, X, Eye } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 import styles from './InvoiceExportPage.module.css';
 import { INVOICE_ADMIN_FETCH_URL, UPDATE_PAYMENT_URL, UPDATE_ORDER_STATUS_URL } from '../../constants/apiConstants';
 
-// Remark Modal Component
+// Invoice Detail Modal Component
+const InvoiceDetailModal = ({ isOpen, onClose, invoice, onMarkPaid, onDispatch, onDelivered, onCancel, actionLoading }) => {
+  if (!isOpen || !invoice) return null;
+
+  const getAvailableActions = (invoice) => {
+    const actions = [];
+    
+    if (invoice.orderStatus !== 'CANCELLED' && invoice.paymentStatus === 'DUE') {
+      actions.push({
+        type: 'payment',
+        label: 'Mark Paid',
+        icon: CreditCard,
+        handler: () => onMarkPaid(invoice.invoiceId),
+        variant: 'success'
+      });
+    }
+    
+    if (invoice.orderStatus === 'PENDING') {
+      actions.push({
+        type: 'dispatch',
+        label: 'Dispatch',
+        icon: Truck,
+        handler: () => onDispatch(invoice.invoiceId),
+        variant: 'primary'
+      });
+      actions.push({
+        type: 'cancel',
+        label: 'Cancel',
+        icon: X,
+        handler: () => onCancel(invoice.invoiceId),
+        variant: 'danger'
+      });
+    }
+    
+    if (invoice.orderStatus === 'DISPATCHED') {
+      actions.push({
+        type: 'delivered',
+        label: 'Delivered',
+        icon: Package,
+        handler: () => onDelivered(invoice.invoiceId),
+        variant: 'success'
+      });
+      actions.push({
+        type: 'cancel',
+        label: 'Cancel',
+        icon: X,
+        handler: () => onCancel(invoice.invoiceId),
+        variant: 'danger'
+      });
+    }
+    
+    return actions;
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(amount || 0);
+  };
+
+  const getStatusBadgeClass = (status, type) => {
+    if (type === 'payment') {
+      return status === 'PAID' ? styles.statusPaid : styles.statusDue;
+    } else {
+      switch (status) {
+        case 'DELIVERED':
+          return styles.statusDelivered;
+        case 'DISPATCHED':
+          return styles.statusDispatched;
+        case 'CANCELLED':
+          return styles.statusCancelled;
+        default:
+          return styles.statusPending;
+      }
+    }
+  };
+
+  const isActionLoading = (invoiceId) => {
+    if (!invoiceId) return false;
+    return Object.keys(actionLoading).some(key => 
+      key.includes(invoiceId.toString()) && actionLoading[key]
+    );
+  };
+
+  const availableActions = getAvailableActions(invoice);
+
+  return (
+    <div className={styles.detailModalOverlay} onClick={onClose}>
+      <div className={styles.detailModalContent} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className={styles.detailModalHeader}>
+          <div>
+            <h2 className={styles.detailModalTitle}>Invoice Details #{invoice.invoiceId}</h2>
+            <p className={styles.detailModalSubtitle}>
+              Created on {new Date(invoice.creationDate).toLocaleDateString('en-IN')}
+            </p>
+          </div>
+          <button className={styles.detailModalCloseButton} onClick={onClose}>
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className={styles.detailModalBody}>
+          {/* Customer Information */}
+          <div className={styles.detailSection}>
+            <h3 className={styles.detailSectionTitle}>Customer Information</h3>
+            <div className={styles.detailGrid}>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Name:</span>
+                <span className={styles.detailValue}>{invoice.customerName}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Mobile:</span>
+                <span className={styles.detailValue}>{invoice.mobileNo}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>City:</span>
+                <span className={styles.detailValue}>{invoice.city}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>State:</span>
+                <span className={styles.detailValue}>{invoice.state}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Pincode:</span>
+                <span className={styles.detailValue}>{invoice.pincode}</span>
+              </div>
+              <div className={styles.detailItem} style={{ gridColumn: 'span 2' }}>
+                <span className={styles.detailLabel}>Delivery Address:</span>
+                <span className={styles.detailValue}>{invoice.deliveryAddress || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Status & Payment */}
+          <div className={styles.detailSection}>
+            <h3 className={styles.detailSectionTitle}>Status & Payment</h3>
+            <div className={styles.detailGrid}>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Payment Status:</span>
+                <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.paymentStatus, 'payment')}`}>
+                  {invoice.paymentStatus}
+                </span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Order Status:</span>
+                <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.orderStatus, 'order')}`}>
+                  {invoice.orderStatus}
+                </span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Base Amount:</span>
+                <span className={styles.detailValue}>{formatCurrency(invoice.baseAmount)}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Total GST:</span>
+                <span className={styles.detailValue}>{formatCurrency(invoice.totalGstPaid)}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Total Amount:</span>
+                <span className={styles.detailValueHighlight}>{formatCurrency(invoice.totalAmount)}</span>
+              </div>
+              {invoice.remark && (
+                <div className={styles.detailItem} style={{ gridColumn: 'span 2' }}>
+                  <span className={styles.detailLabel}>Remark:</span>
+                  <span className={styles.detailValue}>{invoice.remark}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Order Items */}
+          <div className={styles.detailSection}>
+            <h3 className={styles.detailSectionTitle}>
+              Books Ordered ({invoice.orderList?.length || 0} items)
+            </h3>
+            <div className={styles.orderItemsContainer}>
+              {invoice.orderList && invoice.orderList.length > 0 ? (
+                <div className={styles.orderItemsTable}>
+                  <table className={styles.orderTable}>
+                    <thead>
+                      <tr>
+                        <th>Book Name</th>
+                        <th>Author</th>
+                        <th>Qty</th>
+                        <th>MRP</th>
+                        <th>Discount</th>
+                        <th>Base Price</th>
+                        <th>GST%</th>
+                        <th>Price</th>
+                        <th>Amount Before Tax</th>
+                        <th>GST Amount</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoice.orderList.map((order, index) => (
+                        <tr key={order.orderId || index}>
+                          <td>{order.bookName || 'N/A'}</td>
+                          <td>{order.authorName || 'Unknown'}</td>
+                          <td>{order.quantity || 0}</td>
+                          <td>₹{order.mrp || 0}</td>
+                          <td>{order.discount > 0 ? `${order.discount}%` : '-'}</td>
+                          <td>₹{order.basePrice || 0}</td>
+                          <td>{order.gstPercentage || 0}%</td>
+                          <td>₹{order.price || 0}</td>
+                          <td>₹{order.amountBeforeTax || 0}</td>
+                          <td>₹{order.gstPaid || 0}</td>
+                          <td><strong>₹{order.totalAmount || 0}</strong></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className={styles.noOrderItems}>
+                  No order details available
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          {availableActions.length > 0 && (
+            <div className={styles.detailSection}>
+              <h3 className={styles.detailSectionTitle}>Available Actions</h3>
+              <div className={styles.detailActionButtons}>
+                {availableActions.map(action => {
+                  const Icon = action.icon;
+                  const isLoading = actionLoading[`${action.type}-${invoice.invoiceId}`];
+                  
+                  return (
+                    <button
+                      key={action.type}
+                      onClick={action.handler}
+                      disabled={isLoading || isActionLoading(invoice.invoiceId)}
+                      className={`${styles.detailActionButton} ${styles[`detailActionButton${action.variant.charAt(0).toUpperCase() + action.variant.slice(1)}`]}`}
+                    >
+                      {isLoading ? (
+                        <Loader className={styles.detailActionButtonSpinner} />
+                      ) : (
+                        <Icon className={styles.detailActionButtonIcon} />
+                      )}
+                      <span>{action.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Remark Modal Component (unchanged)
 const RemarkModal = ({ isOpen, onClose, onSubmit, title, actionType, invoiceId, isLoading }) => {
   const [remark, setRemark] = useState('');
   const [error, setError] = useState('');
@@ -114,7 +371,6 @@ const InvoiceExportPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [actionLoading, setActionLoading] = useState({});
-  const [expandedRows, setExpandedRows] = useState({});
   
   // Modal states
   const [modalState, setModalState] = useState({
@@ -124,6 +380,12 @@ const InvoiceExportPage = () => {
     invoiceId: null,
     onSubmit: null
   });
+
+  // Detail modal state
+  const [detailModal, setDetailModal] = useState({
+    isOpen: false,
+    invoice: null
+  });
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -131,16 +393,17 @@ const InvoiceExportPage = () => {
     orderStatus: 'All'
   });
 
-  // Filter options based on enums
   const paymentStatusOptions = ['All', 'DUE', 'PAID'];
   const orderStatusOptions = ['All', 'PENDING', 'DISPATCHED', 'CANCELLED', 'DELIVERED'];
 
-  // Toggle expanded row
-  const toggleRowExpansion = (invoiceId) => {
-    setExpandedRows(prev => ({
-      ...prev,
-      [invoiceId]: !prev[invoiceId]
-    }));
+  // Open detail modal
+  const openDetailModal = (invoice) => {
+    setDetailModal({ isOpen: true, invoice });
+  };
+
+  // Close detail modal
+  const closeDetailModal = () => {
+    setDetailModal({ isOpen: false, invoice: null });
   };
 
   // Get user data from session storage
@@ -217,6 +480,7 @@ const InvoiceExportPage = () => {
       if (data.status === 'SUCCESS') {
         setSuccess(`Payment status updated successfully for invoice #${invoiceId}`);
         await fetchInvoices();
+        closeDetailModal(); // Close detail modal on success
       } else if (data.status === 'UNAUTHORIZED') {
         setError('Unauthorized access. Please login again.');
       } else {
@@ -264,6 +528,7 @@ const InvoiceExportPage = () => {
       if (data.status === 'SUCCESS') {
         setSuccess(`Order status updated to ${orderStatus.toLowerCase()} for invoice #${invoiceId}`);
         await fetchInvoices();
+        closeDetailModal(); // Close detail modal on success
         return true;
       } else if (data.status === 'UNAUTHORIZED') {
         setError('Unauthorized access. Please login again.');
@@ -360,60 +625,6 @@ const InvoiceExportPage = () => {
     );
   };
 
-  // Get available actions for an invoice based on business rules
-  const getAvailableActions = (invoice) => {
-    const actions = [];
-    
-    // If invoice is not cancelled and payment is due, show mark as complete
-    if (invoice.orderStatus !== 'CANCELLED' && invoice.paymentStatus === 'DUE') {
-      actions.push({
-        type: 'payment',
-        label: 'Mark Paid',
-        icon: CreditCard,
-        handler: () => handleMarkPaymentComplete(invoice.invoiceId),
-        variant: 'success'
-      });
-    }
-    
-    // If pending - show dispatch and cancel button
-    if (invoice.orderStatus === 'PENDING') {
-      actions.push({
-        type: 'dispatch',
-        label: 'Dispatch',
-        icon: Truck,
-        handler: () => handleDispatch(invoice.invoiceId),
-        variant: 'primary'
-      });
-      actions.push({
-        type: 'cancel',
-        label: 'Cancel',
-        icon: X,
-        handler: () => handleCancel(invoice.invoiceId),
-        variant: 'danger'
-      });
-    }
-    
-    // If dispatched - show delivered and cancel button
-    if (invoice.orderStatus === 'DISPATCHED') {
-      actions.push({
-        type: 'delivered',
-        label: 'Delivered',
-        icon: Package,
-        handler: () => handleDelivered(invoice.invoiceId),
-        variant: 'success'
-      });
-      actions.push({
-        type: 'cancel',
-        label: 'Cancel',
-        icon: X,
-        handler: () => handleCancel(invoice.invoiceId),
-        variant: 'danger'
-      });
-    }
-    
-    return actions;
-  };
-
   // Fetch all invoices using axios
   const fetchInvoices = async () => {
     setLoading(true);
@@ -500,7 +711,6 @@ const InvoiceExportPage = () => {
     const excelData = [];
     
     filteredInvoices.forEach(invoice => {
-      // Create simplified summary row
       const row = {
         'Invoice ID': invoice.invoiceId,
         'Customer Name': invoice.customerName,
@@ -540,13 +750,10 @@ const InvoiceExportPage = () => {
     try {
       const summaryData = prepareSummaryExcelData();
       
-      // Create workbook with only summary sheet
       const workbook = XLSX.utils.book_new();
       
-      // Summary sheet only
       const summarySheet = XLSX.utils.json_to_sheet(summaryData);
       
-      // Set column widths for summary sheet
       summarySheet['!cols'] = [
         { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 25 }, 
         { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, 
@@ -556,7 +763,6 @@ const InvoiceExportPage = () => {
       
       XLSX.utils.book_append_sheet(workbook, summarySheet, 'Invoice Summary');
       
-      // Generate filename
       const currentDate = new Date().toISOString().split('T')[0];
       let filterSuffix = '';
       if (filters.paymentStatus !== 'All' || filters.orderStatus !== 'All') {
@@ -568,7 +774,6 @@ const InvoiceExportPage = () => {
       
       const filename = `invoice_summary_${currentDate}${filterSuffix}.xlsx`;
       
-      // Save the file
       XLSX.writeFile(workbook, filename);
       
       setSuccess(`Excel file "${filename}" has been downloaded successfully! (${filteredInvoices.length} invoices exported)`);
@@ -616,17 +821,6 @@ const InvoiceExportPage = () => {
     }
   };
 
-  // Check if any action for this invoice is loading
-  const isActionLoading = (invoiceId) => {
-    if (!invoiceId) {
-      return false;
-    }
-    
-    return Object.keys(actionLoading).some(key => 
-      key.includes(invoiceId.toString()) && actionLoading[key]
-    );
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.maxWidth}>
@@ -638,7 +832,7 @@ const InvoiceExportPage = () => {
                 <FileSpreadsheet className={styles.titleIcon} />
                 Invoice Export Manager
               </h1>
-              <p className={styles.subtitle}>Export invoice summary and manage orders with expandable details</p>
+              <p className={styles.subtitle}>Export invoice summary and manage orders with detailed modal view</p>
             </div>
             
             <div className={styles.headerActions}>
@@ -770,11 +964,11 @@ const InvoiceExportPage = () => {
           </div>
         </div>
 
-        {/* Invoice Preview Table */}
+        {/* Invoice Table */}
         <div className={styles.tableContainer}>
           <div className={styles.tableHeader}>
-            <h2 className={styles.tableTitle}>Invoice Preview</h2>
-            <p className={styles.tableSubtitle}>Preview of filtered invoices with expandable order details</p>
+            <h2 className={styles.tableTitle}>Invoice Overview</h2>
+            <p className={styles.tableSubtitle}>Click "View Details" to see complete invoice information and perform actions</p>
           </div>
           
           {loading ? (
@@ -794,231 +988,73 @@ const InvoiceExportPage = () => {
               <table className={styles.table}>
                 <thead className={styles.tableHead}>
                   <tr>
-                    <th className={styles.th} style={{ width: '50px' }}>Details</th>
                     <th className={styles.th}>Invoice ID</th>
                     <th className={styles.th}>Customer</th>
-                    <th className={styles.th}>Base Amount</th>
-                    <th className={styles.th}>GST</th>
                     <th className={styles.th}>Total Amount</th>
-                    
                     <th className={styles.th}>Payment Status</th>
                     <th className={styles.th}>Order Status</th>
-                    <th className={styles.th}>Address</th>
                     <th className={styles.th}>Date</th>
                     <th className={styles.th}>Actions</th>
                   </tr>
                 </thead>
                 <tbody className={styles.tableBody}>
-                  {filteredInvoices.slice(0, 10).map((invoice) => {
-                    const availableActions = getAvailableActions(invoice);
-                    const isExpanded = expandedRows[invoice.invoiceId];
-                    
-                    return (
-                      <React.Fragment key={invoice.invoiceId}>
-                        {/* Main Row */}
-                        <tr className={styles.tableRow}>
-                          <td className={styles.td}>
-                            <button
-                              onClick={() => toggleRowExpansion(invoice.invoiceId)}
-                              className={styles.expandButton}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                            >
-                              {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                            </button>
-                          </td>
-                          <td className={styles.td}>#{invoice.invoiceId}</td>
-                          <td className={styles.td}>
-                            <div>
-                              <div className={styles.customerName}>{invoice.customerName}</div>
-                              <div className={styles.customerMobile}>{invoice.mobileNo}</div>
-                              <div className={styles.customerLocation}>{invoice.city}, {invoice.state}</div>
-                            </div>
-                          </td>
-                  
-                          
-                          <td className={styles.td}>
-                            <div className={styles.amountBreakdown}>
-                              <div className={styles.amountTotal}>{formatCurrency(invoice.baseAmount)}</div>
-                            </div>
-                          </td>
-
-                          <td className={styles.td}>
-                            <div className={styles.amountBreakdown}>
-                              <div className={styles.amountTotal}>{formatCurrency(invoice.totalGstPaid)}</div>
-                            </div>
-                          </td>
-
-                            <td className={styles.td}>
-                            <div className={styles.amountBreakdown}>
-                              <div className={styles.amountTotal}>{formatCurrency(invoice.totalAmount)}</div>
-                            </div>
-                          </td>
-
-
-                          <td className={styles.td}>
-                            <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.paymentStatus, 'payment')}`}>
-                              {invoice.paymentStatus}
-                            </span>
-                          </td>
-                          <td className={styles.td}>
-                            <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.orderStatus, 'order')}`}>
-                              {invoice.orderStatus}
-                            </span>
-                          </td>
-                          <td className={styles.td}>
-                            <div className={styles.addressColumn}>
-                              <div className={styles.addressLine}>{invoice.deliveryAddress || 'N/A'}</div>
-                              <div className={styles.addressLocation}>{invoice.city}, {invoice.state} - {invoice.pincode}</div>
-                            </div>
-                          </td>
-                          <td className={styles.td}>
-                            <span className={styles.date}>
-                              {new Date(invoice.creationDate).toLocaleDateString('en-IN')}
-                            </span>
-                          </td>
-                          <td className={styles.td}>
-                            {availableActions.length > 0 ? (
-                              <div className={styles.actionButtons}>
-                                {availableActions.map(action => {
-                                  const Icon = action.icon;
-                                  const isLoading = actionLoading[`${action.type}-${invoice.invoiceId}`];
-                                  
-                                  return (
-                                    <button
-                                      key={action.type}
-                                      onClick={action.handler}
-                                      disabled={isLoading || isActionLoading(invoice.invoiceId)}
-                                      className={`${styles.actionButton} ${styles[`actionButton${action.variant.charAt(0).toUpperCase() + action.variant.slice(1)}`]}`}
-                                      title={action.label}
-                                    >
-                                      {isLoading ? (
-                                        <Loader className={styles.actionButtonSpinner} />
-                                      ) : (
-                                        <Icon className={styles.actionButtonIcon} />
-                                      )}
-                                      <span className={styles.actionButtonLabel}>{action.label}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <span className={styles.noActions}>No actions available</span>
-                            )}
-                          </td>
-                        </tr>
-                        
-                        {/* Expanded Row with Order Details */}
-                        {isExpanded && (
-                          <tr className={styles.expandedRow}>
-                            <td colSpan="10" className={styles.expandedContent}>
-                              <div style={{ padding: '1rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.5rem' }}>
-                                <h4 style={{ marginBottom: '1rem', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
-                                  Order Details for Invoice #{invoice.invoiceId}
-                                </h4>
-                                
-                                <div style={{ marginBottom: '1rem' }}>
-                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                                    <div>
-                                      <span style={{ fontWeight: '500', color: '#6b7280' }}>Base Amount: </span>
-                                      <span style={{ color: '#111827' }}>{formatCurrency(invoice.baseAmount || 0)}</span>
-                                    </div>
-                                    <div>
-                                      <span style={{ fontWeight: '500', color: '#6b7280' }}>Total GST: </span>
-                                      <span style={{ color: '#111827' }}>{formatCurrency(invoice.totalGstPaid || 0)}</span>
-                                    </div>
-                                    <div>
-                                      <span style={{ fontWeight: '500', color: '#6b7280' }}>Total Amount: </span>
-                                      <span style={{ color: '#059669', fontWeight: '600' }}>{formatCurrency(invoice.totalAmount || 0)}</span>
-                                    </div>
-                                    {invoice.remark && (
-                                      <div>
-                                        <span style={{ fontWeight: '500', color: '#6b7280' }}>Remark: </span>
-                                        <span style={{ color: '#111827' }}>{invoice.remark}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <h5 style={{ marginBottom: '0.75rem', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                                    Books Ordered ({invoice.orderList?.length || 0} items):
-                                  </h5>
-                                  <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                    <table style={{ width: '100%', fontSize: '0.875rem', borderCollapse: 'collapse' }}>
-                                      <thead>
-                                        <tr style={{ backgroundColor: '#e5e7eb' }}>
-                                          <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>Book Name</th>
-                                          <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>Author</th>
-                                          <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>Qty</th>
-                                          <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>MRP</th>
-                                          <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>Discount</th>
-                                          <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>Base Price</th>
-                                          <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>GST%</th>
-                                    
-                        
-                                          <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>Price</th>
-                                          <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>Amount Before Tax</th>
-                                          
-                                          <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>GST Amt</th>
-                                          <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #d1d5db', fontWeight: '500', color: '#374151' }}>Total</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {invoice.orderList?.map((order, index) => (
-                                          <tr key={order.orderId || index} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                                            <td style={{ padding: '0.5rem', color: '#111827' }}>{order.bookName || 'N/A'}</td>
-                                            <td style={{ padding: '0.5rem', color: '#6b7280' }}>{order.authorName || 'Unknown'}</td>
-                                            <td style={{ padding: '0.5rem', textAlign: 'center', color: '#111827' }}>{order.quantity || 0}</td>
-                                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#6b7280' }}>₹{order.mrp || 0}</td>
-                                         
-                                            <td style={{ padding: '0.5rem', textAlign: 'right', color: order.discount > 0 ? '#059669' : '#6b7280' }}>
-                                              {order.discount > 0 ? `${order.discount}%` : '-'}
-                                            </td>
-
-                                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#111827' }}>₹{order.basePrice || 0}</td>
-
-                                            <td style={{ padding: '0.5rem', textAlign: 'center', color: '#6b7280' }}>{order.gstPercentage || 0}%</td>
-                                       
-                                       
-
-                                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#111827' }}>₹{order.price || 0}</td>
-                                            
-                                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#111827' }}>₹{order.amountBeforeTax || 0}</td>
-                                       
-                                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#7c3aed' }}>₹{order.gstPaid || 0}</td>
-                                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#111827', fontWeight: '500' }}>₹{order.totalAmount || 0}</td>
-                                          </tr>
-                                        )) || (
-                                          <tr>
-                                            <td colSpan="9" style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}>
-                                              No order details available
-                                            </td>
-                                          </tr>
-                                        )}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
+                  {filteredInvoices.slice(0, 20).map((invoice) => (
+                    <tr key={invoice.invoiceId} className={styles.tableRow}>
+                      <td className={styles.td}>#{invoice.invoiceId}</td>
+                      <td className={styles.td}>
+                        <div>
+                          <div className={styles.customerName}>{invoice.customerName}</div>
+                          <div className={styles.customerMobile}>{invoice.mobileNo}</div>
+                          <div className={styles.customerLocation}>{invoice.city}, {invoice.state}</div>
+                        </div>
+                      </td>
+                      <td className={styles.td}>
+                        <div className={styles.amountBreakdown}>
+                          <div className={styles.amountTotal}>{formatCurrency(invoice.totalAmount)}</div>
+                          <div className={styles.amountSubtext}>
+                            Base: {formatCurrency(invoice.baseAmount)} + GST: {formatCurrency(invoice.totalGstPaid)}
+                          </div>
+                        </div>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.paymentStatus, 'payment')}`}>
+                          {invoice.paymentStatus}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.orderStatus, 'order')}`}>
+                          {invoice.orderStatus}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={styles.date}>
+                          {new Date(invoice.creationDate).toLocaleDateString('en-IN')}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <button
+                          onClick={() => openDetailModal(invoice)}
+                          className={styles.viewDetailsButton}
+                        >
+                          <Eye className={styles.viewDetailsIcon} />
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
               
-              {filteredInvoices.length > 10 && (
+              {filteredInvoices.length > 20 && (
                 <div className={styles.tableFooter}>
-                  ... and {filteredInvoices.length - 10} more invoices (showing first 10)
+                  ... and {filteredInvoices.length - 20} more invoices (showing first 20)
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Updated Export Information */}
+        {/* Export Information */}
         <div className={styles.exportInfo}>
           <h3 className={styles.exportInfoTitle}>Invoice Summary Export Information</h3>
           <div className={styles.exportInfoList}>
@@ -1027,13 +1063,24 @@ const InvoiceExportPage = () => {
             <p>• <strong>Financial Summary:</strong> Base amount, Total GST, and Total amount for each invoice</p>
             <p>• <strong>Aggregate Information:</strong> Total items count and total quantity per invoice</p>
             <p>• <strong>Smart Filtering:</strong> Export only filtered data with filter information in filename</p>
-            <p>• <strong>Expandable Details:</strong> Click the arrow button in the table to view detailed book information</p>
+            <p>• <strong>Detail Modal:</strong> Click "View Details" to see complete invoice information and perform actions</p>
             <p>• <strong>Indian Format:</strong> Currency in INR format, dates in DD/MM/YYYY format</p>
             <p>• <strong>Optimized Size:</strong> Smaller file size with essential summary information only</p>
           </div>
- 
         </div>
       </div>
+
+      {/* Invoice Detail Modal */}
+      <InvoiceDetailModal
+        isOpen={detailModal.isOpen}
+        onClose={closeDetailModal}
+        invoice={detailModal.invoice}
+        onMarkPaid={handleMarkPaymentComplete}
+        onDispatch={handleDispatch}
+        onDelivered={handleDelivered}
+        onCancel={handleCancel}
+        actionLoading={actionLoading}
+      />
 
       {/* Remark Modal */}
       <RemarkModal
@@ -1043,7 +1090,7 @@ const InvoiceExportPage = () => {
         title={modalState.title}
         actionType={modalState.actionType}
         invoiceId={modalState.invoiceId}
-        isLoading={isActionLoading(modalState.invoiceId)}
+        isLoading={Object.values(actionLoading).some(loading => loading)}
       />
     </div>
   );

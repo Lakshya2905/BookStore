@@ -666,7 +666,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000; /* make sure it's above everything */
+  z-index: 99000; /* make sure it's above everything */
   animation: fadeIn 0.2s ease-in-out;
 }
 
@@ -799,4 +799,372 @@
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Add these styles to your existing InvoiceExportPage.module.css */
+
+/* View Details Button */
+.viewDetailsButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.viewDetailsButton:hover {
+  background-color: #2563eb;
+}
+
+.viewDetailsIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Amount breakdown styling */
+.amountBreakdown {
+  display: flex;
+  flex-direction: column;
+}
+
+.amountTotal {
+  font-weight: 600;
+  color: #059669;
+  font-size: 0.9rem;
+}
+
+.amountSubtext {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* Invoice Detail Modal Styles */
+.detailModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2500;
+  animation: fadeIn 0.2s ease-in-out;
+  padding: 1rem;
+}
+
+.detailModalContent {
+  background: white;
+  border-radius: 0.75rem;
+  max-width: 90vw;
+  width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideIn 0.3s ease-out;
+}
+
+.detailModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.detailModalTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.detailModalSubtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+}
+
+.detailModalCloseButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+.detailModalCloseButton:hover {
+  color: #111827;
+  background-color: #f3f4f6;
+}
+
+.detailModalBody {
+  padding: 2rem;
+}
+
+.detailSection {
+  margin-bottom: 2rem;
+}
+
+.detailSection:last-child {
+  margin-bottom: 0;
+}
+
+.detailSectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detailLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.detailValue {
+  font-size: 0.9375rem;
+  color: #111827;
+  word-break: break-word;
+}
+
+.detailValueHighlight {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* Order Items Table */
+.orderItemsContainer {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.orderItemsTable {
+  overflow-x: auto;
+}
+
+.orderTable {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.orderTable th {
+  background-color: #f3f4f6;
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.orderTable td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #111827;
+}
+
+.orderTable tr:last-child td {
+  border-bottom: none;
+}
+
+.orderTable tr:hover {
+  background-color: #f9fafb;
+}
+
+.noOrderItems {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 2rem;
+}
+
+/* Detail Action Buttons */
+.detailActionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.detailActionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.detailActionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.detailActionButtonPrimary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.detailActionButtonPrimary:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.detailActionButtonSuccess {
+  background-color: #10b981;
+  color: white;
+}
+
+.detailActionButtonSuccess:hover:not(:disabled) {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
+.detailActionButtonDanger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.detailActionButtonDanger:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+.detailActionButtonIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.detailActionButtonSpinner {
+  width: 1.125rem;
+  height: 1.125rem;
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive Design for Detail Modal */
+@media (max-width: 1024px) {
+  .detailModalContent {
+    max-width: 95vw;
+    width: 95vw;
+  }
+  
+  .detailModalHeader {
+    padding: 1rem 1.5rem;
+  }
+  
+  .detailModalBody {
+    padding: 1.5rem;
+  }
+  
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .detailActionButtons {
+    flex-direction: column;
+  }
+  
+  .detailActionButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .detailModalContent {
+    max-width: 98vw;
+    width: 98vw;
+    max-height: 95vh;
+  }
+  
+  .detailModalHeader {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .detailModalCloseButton {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+  
+  .detailModalBody {
+    padding: 1rem;
+  }
+  
+  .detailModalTitle {
+    font-size: 1.25rem;
+  }
+  
+  .orderTable {
+    font-size: 0.75rem;
+  }
+  
+  .orderTable th,
+  .orderTable td {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* Additional styling for better table layout */
+.customerMobile {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-top: 0.125rem;
+}
+
+/* Enhanced focus states */
+.viewDetailsButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.detailActionButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.detailModalCloseButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3);
 }
