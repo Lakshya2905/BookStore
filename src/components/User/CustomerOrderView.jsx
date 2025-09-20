@@ -348,7 +348,7 @@ const CustomerOrderView = () => {
                               <td>
                                 <div className={styles.priceColumn}>
                                   {order.discount > 0 ? (
-                                    <span className={styles.discountAmount}>-₹{order.discount.toFixed(2)}</span>
+                                    <span className={styles.discountAmount}>{order.discount}%</span>
                                   ) : (
                                     <span className={styles.noDiscount}>-</span>
                                   )}
@@ -383,7 +383,7 @@ const CustomerOrderView = () => {
                         <h4 className={styles.summaryTitle}>Price Breakdown</h4>
                         <div className={styles.summaryGrid}>
                           <div className={styles.summaryItem}>
-                            <span className={styles.summaryLabel}>Base Amount:</span>
+                            <span className={styles.summaryLabel}> Amount:</span>
                             <span className={styles.summaryValue}>₹{invoice.baseAmount?.toFixed(2) || '0.00'}</span>
                           </div>
                           <div className={styles.summaryItem}>
