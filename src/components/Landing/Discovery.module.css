@@ -5,97 +5,156 @@
   background-color: white !important;
   color: white;
   margin-bottom: 5px;
-  padding-top: 15px;
-  padding-left: 5px;
-  padding-right: 5px;
+  padding: 15px 5px 15px 5px;
+  width: 100%;
 }
 
 /* Card Styling */
 .loadingCard,
 .errorCard {
-  height: 300px; /* Reduced height */
+  height: 300px;
   border-radius: 1rem !important;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .carouselCard {
-  height: auto !important; /* Let it adapt to content */
   border-radius: 1rem !important;
   overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  transition: box-shadow 0.3s ease;
 }
 
-/* Carousel Styling */
+.carouselCard:hover {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Carousel Container */
+.carouselContainer {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+/* Carousel Inner */
 .carouselInner {
-  height: auto !important; /* Remove fixed height */
-  min-height: 200px; /* Minimum height for loading states */
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 200px;
 }
 
+/* Carousel Items */
+.carouselItem {
+  position: relative;
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+  background-color: #f8f9fa;
+}
+
+.carouselItem.active {
+  opacity: 1;
+}
+
+/* Image Container with Aspect Ratios */
+.imageContainer {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+}
+
+/* Aspect ratio containers for different image sizes */
+.imageContainer.ratio4_1 {
+  aspect-ratio: 4 / 1;
+  max-height: 350px;
+}
+
+.imageContainer.ratio3_1 {
+  aspect-ratio: 3 / 1;
+  max-height: 400px;
+}
+
+.imageContainer.ratioAuto {
+  min-height: 250px;
+  max-height: 400px;
+  aspect-ratio: 3 / 1;
+}
+
+/* Carousel Image Styling */
 .carouselImage {
-  object-fit: contain !important; /* Changed from cover to contain */
-  object-position: center !important;
-  transition: transform 0.3s ease, opacity 0.5s ease;
-  width: 100% !important;
-  height: auto !important; /* Let height be automatic */
-  max-height: 98%; /* Maximum height constraint */
-  min-height: 200px; /* Minimum height */
-  background-color: #f8f9fa; /* Light background for letterboxing if needed */
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  object-position: center center;
+  transition: transform 0.3s ease;
+  border-radius: 1rem;
+  background-color: #f8f9fa;
 }
 
 .carouselImage:hover {
   transform: scale(1.02);
 }
 
-/* Carousel Item Styling */
-.carouselItem {
-  height: auto !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: transform 0.5s ease-in-out;
-}
-
-/* Navigation Controls - Made visible and styled */
-.carouselControlPrev,
-.carouselControlNext {
-  width: 50px;
-  opacity: 0.7; /* Changed from 0 to 0.7 */
+/* Navigation Controls */
+.carouselControl {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  width: 60px;
+  height: 100px;
+  z-index: 15;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  height: 100% !important;
-  z-index: 10;
 }
 
-.carouselControlPrev:hover,
-.carouselControlNext:hover {
+.carouselControl:hover {
   opacity: 1;
-  transform: scale(1.1);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .carouselControlPrev {
-  justify-content: flex-start;
-  padding-left: 1rem;
-  left: 0;
+  left: 15px;
 }
 
 .carouselControlNext {
-  justify-content: flex-end;
-  padding-right: 1rem;
-  right: 0;
+  right: 15px;
 }
 
+/* Navigation Button Wrapper */
 .navButtonWrapper {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
-  padding: 0.7rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
-  border: 2px solid rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
 }
 
 .navButtonWrapper:hover {
   background: rgba(255, 255, 255, 1);
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-  border-color: rgba(0, 123, 255, 0.3);
+  transform: scale(1.15);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 123, 255, 0.4);
 }
 
 .navButtonWrapper svg {
@@ -107,220 +166,104 @@
   color: #007bff;
 }
 
+/* Play/Pause Button */
+.playPauseButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: white;
+  cursor: pointer;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.playPauseButton:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
 /* Custom Indicators */
 .customIndicators {
-  bottom: 1rem !important;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 0.6rem 0.8rem !important;
-  border-radius: 2rem;
-  backdrop-filter: blur(10px);
-  max-width: 150px;
-  width: auto !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  margin: 0 !important;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 10px 15px;
+  border-radius: 25px;
+  backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 10;
 }
 
 .indicatorDot {
-  width: 8px !important;
-  height: 8px !important;
-  border-radius: 50% !important;
-  border: none !important;
-  padding: 0 !important;
-  background-color: rgba(255, 255, 255, 0.5) !important;
-  transition: all 0.3s ease !important;
-  margin: 0 3px !important;
-  display: inline-block !important;
-  box-sizing: border-box !important;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
   cursor: pointer;
+  display: inline-block;
 }
 
 .indicatorDot:hover {
   background-color: rgba(255, 255, 255, 0.8);
-  transform: scale(1.2);
+  transform: scale(1.3);
 }
 
 .indicatorDot.active {
-  background-color: #fff;
-  transform: scale(1.4);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  background-color: #ffffff;
+  transform: scale(1.5);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
 }
 
 /* Retry Button Enhancement */
 .retryButton {
   transition: all 0.3s ease;
-}
-
-.retryButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-}
-
-/* Container adjustments for better fit */
-.discoverySection .container {
-  max-width: 1200px;
-  padding: 0 1rem;
-}
-
-.discoverySection .card {
-  margin: 0; /* Remove any default margins */
-}
-
-/* Image aspect ratio containers for different sizes */
-.imageContainer {
   position: relative;
-  width: 100%;
-  background-color: #f8f9fa;
-  border-radius: 1rem;
   overflow: hidden;
 }
 
-/* For 1200x300 images (4:1 aspect ratio) */
-.imageContainer.ratio-4-1 {
-  aspect-ratio: 4 / 1;
+.retryButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
 }
 
-/* For 1200x400 images (3:1 aspect ratio) */
-.imageContainer.ratio-3-1 {
-  aspect-ratio: 3 / 1;
+.retryButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
-/* Default aspect ratio */
-.imageContainer.ratio-auto {
-  min-height: 200px;
-  max-height: 400px;
+.retryButton:hover::before {
+  left: 100%;
 }
 
-/* Smooth transitions for carousel items */
-.carousel-item {
-  transition: transform 0.6s ease-in-out;
-}
-
-.carousel-item.active {
-  opacity: 1;
-}
-
-.carousel-item:not(.active) {
-  opacity: 0;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .discoverySection {
-    padding: 1rem 0 !important;
-  }
-
-  .discoverySection .container {
-    padding: 0 0.5rem;
-  }
-
-  .loadingCard,
-  .errorCard {
-    height: 200px;
-  }
-
-  .carouselImage {
-    min-height: 150px;
-    max-height: 250px;
-  }
-
-  .carouselControlPrev {
-    padding-left: 0.5rem;
-    width: 40px;
-  }
-
-  .carouselControlNext {
-    padding-right: 0.5rem;
-    width: 40px;
-  }
-
-  .navButtonWrapper {
-    padding: 0.5rem;
-  }
-
-  .customIndicators {
-    bottom: 0.5rem !important;
-    padding: 0.4rem 0.6rem;
-    max-width: 120px;
-  }
-
-  .indicatorDot {
-    width: 6px !important;
-    height: 6px !important;
-    margin: 0 2px !important;
-  }
-
-  /* Adjust aspect ratios for mobile */
-  .imageContainer.ratio-4-1 {
-    aspect-ratio: 3 / 1;
-  }
-
-  .imageContainer.ratio-3-1 {
-    aspect-ratio: 2.5 / 1;
-  }
-}
-
-@media (max-width: 480px) {
-  .discoverySection {
-    padding: 0.5rem 0 !important;
-  }
-
-  .discoverySection .container {
-    padding: 0 0.25rem;
-  }
-
-  .loadingCard,
-  .errorCard {
-    height: 150px;
-  }
-
-  .carouselImage {
-    min-height: 120px;
-    max-height: 200px;
-  }
-
-  .carouselControlPrev {
-    padding-left: 0.25rem;
-    width: 35px;
-  }
-
-  .carouselControlNext {
-    padding-right: 0.25rem;
-    width: 35px;
-  }
-
-  .navButtonWrapper {
-    padding: 0.4rem;
-  }
-
-  .customIndicators {
-    bottom: 0.3rem !important;
-    padding: 0.3rem 0.5rem;
-    max-width: 100px;
-  }
-
-  .indicatorDot {
-    width: 5px !important;
-    height: 5px !important;
-    margin: 0 1.5px !important;
-  }
-
-  /* More aggressive aspect ratio adjustments for very small screens */
-  .imageContainer.ratio-4-1 {
-    aspect-ratio: 2.5 / 1;
-  }
-
-  .imageContainer.ratio-3-1 {
-    aspect-ratio: 2 / 1;
-  }
-}
-
-/* Loading Animation Enhancement */
-@keyframes fadeIn {
+/* Loading Animation */
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -328,10 +271,10 @@
   }
 }
 
-@keyframes slideIn {
+@keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(50px);
   }
   to {
     opacity: 1;
@@ -339,15 +282,41 @@
   }
 }
 
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+/* Apply animations */
 .discoverySection {
-  animation: fadeIn 0.5s ease-out;
+  animation: fadeInUp 0.6s ease-out;
 }
 
-.carousel-item {
-  animation: slideIn 0.6s ease-out;
+.carouselItem {
+  animation: slideInRight 0.8s ease-out;
 }
 
-/* Remove gaps and margins */
+.loadingCard .spinner-border {
+  animation: pulse 2s infinite;
+}
+
+/* Remove Bootstrap gaps */
 .discoverySection .row {
   margin: 0 !important;
 }
@@ -357,50 +326,419 @@
 }
 
 /* Accessibility Improvements */
-.carouselControlPrev:focus,
-.carouselControlNext:focus,
-.indicatorDot:focus {
-  outline: 2px solid #007bff;
-  outline-offset: 2px;
+.carouselControl:focus,
+.indicatorDot:focus,
+.playPauseButton:focus {
+  outline: 3px solid #007bff;
+  outline-offset: 3px;
+}
+
+.carouselControl:focus-visible,
+.indicatorDot:focus-visible,
+.playPauseButton:focus-visible {
+  outline: 3px solid #007bff;
+  outline-offset: 3px;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .navButtonWrapper {
-    background: #fff;
-    border: 2px solid #000;
+    background: #ffffff;
+    border: 3px solid #000000;
   }
 
   .indicatorDot {
-    border: 1px solid #fff;
+    border: 2px solid #ffffff;
   }
 
   .customIndicators {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #ffffff;
+  }
+
+  .playPauseButton {
+    background: #000000;
+    border: 2px solid #ffffff;
   }
 }
 
-/* Utility classes for hiding gaps */
-.no-gutters {
-  margin-right: 0;
-  margin-left: 0;
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .carouselImage,
+  .navButtonWrapper,
+  .indicatorDot,
+  .carouselControl,
+  .playPauseButton,
+  .carouselItem {
+    transition: none;
+    animation: none;
+  }
 }
 
-.no-gutters > .col,
-.no-gutters > [class*="col-"] {
-  padding-right: 0;
-  padding-left: 0;
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+  .discoverySection {
+    padding: 10px 3px;
+  }
+
+  .loadingCard,
+  .errorCard {
+    height: 200px;
+  }
+
+  .imageContainer.ratio4_1 {
+    aspect-ratio: 3 / 1;
+    max-height: 250px;
+  }
+
+  .imageContainer.ratio3_1 {
+    aspect-ratio: 2.5 / 1;
+    max-height: 280px;
+  }
+
+  .imageContainer.ratioAuto {
+    min-height: 180px;
+    max-height: 250px;
+    aspect-ratio: 2.5 / 1;
+  }
+
+  .carouselControl {
+    width: 50px;
+    height: 80px;
+  }
+
+  .carouselControlPrev {
+    left: 10px;
+  }
+
+  .carouselControlNext {
+    right: 10px;
+  }
+
+  .navButtonWrapper {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+  }
+
+  .navButtonWrapper svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .customIndicators {
+    bottom: 15px;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .indicatorDot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .playPauseButton {
+    top: 15px;
+    right: 15px;
+    width: 35px;
+    height: 35px;
+  }
+
+  .playPauseButton svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
-/* Enhanced hover effects */
-@media (hover: hover) {
-  .carouselCard:hover .carouselControlPrev,
-  .carouselCard:hover .carouselControlNext {
+@media (max-width: 480px) {
+  .discoverySection {
+    padding: 8px 2px;
+  }
+
+  .loadingCard,
+  .errorCard {
+    height: 180px;
+    margin: 0 5px;
+  }
+
+  .imageContainer.ratio4_1 {
+    aspect-ratio: 2.5 / 1;
+    max-height: 200px;
+  }
+
+  .imageContainer.ratio3_1 {
+    aspect-ratio: 2 / 1;
+    max-height: 220px;
+  }
+
+  .imageContainer.ratioAuto {
+    min-height: 150px;
+    max-height: 200px;
+    aspect-ratio: 2 / 1;
+  }
+
+  .carouselControl {
+    width: 45px;
+    height: 70px;
+  }
+
+  .carouselControlPrev {
+    left: 8px;
+  }
+
+  .carouselControlNext {
+    right: 8px;
+  }
+
+  .navButtonWrapper {
+    width: 35px;
+    height: 35px;
+    padding: 6px;
+  }
+
+  .navButtonWrapper svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .customIndicators {
+    bottom: 12px;
+    padding: 6px 10px;
+    gap: 5px;
+  }
+
+  .indicatorDot {
+    width: 7px;
+    height: 7px;
+  }
+
+  .playPauseButton {
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .playPauseButton svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .retryButton {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .discoverySection {
+    padding: 5px 1px;
+  }
+
+  .imageContainer.ratio4_1,
+  .imageContainer.ratio3_1,
+  .imageContainer.ratioAuto {
+    aspect-ratio: 1.8 / 1;
+    max-height: 180px;
+    min-height: 140px;
+  }
+
+  .carouselControl {
+    width: 40px;
+    height: 60px;
+  }
+
+  .carouselControlPrev {
+    left: 5px;
+  }
+
+  .carouselControlNext {
+    right: 5px;
+  }
+
+  .navButtonWrapper {
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+  }
+
+  .navButtonWrapper svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .customIndicators {
+    bottom: 10px;
+    padding: 5px 8px;
+    gap: 4px;
+  }
+
+  .indicatorDot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .playPauseButton {
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .playPauseButton svg {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Hover effects for desktop */
+@media (hover: hover) and (pointer: fine) {
+  .carouselCard:hover .carouselControl {
     opacity: 1;
   }
+
+  .carouselCard:hover .playPauseButton {
+    opacity: 1;
+  }
+
+  .carouselCard:not(:hover) .carouselControl {
+    opacity: 0.6;
+  }
+
+  .carouselCard:not(:hover) .playPauseButton {
+    opacity: 0.7;
+  }
 }
 
-/* Pause auto-slide on hover */
-.carouselCard:hover .carousel-item {
-  animation-play-state: paused;
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .carouselControl {
+    opacity: 0.9;
+  }
+
+  .playPauseButton {
+    opacity: 0.9;
+  }
+
+  .navButtonWrapper {
+    transform: scale(1.1);
+  }
+
+  .customIndicators {
+    padding: 12px 16px;
+  }
+
+  .indicatorDot {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .discoverySection {
+    break-inside: avoid;
+  }
+
+  .carouselControl,
+  .customIndicators,
+  .playPauseButton {
+    display: none !important;
+  }
+
+  .carouselItem:not(.active) {
+    display: none !important;
+  }
+
+  .carouselItem.active {
+    display: block !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Container max-width constraints */
+.discoverySection .container-fluid {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Error state improvements */
+.errorCard .alert {
+  background: linear-gradient(135deg, #f8d7da 0%, #f1aeb5 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+}
+
+.errorCard svg {
+  filter: drop-shadow(0 2px 4px rgba(220, 53, 69, 0.3));
+}
+
+/* Loading state improvements */
+.loadingCard {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.loadingCard .spinner-border {
+  filter: drop-shadow(0 2px 8px rgba(0, 123, 255, 0.3));
+}
+
+/* Smooth image loading */
+.carouselImage {
+  background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
+              linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
+              linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
+              linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+/* Image fade-in effect */
+@keyframes imageLoaded {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.carouselImage[src] {
+  animation: imageLoaded 0.5s ease-out;
+}
+
+/* Custom scrollbar for overflow content */
+.discoverySection *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.discoverySection *::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.discoverySection *::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+.discoverySection *::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Final utility classes */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.hardware-accelerated {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }

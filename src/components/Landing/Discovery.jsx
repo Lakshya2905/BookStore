@@ -1,5 +1,5 @@
 // Discovery.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { FIND_DISCOVERY_IMAGES, FIND_DISCOVERY_IMAGES_LIST } from '../../constants/apiConstants';
 import styles from './Discovery.module.css';
@@ -11,16 +11,21 @@ const Discovery = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const intervalRef = useRef(null);
 
   // Load Bootstrap CSS via CDN
+  const loadBootstrap = () => {
+    if (document.getElementById('discovery-bootstrap')) return;
+    const link = document.createElement('link');
+    link.id = 'discovery-bootstrap';
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+    document.head.appendChild(link);
+  };
+
   useEffect(() => {
-    if (!document.querySelector('link[href*="bootstrap"]')) {
-      const link = document.createElement('link');
-      link.href = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css';
-      link.rel = 'stylesheet';
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
-    }
+    loadBootstrap();
   }, []);
 
   const detectImageFormatFromName = useCallback((filename) => {
@@ -34,7 +39,7 @@ const Discovery = () => {
       webp: 'image/webp',
       bmp: 'image/bmp',
       svg: 'image/svg+xml',
-      jfif: 'image/jpeg', // Added JFIF support
+      jfif: 'image/jpeg',
     };
     return formatMap[extension] || 'image/jpeg';
   }, []);
@@ -46,7 +51,7 @@ const Discovery = () => {
         resolve({ width: img.width, height: img.height });
       };
       img.onerror = () => {
-        resolve({ width: 1200, height: 300 }); // Default dimensions
+        resolve({ width: 1200, height: 300 });
       };
       img.src = imageUrl;
     });
@@ -57,16 +62,11 @@ const Discovery = () => {
     
     const ratio = width / height;
     
-    // For 1200x300 (ratio = 4)
     if (ratio >= 3.8 && ratio <= 4.2) {
       return 'ratio-4-1';
-    }
-    // For 1200x400 (ratio = 3)
-    else if (ratio >= 2.8 && ratio <= 3.2) {
+    } else if (ratio >= 2.8 && ratio <= 3.2) {
       return 'ratio-3-1';
-    }
-    // For other ratios
-    else {
+    } else {
       return 'ratio-auto';
     }
   }, []);
@@ -89,7 +89,6 @@ const Discovery = () => {
       sessionStorage.setItem(getCacheKey(), JSON.stringify(imageData));
     } catch (error) {
       console.error('Error caching images:', error);
-      // Handle storage quota exceeded
       if (error.name === 'QuotaExceededError') {
         sessionStorage.removeItem(getCacheKey());
         console.warn('Session storage full, cleared image cache');
@@ -97,7 +96,6 @@ const Discovery = () => {
     }
   }, []);
 
-  // Fetch individual image by ID and convert to blob URL
   const fetchImageById = useCallback(async (imageId, fileName) => {
     try {
       const response = await axios.get(`${FIND_DISCOVERY_IMAGES}`, {
@@ -109,7 +107,6 @@ const Discovery = () => {
       const blob = response.data;
       const mimeType = detectImageFormatFromName(fileName);
       
-      // Ensure correct MIME type
       const correctedBlob = new Blob([blob], { type: mimeType });
       const imageUrl = URL.createObjectURL(correctedBlob);
       
@@ -135,7 +132,6 @@ const Discovery = () => {
     const dimensions = [];
     const cacheData = {};
 
-    // Process each image sequentially
     for (const imageItem of imageList) {
       const { discoveryId, fileName } = imageItem;
       
@@ -150,7 +146,6 @@ const Discovery = () => {
           names.push(fileName);
           dimensions.push(dims);
           
-          // Store in cache with fileName as key and discoveryId as value
           cacheData[fileName] = {
             discoveryId: discoveryId,
             fileName: fileName
@@ -171,7 +166,6 @@ const Discovery = () => {
       setImageDimensions(dimensions);
       setCurrentImageIndex(0);
       
-      // Cache the image list data (not the blob URLs)
       setCachedImages({
         imageList: cacheData,
         timestamp: Date.now(),
@@ -188,12 +182,10 @@ const Discovery = () => {
     setError(null);
 
     try {
-      // First, try to load from cache
       const cachedData = getCachedImages();
       if (cachedData && cachedData.imageList && Object.keys(cachedData.imageList).length > 0) {
         console.log(`Loading ${Object.keys(cachedData.imageList).length} images from cache`);
         
-        // Convert cached data back to imageList format
         const cachedImageList = Object.values(cachedData.imageList);
         const success = await processImageList(cachedImageList);
         if (success) {
@@ -202,7 +194,6 @@ const Discovery = () => {
         }
       }
 
-      // If cache miss or failed, fetch from API
       console.log('Fetching image list from API');
       const response = await axios.get(`${FIND_DISCOVERY_IMAGES_LIST}`, {
         headers: { Accept: 'application/json' },
@@ -247,23 +238,61 @@ const Discovery = () => {
     }
   }, [getCachedImages, processImageList]);
 
-  // Fetch images only once when component mounts
+  // Auto-slide functionality
+  const startAutoSlide = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    if (images.length > 1 && isPlaying) {
+      intervalRef.current = setInterval(() => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+      }, 4000);
+    }
+  }, [images.length, isPlaying]);
+
+  const stopAutoSlide = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // Navigation functions
+  const goToSlide = useCallback((index) => {
+    setCurrentImageIndex(index);
+    stopAutoSlide();
+    setTimeout(startAutoSlide, 5000); // Restart after 5 seconds
+  }, [stopAutoSlide, startAutoSlide]);
+
+  const goToPrevious = useCallback(() => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+    );
+    stopAutoSlide();
+    setTimeout(startAutoSlide, 5000);
+  }, [images.length, stopAutoSlide, startAutoSlide]);
+
+  const goToNext = useCallback(() => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    stopAutoSlide();
+    setTimeout(startAutoSlide, 5000);
+  }, [images.length, stopAutoSlide, startAutoSlide]);
+
+  const togglePlayPause = useCallback(() => {
+    setIsPlaying((prev) => !prev);
+  }, []);
+
+  // Effects
   useEffect(() => {
     console.log('Discovery component mounted, fetching images...');
     fetchImages();
-  }, []); // Empty dependency array - fetch only once
+  }, [fetchImages]);
 
-  // Auto-slide functionality - Changed to 4 seconds
   useEffect(() => {
-    if (images.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-      }, 4000); // Changed to 4 seconds
-      return () => clearInterval(interval);
-    }
-  }, [images.length]);
+    startAutoSlide();
+    return () => stopAutoSlide();
+  }, [startAutoSlide, stopAutoSlide]);
 
-  // Cleanup blob URLs on unmount
   useEffect(() => {
     return () => {
       images.forEach((imageUrl) => {
@@ -271,11 +300,13 @@ const Discovery = () => {
           URL.revokeObjectURL(imageUrl);
         }
       });
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, [images]);
 
   const handleRetry = () => {
-    // Clear cache on retry to force fresh fetch
     sessionStorage.removeItem(getCacheKey());
     setError(null);
     fetchImages();
@@ -285,25 +316,21 @@ const Discovery = () => {
     e.target.style.display = 'none';
   };
 
-  const goToSlide = (index) => {
-    setCurrentImageIndex(index);
+  const handleMouseEnter = () => {
+    stopAutoSlide();
   };
 
-  const goToPrevious = () => {
-    setCurrentImageIndex((prevIndex) => 
-      prevIndex === 0 ? images.length - 1 : prevIndex - 1
-    );
-  };
-
-  const goToNext = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+  const handleMouseLeave = () => {
+    if (isPlaying) {
+      startAutoSlide();
+    }
   };
 
   if (loading) {
     return (
-      <section className={`${styles.discoverySection}`}>
+      <section className={styles.discoverySection}>
         <div className="container-fluid px-0">
-          <div className="row no-gutters justify-content-center">
+          <div className="row g-0 justify-content-center">
             <div className="col-12">
               <div className={`card border-0 shadow-lg ${styles.loadingCard}`}>
                 <div className="card-body d-flex flex-column align-items-center justify-content-center">
@@ -322,9 +349,9 @@ const Discovery = () => {
 
   if (error && images.length === 0) {
     return (
-      <section className={`${styles.discoverySection}`}>
+      <section className={styles.discoverySection}>
         <div className="container-fluid px-0">
-          <div className="row no-gutters justify-content-center">
+          <div className="row g-0 justify-content-center">
             <div className="col-12">
               <div className={`card border-0 shadow-lg ${styles.errorCard}`}>
                 <div className="card-body d-flex flex-column align-items-center justify-content-center text-center">
@@ -357,17 +384,21 @@ const Discovery = () => {
   }
 
   if (images.length === 0) {
-    return null; // Don't render anything if no images
+    return null;
   }
 
   return (
-    <section className={`${styles.discoverySection}`}>
+    <section className={styles.discoverySection}>
       <div className="container-fluid px-0">
-        <div className="row no-gutters justify-content-center">
+        <div className="row g-0 justify-content-center">
           <div className="col-12">
-            <div className={`card border-0 shadow-lg overflow-hidden ${styles.carouselCard}`}>
-              <div id="discoveryCarousel" className="carousel slide position-relative" data-bs-ride="false">
-                <div className={`carousel-inner ${styles.carouselInner}`}>
+            <div 
+              className={`card border-0 shadow-lg overflow-hidden ${styles.carouselCard}`}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className={`${styles.carouselContainer} position-relative`}>
+                <div className={styles.carouselInner}>
                   {images.map((image, index) => {
                     const dimensions = imageDimensions[index] || { width: 1200, height: 300 };
                     const aspectRatioClass = getAspectRatioClass(dimensions.width, dimensions.height);
@@ -375,12 +406,15 @@ const Discovery = () => {
                     return (
                       <div
                         key={`${index}-${imageNames[index] || index}`}
-                        className={`carousel-item ${index === currentImageIndex ? 'active' : ''} ${styles.carouselItem}`}
+                        className={`${styles.carouselItem} ${index === currentImageIndex ? styles.active : ''}`}
+                        style={{
+                          display: index === currentImageIndex ? 'block' : 'none',
+                        }}
                       >
                         <div className={`${styles.imageContainer} ${styles[aspectRatioClass]}`}>
                           <img
                             src={image}
-                            className={`d-block w-100 h-100 ${styles.carouselImage}`}
+                            className={styles.carouselImage}
                             alt={`Banner ${index + 1}: ${imageNames[index] || `Slide ${index + 1}`}`}
                             onError={handleImageError}
                             loading={index === 0 ? "eager" : "lazy"}
@@ -391,11 +425,11 @@ const Discovery = () => {
                   })}
                 </div>
 
-                {/* Navigation Controls - Made visible */}
+                {/* Navigation Controls */}
                 {images.length > 1 && (
                   <>
                     <button
-                      className={`carousel-control-prev ${styles.carouselControlPrev}`}
+                      className={`${styles.carouselControl} ${styles.carouselControlPrev}`}
                       type="button"
                       onClick={goToPrevious}
                       aria-label="Previous slide"
@@ -408,7 +442,7 @@ const Discovery = () => {
                     </button>
 
                     <button
-                      className={`carousel-control-next ${styles.carouselControlNext}`}
+                      className={`${styles.carouselControl} ${styles.carouselControlNext}`}
                       type="button"
                       onClick={goToNext}
                       aria-label="Next slide"
@@ -419,12 +453,30 @@ const Discovery = () => {
                         </svg>
                       </div>
                     </button>
+
+                    {/* Play/Pause Button */}
+                    <button
+                      className={styles.playPauseButton}
+                      type="button"
+                      onClick={togglePlayPause}
+                      aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
+                    >
+                      {isPlaying ? (
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16zM7 6.5C7 6.776 6.776 7 6.5 7h-1C5.224 7 5 6.776 5 6.5v-3C5 3.224 5.224 3 5.5 3h1C6.776 3 7 3.224 7 3.5v3zm4 0C11 6.776 10.776 7 10.5 7h-1C9.224 7 9 6.776 9 6.5v-3C9 3.224 9.224 3 9.5 3h1c.276 0 .5.224.5.5v3z"/>
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16zM6.271 5.055a.5.5 0 0 1 .52.036L11.5 7.556a.5.5 0 0 1 0 .888L6.791 10.91a.5.5 0 0 1-.791-.39V5.604a.5.5 0 0 1 .271-.549z"/>
+                        </svg>
+                      )}
+                    </button>
                   </>
                 )}
 
                 {/* Pagination Indicators */}
                 {images.length > 1 && (
-                  <div className={`carousel-indicators ${styles.customIndicators}`}>
+                  <div className={styles.customIndicators}>
                     {images.map((_, index) => (
                       <button
                         key={index}
