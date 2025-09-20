@@ -13,7 +13,7 @@ const AddBookPage = () => {
     bookTags: [],
     categoryId: '',
     mrp: '',
-    discount: '',
+    discount: '0', // Default discount to 0
     publisher: '',
     isbn: '',
     year: '',
@@ -50,7 +50,12 @@ const AddBookPage = () => {
 
   // Function to calculate discounted price
   const getDiscountPrice = (mrp, discountInPercent) => {
-    if (!mrp || !discountInPercent) return 0;
+    // Handle case when discount is 0 or empty
+    if (!mrp) return 0;
+    if (!discountInPercent || discountInPercent === 0 || discountInPercent === '0') {
+      return parseFloat(mrp);
+    }
+    
     const discountedPrice = mrp - (mrp * discountInPercent / 100);
     return Math.round(discountedPrice * 100.0) / 100.0;
   };
@@ -102,6 +107,13 @@ const AddBookPage = () => {
         ? [...prev.bookTags, value]
         : prev.bookTags.filter(tag => tag !== value)
     }));
+  };
+
+  // Prevent arrow key changes for numeric inputs
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+    }
   };
 
   const validateImageFile = (file, fieldName) => {
@@ -217,7 +229,7 @@ const AddBookPage = () => {
       setMessage({ text: 'Please enter a valid MRP', type: 'error' });
       return false;
     }
-    if (!formData.discount || parseFloat(formData.discount) < 0 || parseFloat(formData.discount) > 100) {
+    if (parseFloat(formData.discount) < 0 || parseFloat(formData.discount) > 100) {
       setMessage({ text: 'Please enter a valid discount (0-100)', type: 'error' });
       return false;
     }
@@ -279,7 +291,7 @@ const AddBookPage = () => {
       // Add cover image
       formDataToSend.append('coverImage', coverImage);
       
-      // Add secondary images
+      // Add secondary images (now optional)
       secondaryImages.forEach((image, index) => {
         formDataToSend.append('secondaryImages', image);
       });
@@ -302,7 +314,7 @@ const AddBookPage = () => {
           bookTags: [],
           categoryId: '',
           mrp: '',
-          discount: '',
+          discount: '0', // Reset discount to default 0
           publisher: '',
           isbn: '',
           year: '',
@@ -489,6 +501,7 @@ const AddBookPage = () => {
                     name="gst"
                     value={formData.gst}
                     onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
                     className={styles.input}
                     placeholder="Enter GST percentage"
                     min="0"
@@ -511,6 +524,7 @@ const AddBookPage = () => {
                     name="mrp"
                     value={formData.mrp}
                     onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
                     className={styles.input}
                     placeholder="0.00"
                     min="0"
@@ -519,19 +533,19 @@ const AddBookPage = () => {
                   />
                 </div>
                 <div className={styles.field}>
-                  <label htmlFor="discount" className={styles.label}>Discount (%) *</label>
+                  <label htmlFor="discount" className={styles.label}>Discount (%)</label>
                   <input
                     type="number"
                     id="discount"
                     name="discount"
                     value={formData.discount}
                     onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
                     className={styles.input}
                     placeholder="0"
                     min="0"
                     max="100"
                     step="0.01"
-                    required
                   />
                 </div>
                 <div className={styles.field}>
@@ -597,7 +611,7 @@ const AddBookPage = () => {
             </div>
 
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Secondary Images</h3>
+              <h3 className={styles.sectionTitle}>Secondary Images (Optional)</h3>
               <div className={styles.imageUploadArea}>
                 <input
                   type="file"
@@ -611,7 +625,7 @@ const AddBookPage = () => {
                   <div className={styles.uploadPlaceholder}>
                     <div className={styles.uploadIcon}>📷</div>
                     <div className={styles.uploadText}>Click to upload secondary images</div>
-                    <div className={styles.uploadSubtext}>Multiple JPG, JPEG, PNG (Max 5)</div>
+                    <div className={styles.uploadSubtext}>Multiple JPG, JPEG, PNG (Max 5) - Optional</div>
                   </div>
                 </label>
               </div>

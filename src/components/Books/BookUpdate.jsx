@@ -25,6 +25,8 @@ const BookUpdate = () => {
     mrp: '',
     discount: '',
     price: '', // Read-only calculated field
+    gst: '',
+    hsn: '',
     addTags: [],
     removeTags: []
   });
@@ -43,12 +45,21 @@ const BookUpdate = () => {
     discountOnly: false,
     mrpOnly: false,
     discountMrpBoth: false,
+    gst: false,
+    hsn: false,
     addTags: false,
     removeTags: false
   });
 
   const BOOK_TAGS = ['NEW_RELEASE', 'BESTSELLER', 'TOP_RATED', 'SALE'];
   const SHOW_STATUS_OPTIONS = ['HIDE', 'SHOW'];
+
+  // Function to disable arrow keys on number inputs
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+    }
+  };
 
   // Function to calculate discount price
   const getDiscountPrice = (mrp, discountInPercent) => {
@@ -163,6 +174,8 @@ const BookUpdate = () => {
       mrp: book.mrp || '',
       discount: book.discount || '',
       price: calculatedPrice,
+      gst: book.gst || '',
+      hsn: book.hsn || '',
       addTags: [],
       removeTags: []
     });
@@ -179,6 +192,8 @@ const BookUpdate = () => {
       discountOnly: false,
       mrpOnly: false,
       discountMrpBoth: false,
+      gst: false,
+      hsn: false,
       addTags: false,
       removeTags: false
     });
@@ -253,7 +268,9 @@ const BookUpdate = () => {
         year: formData.year,
         edition: formData.edition,
         mrp: parseFloat(formData.mrp) || null,
-        discount: parseFloat(formData.discount) || null
+        discount: parseFloat(formData.discount) || null,
+        gst: parseInt(formData.gst) || null,
+        hsn: formData.hsn || null
       };
 
       const requestData = {
@@ -309,6 +326,8 @@ const BookUpdate = () => {
               <th>MRP</th>
               <th>Discount</th>
               <th>Price</th>
+              <th>GST%</th>
+              <th>HSN</th>
               <th>Tags</th>
               <th>Actions</th>
             </tr>
@@ -328,6 +347,8 @@ const BookUpdate = () => {
                 <td>₹{book.mrp || 0}</td>
                 <td>{book.discount || 0}%</td>
                 <td>₹{book.price}</td>
+                <td>{book.gst || 0}%</td>
+                <td>{book.hsn || '-'}</td>
                 <td>
                   <div className={styles.tags}>
                     {book.bookTags?.map((tag, index) => (
@@ -561,6 +582,54 @@ const BookUpdate = () => {
                     </div>
                   </div>
 
+                  {/* Tax Information */}
+                  <div className={styles.sectionHeader}>
+                    <h3>Tax Information</h3>
+                  </div>
+
+                  <div className={styles.rowFields}>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={fieldsToUpdate.gst}
+                          onChange={() => handleCheckboxChange('gst')}
+                        />
+                        Update GST (%)
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.gst}
+                        onChange={(e) => handleInputChange('gst', e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        disabled={!fieldsToUpdate.gst}
+                        className={styles.input}
+                        placeholder="GST percentage"
+                        min="0"
+                        max="100"
+                      />
+                    </div>
+
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={fieldsToUpdate.hsn}
+                          onChange={() => handleCheckboxChange('hsn')}
+                        />
+                        Update HSN Code
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.hsn}
+                        onChange={(e) => handleInputChange('hsn', e.target.value)}
+                        disabled={!fieldsToUpdate.hsn}
+                        className={styles.input}
+                        placeholder="HSN Code"
+                      />
+                    </div>
+                  </div>
+
                   {/* Pricing Section */}
                   <div className={styles.sectionHeader}>
                     <h3>Pricing Options (Select only one)</h3>
@@ -592,6 +661,7 @@ const BookUpdate = () => {
                           type="number"
                           value={formData.discount}
                           onChange={(e) => handleInputChange('discount', e.target.value)}
+                          onKeyDown={handleKeyDown}
                           disabled={!fieldsToUpdate.discountOnly}
                           className={styles.input}
                           placeholder="Discount %"
@@ -620,6 +690,7 @@ const BookUpdate = () => {
                           type="number"
                           value={formData.mrp}
                           onChange={(e) => handleInputChange('mrp', e.target.value)}
+                          onKeyDown={handleKeyDown}
                           disabled={!fieldsToUpdate.mrpOnly}
                           className={styles.input}
                           placeholder="MRP"
@@ -656,6 +727,7 @@ const BookUpdate = () => {
                           type="number"
                           value={formData.mrp}
                           onChange={(e) => handleInputChange('mrp', e.target.value)}
+                          onKeyDown={handleKeyDown}
                           disabled={!fieldsToUpdate.discountMrpBoth}
                           className={styles.input}
                           placeholder="MRP"
@@ -669,6 +741,7 @@ const BookUpdate = () => {
                           type="number"
                           value={formData.discount}
                           onChange={(e) => handleInputChange('discount', e.target.value)}
+                          onKeyDown={handleKeyDown}
                           disabled={!fieldsToUpdate.discountMrpBoth}
                           className={styles.input}
                           placeholder="Discount %"
