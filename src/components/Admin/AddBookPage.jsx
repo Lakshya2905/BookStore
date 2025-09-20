@@ -17,7 +17,9 @@ const AddBookPage = () => {
     publisher: '',
     isbn: '',
     year: '',
-    edition: ''
+    edition: '',
+    hsn: '',
+    gst: ''
   });
   
   const [coverImage, setCoverImage] = useState(null);
@@ -219,6 +221,14 @@ const AddBookPage = () => {
       setMessage({ text: 'Please enter a valid discount (0-100)', type: 'error' });
       return false;
     }
+    if (!formData.hsn.trim()) {
+      setMessage({ text: 'HSN is required', type: 'error' });
+      return false;
+    }
+    if (!formData.gst || parseFloat(formData.gst) < 0 || parseFloat(formData.gst) > 100) {
+      setMessage({ text: 'Please enter a valid GST percentage (0-100)', type: 'error' });
+      return false;
+    }
     if (!coverImage) {
       setMessage({ text: 'Please select a cover image', type: 'error' });
       return false;
@@ -249,7 +259,8 @@ const AddBookPage = () => {
         price: parseFloat(formData.price),
         mrp: parseFloat(formData.mrp),
         discount: parseFloat(formData.discount),
-        categoryId: parseInt(formData.categoryId)
+        categoryId: parseInt(formData.categoryId),
+        gst: parseInt(formData.gst)
       };
 
       const requestBody = {
@@ -295,7 +306,9 @@ const AddBookPage = () => {
           publisher: '',
           isbn: '',
           year: '',
-          edition: ''
+          edition: '',
+          hsn: '',
+          gst: ''
         });
         setCoverImage(null);
         setSecondaryImages([]);
@@ -447,6 +460,41 @@ const AddBookPage = () => {
                     onChange={handleInputChange}
                     className={styles.input}
                     placeholder="Edition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.section}>
+              <h3 className={styles.sectionTitle}>Tax Information</h3>
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label htmlFor="hsn" className={styles.label}>HSN Code *</label>
+                  <input
+                    type="text"
+                    id="hsn"
+                    name="hsn"
+                    value={formData.hsn}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Enter HSN code"
+                    required
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="gst" className={styles.label}>GST (%) *</label>
+                  <input
+                    type="number"
+                    id="gst"
+                    name="gst"
+                    value={formData.gst}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="Enter GST percentage"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    required
                   />
                 </div>
               </div>

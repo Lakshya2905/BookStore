@@ -254,6 +254,9 @@ const CustomerOrderView = () => {
                       <span className={styles.invoiceId}>Invoice #{invoice.invoiceId}</span>
                       <span className={styles.invoiceDate}>{formatDate(invoice.creationDate)}</span>
                       <span className={styles.customerName}>{invoice.customerName}</span>
+                      {invoice.userId && (
+                        <span className={styles.userId}>User: {invoice.userId}</span>
+                      )}
                     </div>
                   </div>
                   
@@ -309,7 +312,11 @@ const CustomerOrderView = () => {
                             <th>Order ID</th>
                             <th>Book Details</th>
                             <th>Qty</th>
-                            <th>Price</th>
+                            <th>MRP</th>
+                            <th>Base Price</th>
+                            <th>Discount</th>
+                            <th>GST</th>
+                            <th>Final Price</th>
                             <th>Total</th>
                           </tr>
                         </thead>
@@ -329,10 +336,39 @@ const CustomerOrderView = () => {
                                 <span className={styles.quantity}>{order.quantity}</span>
                               </td>
                               <td>
-                                <span className={styles.price}>₹{order.price.toFixed(2)}</span>
+                                <div className={styles.priceColumn}>
+                                  <span className={styles.mrpPrice}>₹{order.mrp?.toFixed(2) || '0.00'}</span>
+                                </div>
                               </td>
                               <td>
-                                <span className={styles.total}>₹{order.totalAmount.toFixed(2)}</span>
+                                <div className={styles.priceColumn}>
+                                  <span className={styles.basePrice}>₹{order.basePrice?.toFixed(2) || '0.00'}</span>
+                                </div>
+                              </td>
+                              <td>
+                                <div className={styles.priceColumn}>
+                                  {order.discount > 0 ? (
+                                    <span className={styles.discountAmount}>-₹{order.discount.toFixed(2)}</span>
+                                  ) : (
+                                    <span className={styles.noDiscount}>-</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td>
+                                <div className={styles.gstColumn}>
+                                  <div className={styles.gstAmount}>₹{order.gstPaid?.toFixed(2) || '0.00'}</div>
+                                  <div className={styles.gstPercentage}>({order.gstPercentage || 0}%)</div>
+                                </div>
+                              </td>
+                              <td>
+                                <div className={styles.priceColumn}>
+                                  <span className={styles.finalPrice}>₹{order.price?.toFixed(2) || '0.00'}</span>
+                                </div>
+                              </td>
+                              <td>
+                                <div className={styles.priceColumn}>
+                                  <span className={styles.totalAmount}>₹{order.totalAmount?.toFixed(2) || '0.00'}</span>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -342,10 +378,26 @@ const CustomerOrderView = () => {
                   </div>
 
                   <div className={styles.cardFooter}>
-                    <div className={styles.totalAmount}>
-                      <span className={styles.totalLabel}>Total Amount:</span>
-                      <span className={styles.totalValue}>₹{invoice.totalAmount.toFixed(2)}</span>
+                    <div className={styles.invoiceSummary}>
+                      <div className={styles.summarySection}>
+                        <h4 className={styles.summaryTitle}>Price Breakdown</h4>
+                        <div className={styles.summaryGrid}>
+                          <div className={styles.summaryItem}>
+                            <span className={styles.summaryLabel}>Base Amount:</span>
+                            <span className={styles.summaryValue}>₹{invoice.baseAmount?.toFixed(2) || '0.00'}</span>
+                          </div>
+                          <div className={styles.summaryItem}>
+                            <span className={styles.summaryLabel}>Total GST:</span>
+                            <span className={styles.summaryValue}>₹{invoice.totalGstPaid?.toFixed(2) || '0.00'}</span>
+                          </div>
+                          <div className={styles.summaryItem}>
+                            <span className={styles.summaryLabel}>Final Amount:</span>
+                            <span className={styles.summaryValueFinal}>₹{invoice.totalAmount?.toFixed(2) || '0.00'}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                    
                     {invoice.remark && (
                       <div className={styles.remark}>
                         <span className={styles.remarkLabel}>Note:</span>

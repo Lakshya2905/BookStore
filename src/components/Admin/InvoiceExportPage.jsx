@@ -3,7 +3,7 @@ import { FileText, Download, Loader, AlertCircle, CheckCircle, FileSpreadsheet, 
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 import styles from './InvoiceExportPage.module.css';
-import { INVOICE_ADMIN_FETCH_URL,UPDATE_PAYMENT_URL,UPDATE_ORDER_STATUS_URL } from '../../constants/apiConstants';
+import { INVOICE_ADMIN_FETCH_URL, UPDATE_PAYMENT_URL, UPDATE_ORDER_STATUS_URL } from '../../constants/apiConstants';
 
 // Remark Modal Component
 const RemarkModal = ({ isOpen, onClose, onSubmit, title, actionType, invoiceId, isLoading }) => {
@@ -207,7 +207,6 @@ const InvoiceExportPage = () => {
       
       if (data.status === 'SUCCESS') {
         setSuccess(`Payment status updated successfully for invoice #${invoiceId}`);
-        // Refresh invoices to get updated data
         await fetchInvoices();
       } else if (data.status === 'UNAUTHORIZED') {
         setError('Unauthorized access. Please login again.');
@@ -255,7 +254,6 @@ const InvoiceExportPage = () => {
       
       if (data.status === 'SUCCESS') {
         setSuccess(`Order status updated to ${orderStatus.toLowerCase()} for invoice #${invoiceId}`);
-        // Refresh invoices to get updated data
         await fetchInvoices();
         return true;
       } else if (data.status === 'UNAUTHORIZED') {
@@ -404,8 +402,6 @@ const InvoiceExportPage = () => {
       });
     }
     
-    // If delivered or cancelled - no action buttons
-    
     return actions;
   };
 
@@ -436,9 +432,9 @@ const InvoiceExportPage = () => {
       
       if (data.status === 'SUCCESS') {
         setInvoices(data.payload || []);
-        if (!success) { // Only show this message if there's no other success message
+        if (!success) {
           setSuccess(`Successfully loaded ${data.payload?.length || 0} invoices`);
-          setTimeout(() => setSuccess(''), 3000); // Clear after 3 seconds
+          setTimeout(() => setSuccess(''), 3000);
         }
       } else if (data.status === 'UNAUTHORIZED') {
         setError('Unauthorized access. Please login again.');
@@ -463,12 +459,10 @@ const InvoiceExportPage = () => {
   const applyFilters = () => {
     let filtered = invoices;
 
-    // Filter by payment status
     if (filters.paymentStatus !== 'All') {
       filtered = filtered.filter(invoice => invoice.paymentStatus === filters.paymentStatus);
     }
 
-    // Filter by order status
     if (filters.orderStatus !== 'All') {
       filtered = filtered.filter(invoice => invoice.orderStatus === filters.orderStatus);
     }
@@ -492,17 +486,23 @@ const InvoiceExportPage = () => {
     });
   };
 
-  // Prepare data for Excel export (using filtered data)
+  // Prepare data for Excel export (enhanced with new DTO fields)
   const prepareExcelData = () => {
     const excelData = [];
     
     filteredInvoices.forEach(invoice => {
-      // Combine book names and quantities for single column
+      // Enhanced book details with more information from OrderDTO
       const bookDetails = invoice.orderList?.map(order => 
-        `${order.bookName} (Qty: ${order.quantity})`
+        `${order.bookName} by ${order.authorName || 'Unknown'} (Qty: ${order.quantity}, MRP: ₹${order.mrp || 0}, Price: ₹${order.price || 0})`
       ).join('; ') || 'N/A';
       
-      // Create row with all invoice details
+      // Calculate totals
+      const totalQuantity = invoice.orderList?.reduce((sum, order) => sum + (order.quantity || 0), 0) || 0;
+      const totalItems = invoice.orderList?.length || 0;
+      const totalGstAmount = invoice.totalGstPaid || 0;
+      const baseAmount = invoice.baseAmount || 0;
+      
+      // Create enhanced row with all available fields
       const row = {
         'Invoice ID': invoice.invoiceId,
         'Customer Name': invoice.customerName,
@@ -513,14 +513,33 @@ const InvoiceExportPage = () => {
         'State': invoice.state,
         'Pincode': invoice.pincode,
         'Creation Date': new Date(invoice.creationDate).toLocaleDateString('en-IN'),
-        'Books & Quantities': bookDetails,
+        'Books & Details': bookDetails,
+        'Base Amount': `₹${baseAmount.toFixed(2)}`,
+        'Total GST': `₹${totalGstAmount.toFixed(2)}`,
         'Total Amount': `₹${invoice.totalAmount?.toFixed(2) || '0.00'}`,
         'Payment Status': invoice.paymentStatus,
         'Order Status': invoice.orderStatus,
         'User ID': invoice.userId,
         'Remark': invoice.remark || 'N/A',
-        'Total Items': invoice.orderList?.length || 0,
-        'Total Quantity': invoice.orderList?.reduce((sum, order) => sum + (order.quantity || 0), 0) || 0
+        'Total Items': totalItems,
+        'Total Quantity': totalQuantity,
+        // Individual book breakdown
+        ...invoice.orderList?.reduce((bookFields, order, index) => {
+          const bookPrefix = `Book_${index + 1}`;
+          return {
+            ...bookFields,
+            [`${bookPrefix}_Name`]: order.bookName || 'N/A',
+            [`${bookPrefix}_Author`]: order.authorName || 'N/A',
+            [`${bookPrefix}_MRP`]: `₹${order.mrp || 0}`,
+            [`${bookPrefix}_Price`]: `₹${order.price || 0}`,
+            [`${bookPrefix}_Quantity`]: order.quantity || 0,
+            [`${bookPrefix}_Discount`]: `₹${order.discount || 0}`,
+            [`${bookPrefix}_GST_Percentage`]: `${order.gstPercentage || 0}%`,
+            [`${bookPrefix}_GST_Amount`]: `₹${order.gstPaid || 0}`,
+            [`${bookPrefix}_Amount_Before_Tax`]: `₹${order.amountBeforeTax || 0}`,
+            [`${bookPrefix}_Total_Amount`]: `₹${order.totalAmount || 0}`
+          };
+        }, {}) || {}
       };
       
       excelData.push(row);
@@ -529,7 +548,7 @@ const InvoiceExportPage = () => {
     return excelData;
   };
 
-  // Export to Excel (filtered data only)
+  // Export to Excel with enhanced data
   const exportToExcel = () => {
     if (filteredInvoices.length === 0) {
       setError('No invoices to export based on current filters');
@@ -543,37 +562,63 @@ const InvoiceExportPage = () => {
     try {
       const excelData = prepareExcelData();
       
-      // Create workbook and worksheet
+      // Create workbook with multiple sheets
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
       
-      // Set column widths for better readability
-      const columnWidths = [
-        { wch: 12 }, // Invoice ID
-        { wch: 20 }, // Customer Name
-        { wch: 15 }, // Mobile No
-        { wch: 15 }, // Registered Mobile
-        { wch: 30 }, // Delivery Address
-        { wch: 15 }, // City
-        { wch: 15 }, // State
-        { wch: 10 }, // Pincode
-        { wch: 12 }, // Creation Date
-        { wch: 40 }, // Books & Quantities
-        { wch: 15 }, // Total Amount
-        { wch: 12 }, // Payment Status
-        { wch: 12 }, // Order Status
-        { wch: 12 }, // User ID
-        { wch: 25 }, // Remark
-        { wch: 12 }, // Total Items
-        { wch: 15 }  // Total Quantity
+      // Summary sheet
+      const summarySheet = XLSX.utils.json_to_sheet(excelData.map(row => ({
+        'Invoice ID': row['Invoice ID'],
+        'Customer Name': row['Customer Name'],
+        'Mobile No': row['Mobile No'],
+        'City': row['City'],
+        'State': row['State'],
+        'Creation Date': row['Creation Date'],
+        'Books & Details': row['Books & Details'],
+        'Base Amount': row['Base Amount'],
+        'Total GST': row['Total GST'],
+        'Total Amount': row['Total Amount'],
+        'Payment Status': row['Payment Status'],
+        'Order Status': row['Order Status'],
+        'Total Items': row['Total Items'],
+        'Total Quantity': row['Total Quantity'],
+        'Remark': row['Remark']
+      })));
+      
+      // Set column widths for summary sheet
+      summarySheet['!cols'] = [
+        { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, 
+        { wch: 15 }, { wch: 12 }, { wch: 40 }, { wch: 15 }, 
+        { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, 
+        { wch: 12 }, { wch: 15 }, { wch: 25 }
       ];
       
-      worksheet['!cols'] = columnWidths;
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Invoice Summary');
       
-      // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Invoices');
+      // Detailed sheet with individual book data
+      const detailedSheet = XLSX.utils.json_to_sheet(excelData);
+      XLSX.utils.book_append_sheet(workbook, detailedSheet, 'Detailed Data');
       
-      // Generate filename with current date and filter info
+      // Statistics sheet
+      const stats = [{
+        'Total Invoices': filteredInvoices.length,
+        'Total Revenue': `₹${filteredInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0).toFixed(2)}`,
+        'Total GST Collected': `₹${filteredInvoices.reduce((sum, inv) => sum + (inv.totalGstPaid || 0), 0).toFixed(2)}`,
+        'Total Items Sold': filteredInvoices.reduce((sum, inv) => sum + (inv.orderList?.length || 0), 0),
+        'Total Quantity Sold': filteredInvoices.reduce((sum, inv) => sum + (inv.orderList?.reduce((s, order) => s + (order.quantity || 0), 0) || 0), 0),
+        'Paid Invoices': filteredInvoices.filter(inv => inv.paymentStatus === 'PAID').length,
+        'Due Invoices': filteredInvoices.filter(inv => inv.paymentStatus === 'DUE').length,
+        'Pending Orders': filteredInvoices.filter(inv => inv.orderStatus === 'PENDING').length,
+        'Dispatched Orders': filteredInvoices.filter(inv => inv.orderStatus === 'DISPATCHED').length,
+        'Delivered Orders': filteredInvoices.filter(inv => inv.orderStatus === 'DELIVERED').length,
+        'Cancelled Orders': filteredInvoices.filter(inv => inv.orderStatus === 'CANCELLED').length,
+        'Export Date': new Date().toLocaleString('en-IN')
+      }];
+      
+      const statsSheet = XLSX.utils.json_to_sheet(stats);
+      statsSheet['!cols'] = [{ wch: 20 }];
+      XLSX.utils.book_append_sheet(workbook, statsSheet, 'Statistics');
+      
+      // Generate filename
       const currentDate = new Date().toISOString().split('T')[0];
       let filterSuffix = '';
       if (filters.paymentStatus !== 'All' || filters.orderStatus !== 'All') {
@@ -588,7 +633,7 @@ const InvoiceExportPage = () => {
       // Save the file
       XLSX.writeFile(workbook, filename);
       
-      setSuccess(`Excel file "${filename}" has been downloaded successfully! (${filteredInvoices.length} invoices exported)`);
+      setSuccess(`Excel file "${filename}" has been downloaded successfully! (${filteredInvoices.length} invoices exported with enhanced data)`);
       clearMessages();
     } catch (err) {
       setError('Failed to export Excel file. Please try again.');
@@ -633,18 +678,16 @@ const InvoiceExportPage = () => {
     }
   };
 
-
   // Check if any action for this invoice is loading
-const isActionLoading = (invoiceId) => {
-  // Add null check to prevent toString() error
-  if (!invoiceId) {
-    return false;
-  }
-  
-  return Object.keys(actionLoading).some(key => 
-    key.includes(invoiceId.toString()) && actionLoading[key]
-  );
-};
+  const isActionLoading = (invoiceId) => {
+    if (!invoiceId) {
+      return false;
+    }
+    
+    return Object.keys(actionLoading).some(key => 
+      key.includes(invoiceId.toString()) && actionLoading[key]
+    );
+  };
 
   return (
     <div className={styles.container}>
@@ -657,7 +700,7 @@ const isActionLoading = (invoiceId) => {
                 <FileSpreadsheet className={styles.titleIcon} />
                 Invoice Export Manager
               </h1>
-              <p className={styles.subtitle}>Export all invoices to Excel with complete details</p>
+              <p className={styles.subtitle}>Export invoices with comprehensive book details, GST breakdown, and enhanced analytics</p>
             </div>
             
             <div className={styles.headerActions}>
@@ -676,7 +719,7 @@ const isActionLoading = (invoiceId) => {
                 className={`${styles.button} ${styles.buttonPrimary}`}
               >
                 {exporting ? <Loader className={styles.spinner} /> : <Download className={styles.buttonIcon} />}
-                {exporting ? 'Exporting...' : 'Export to Excel'}
+                {exporting ? 'Exporting...' : 'Export Enhanced Excel'}
               </button>
             </div>
           </div>
@@ -752,7 +795,7 @@ const isActionLoading = (invoiceId) => {
           </div>
         </div>
 
-        {/* Statistics Cards */}
+        {/* Enhanced Statistics Cards */}
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
             <div className={styles.statContent}>
@@ -779,9 +822,9 @@ const isActionLoading = (invoiceId) => {
           <div className={styles.statCard}>
             <div className={styles.statContent}>
               <div>
-                <p className={styles.statLabel}>Total Items</p>
+                <p className={styles.statLabel}>Total GST Collected</p>
                 <p className={styles.statValuePurple}>
-                  {filteredInvoices.reduce((sum, inv) => sum + (inv.orderList?.reduce((s, order) => s + (order.quantity || 0), 0) || 0), 0)}
+                  {formatCurrency(filteredInvoices.reduce((sum, inv) => sum + (inv.totalGstPaid || 0), 0))}
                 </p>
               </div>
               <div className={styles.itemSymbol}>#</div>
@@ -793,7 +836,7 @@ const isActionLoading = (invoiceId) => {
         <div className={styles.tableContainer}>
           <div className={styles.tableHeader}>
             <h2 className={styles.tableTitle}>Invoice Preview</h2>
-            <p className={styles.tableSubtitle}>Preview of filtered invoices that will be exported</p>
+            <p className={styles.tableSubtitle}>Preview of filtered invoices with enhanced book details and GST information</p>
           </div>
           
           {loading ? (
@@ -815,8 +858,8 @@ const isActionLoading = (invoiceId) => {
                   <tr>
                     <th className={styles.th}>Invoice ID</th>
                     <th className={styles.th}>Customer</th>
-                    <th className={styles.th}>Books & Quantities</th>
-                    <th className={styles.th}>Amount</th>
+                    <th className={styles.th}>Books & Details</th>
+                    <th className={styles.th}>Amount Breakdown</th>
                     <th className={styles.th}>Payment Status</th>
                     <th className={styles.th}>Order Status</th>
                     <th className={styles.th}>Address</th>
@@ -827,6 +870,8 @@ const isActionLoading = (invoiceId) => {
                 <tbody className={styles.tableBody}>
                   {filteredInvoices.slice(0, 10).map((invoice) => {
                     const availableActions = getAvailableActions(invoice);
+                    const totalGst = invoice.totalGstPaid || 0;
+                    const baseAmount = invoice.baseAmount || 0;
                     
                     return (
                       <tr key={invoice.invoiceId} className={styles.tableRow}>
@@ -834,6 +879,7 @@ const isActionLoading = (invoiceId) => {
                         <td className={styles.td}>
                           <div>
                             <div className={styles.customerName}>{invoice.customerName}</div>
+                            <div className={styles.customerMobile}>{invoice.mobileNo}</div>
                             <div className={styles.customerLocation}>{invoice.city}, {invoice.state}</div>
                           </div>
                         </td>
@@ -841,13 +887,27 @@ const isActionLoading = (invoiceId) => {
                           <div className={styles.booksColumn}>
                             {invoice.orderList?.map(order => (
                               <div key={order.orderId} className={styles.bookItem}>
-                                {order.bookName} (Qty: {order.quantity})
+                                <div className={styles.bookName}>{order.bookName}</div>
+                                <div className={styles.bookAuthor}>by {order.authorName || 'Unknown'}</div>
+                                <div className={styles.bookDetails}>
+                                  Qty: {order.quantity} | MRP: ₹{order.mrp || 0} | Price: ₹{order.price || 0}
+                                  {order.discount > 0 && <span className={styles.discount}> (₹{order.discount} off)</span>}
+                                </div>
+                                {order.gstPercentage > 0 && (
+                                  <div className={styles.gstInfo}>
+                                    GST: {order.gstPercentage}% (₹{order.gstPaid || 0})
+                                  </div>
+                                )}
                               </div>
                             )) || 'N/A'}
                           </div>
                         </td>
                         <td className={styles.td}>
-                          <span className={styles.amount}>{formatCurrency(invoice.totalAmount)}</span>
+                          <div className={styles.amountBreakdown}>
+                            <div className={styles.amountLine}>Base: {formatCurrency(baseAmount)}</div>
+                            <div className={styles.amountLine}>GST: {formatCurrency(totalGst)}</div>
+                            <div className={styles.amountTotal}>Total: {formatCurrency(invoice.totalAmount)}</div>
+                          </div>
                         </td>
                         <td className={styles.td}>
                           <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.paymentStatus, 'payment')}`}>
@@ -862,7 +922,7 @@ const isActionLoading = (invoiceId) => {
                         <td className={styles.td}>
                           <div className={styles.addressColumn}>
                             <div className={styles.addressLine}>{invoice.deliveryAddress || 'N/A'}</div>
-                            <div className={styles.addressLocation}>{invoice.city}, {invoice.state}</div>
+                            <div className={styles.addressLocation}>{invoice.city}, {invoice.state} - {invoice.pincode}</div>
                           </div>
                         </td>
                         <td className={styles.td}>
@@ -881,7 +941,7 @@ const isActionLoading = (invoiceId) => {
                                   <button
                                     key={action.type}
                                     onClick={action.handler}
-                                    disabled={isLoading}
+                                    disabled={isLoading || isActionLoading(invoice.invoiceId)}
                                     className={`${styles.actionButton} ${styles[`actionButton${action.variant.charAt(0).toUpperCase() + action.variant.slice(1)}`]}`}
                                     title={action.label}
                                   >
@@ -914,17 +974,36 @@ const isActionLoading = (invoiceId) => {
           )}
         </div>
 
-        {/* Export Information */}
+        {/* Enhanced Export Information */}
         <div className={styles.exportInfo}>
-          <h3 className={styles.exportInfoTitle}>Excel Export Information</h3>
+          <h3 className={styles.exportInfoTitle}>Enhanced Excel Export Information</h3>
           <div className={styles.exportInfoList}>
-            <p>• Exports only the currently filtered invoices ({filteredInvoices.length} invoices)</p>
-            <p>• All invoice details including customer information, delivery address, and payment status</p>
-            <p>• Book names and quantities combined in a single column format: "Book Name (Qty: X)"</p>
-            <p>• Multiple books separated by semicolons for easy reading</p>
-            <p>• Financial data formatted in Indian Rupees</p>
-            <p>• Dates formatted in Indian format (DD/MM/YYYY)</p>
-            <p>• File name includes applied filters for easy identification</p>
+            <p>• <strong>Multiple Sheets:</strong> Summary, Detailed Data, and Statistics sheets for comprehensive analysis</p>
+            <p>• <strong>Enhanced Book Details:</strong> Includes author names, MRP, selling price, discounts, and individual GST calculations</p>
+            <p>• <strong>Financial Breakdown:</strong> Base amount, total GST collected, and detailed tax information per book</p>
+            <p>• <strong>Individual Book Data:</strong> Separate columns for each book with complete pricing and tax details</p>
+            <p>• <strong>GST Analytics:</strong> GST percentage, amount per item, and total tax collection summary</p>
+            <p>• <strong>Comprehensive Statistics:</strong> Revenue analysis, tax collection, order status distribution</p>
+            <p>• <strong>Smart Filtering:</strong> Export only filtered data with filter information in filename</p>
+            <p>• <strong>Indian Format:</strong> Currency in INR format, dates in DD/MM/YYYY, optimized for Indian business needs</p>
+          </div>
+          
+          <div className={styles.exportSample}>
+            <h4 className={styles.exportSampleTitle}>Sample Export Columns Include:</h4>
+            <div className={styles.exportColumnsList}>
+              <div className={styles.exportColumn}>
+                <strong>Basic Info:</strong> Invoice ID, Customer Details, Address, Mobile Numbers
+              </div>
+              <div className={styles.exportColumn}>
+                <strong>Financial:</strong> Base Amount, Total GST, Total Amount, Payment Status
+              </div>
+              <div className={styles.exportColumn}>
+                <strong>Book Details:</strong> Name, Author, MRP, Price, Quantity, Discount, GST %
+              </div>
+              <div className={styles.exportColumn}>
+                <strong>Analytics:</strong> Total Items, Quantities, Order Status, Creation Date, Remarks
+              </div>
+            </div>
           </div>
         </div>
       </div>
