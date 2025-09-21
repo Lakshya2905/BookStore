@@ -2,8 +2,18 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { addItemToCart } from "../../api/addItemToCart";
 import PlaceOrderModal from "../Order/PlaceOrderModal";
-import ImageViewModal from "./ImageViewModal"; // Import the new component
+import ImageViewModal from "./ImageViewModal";
 import styles from "./BookViewCard.module.css";
+
+// Load Bootstrap CSS dynamically
+const loadBootstrap = () => {
+  if (document.getElementById('bookview-bootstrap')) return;
+  const link = document.createElement('link');
+  link.id = 'bookview-bootstrap';
+  link.rel = 'stylesheet';
+  link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+  document.head.appendChild(link);
+};
 
 const BookViewCard = ({ books = [], loading, error, showPagination = true }) => {
   const [searchParams] = useSearchParams();
@@ -11,7 +21,11 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
   const booksPerPage = 12;
   const scrollContainerRef = useRef(null);
 
-  
+  // Load Bootstrap when component mounts
+  useEffect(() => {
+    loadBootstrap();
+  }, []);
+
   // State for cart operations
   const [cartLoading, setCartLoading] = useState({});
   const [cartMessage, setCartMessage] = useState("");
@@ -25,12 +39,15 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
 
-  // State for Image View Modal - Updated for new component
+  // State for Image View Modal
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedBookForImage, setSelectedBookForImage] = useState(null);
   const [selectedImageList, setSelectedImageList] = useState([]);
 
-  // Extract search parameters - this will trigger re-renders when URL changes
+  // State for image errors
+  const [imageErrors, setImageErrors] = useState({});
+
+  // Extract search parameters
   const searchQuery = searchParams.get("search");
   const categoryFilter = searchParams.get("category");
   const tagFilter = searchParams.get("tag");
@@ -49,7 +66,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     }
   }, []);
 
-  // Decide which set of books to use - MOVED UP before any useEffect that uses it
+  // Decide which set of books to use
   const sourceBooks = books.length > 0 ? books : storedBooks;
 
   // Listen for navigation changes from NavBar
@@ -71,18 +88,65 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     setCurrentPage(1);
   }, [searchQuery, categoryFilter, tagFilter, forceUpdateKey]);
 
-  
+  // Function to get all available images for a book
+  const getBookImages = (book) => {
+    const images = [];
+    const bookId = book.bookId || book.id;
+    
+    // Add coverImageUrl if available
+    if (book.coverImageUrl && book.coverImageUrl.trim() && !imageErrors[`${bookId}-cover`]) {
+      images.push({ url: book.coverImageUrl, type: 'cover', key: `${bookId}-cover` });
+    }
+    
+    // Add imageUrl if different from coverImageUrl
+    if (book.imageUrl && book.imageUrl.trim() && 
+        book.imageUrl !== book.coverImageUrl && 
+        !imageErrors[`${bookId}-main`]) {
+      images.push({ url: book.imageUrl, type: 'main', key: `${bookId}-main` });
+    }
+    
+    // Add allImages if available
+    if (book.allImages && Array.isArray(book.allImages)) {
+      book.allImages.forEach((imgObj, index) => {
+        const imgUrl = imgObj.imageUrl || imgObj.url || imgObj;
+        if (imgUrl && imgUrl.trim() && 
+            imgUrl !== book.coverImageUrl && 
+            imgUrl !== book.imageUrl &&
+            !imageErrors[`${bookId}-all-${index}`]) {
+          images.push({ 
+            url: imgUrl, 
+            type: 'additional', 
+            key: `${bookId}-all-${index}` 
+          });
+        }
+      });
+    }
+    
+    return images;
+  };
+
+  // Function to get current display image
+  const getCurrentImage = (book) => {
+    const allImages = getBookImages(book);
+    if (allImages.length === 0) return null;
+    
+    const bookId = book.bookId || book.id;
+    const currentIndex = currentImageIndex[bookId] || 0;
+    return allImages[Math.min(currentIndex, allImages.length - 1)] || allImages[0];
+  };
+
   // Initialize current image indices for all books
   useEffect(() => {
     const initialIndices = {};
     sourceBooks.forEach(book => {
       const bookId = book.bookId || book.id;
-      if (book.allImages && book.allImages.length > 0) {
+      const allImages = getBookImages(book);
+      if (allImages.length > 0) {
         initialIndices[bookId] = 0;
       }
     });
     setCurrentImageIndex(prev => ({ ...prev, ...initialIndices }));
-  }, [sourceBooks]);
+  }, [sourceBooks, imageErrors]);
 
   // Auto-slideshow for all books with multiple images - 5 second intervals
   useEffect(() => {
@@ -90,7 +154,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     
     sourceBooks.forEach(book => {
       const bookId = book.bookId || book.id;
-      const allImages = book.allImages || [];
+      const allImages = getBookImages(book);
       
       if (allImages.length > 1) {
         intervals[bookId] = setInterval(() => {
@@ -110,7 +174,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
         if (interval) clearInterval(interval);
       });
     };
-  }, [sourceBooks]);
+  }, [sourceBooks, imageErrors]);
 
   // Cleanup slideshow intervals on unmount
   useEffect(() => {
@@ -120,6 +184,11 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
       });
     };
   }, [slideshowIntervals]);
+
+  // Function to handle image error
+  const handleImageError = (imageKey) => {
+    setImageErrors(prev => ({ ...prev, [imageKey]: true }));
+  };
 
   // Apply search + filters + sorting - Now properly reactive to URL changes
   const filteredBooks = useMemo(() => {
@@ -175,39 +244,12 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     : filteredBooks;
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
-  // Function to get current image for a book
-  const getCurrentImage = (book) => {
-    const bookId = book.bookId || book.id;
-    const allImages = book.allImages || [];
-    
-    if (allImages.length === 0) {
-      return book.coverImageUrl || null;
-    }
-    
-    const currentIndex = currentImageIndex[bookId] || 0;
-    return allImages[currentIndex]?.imageUrl || book.coverImageUrl || null;
-  };
-
   // Updated function to handle image click - open new modal
   const handleImageClick = (book) => {
-    const allImages = book.allImages || [];
+    const allImages = getBookImages(book);
     
     // Build image URL list from all available sources
-    const imageUrls = [];
-    
-    // Add images from allImages array
-    if (allImages.length > 0) {
-      allImages.forEach(img => {
-        if (img.imageUrl) {
-          imageUrls.push(img.imageUrl);
-        }
-      });
-    }
-    
-    // Add cover image if not already included and exists
-    if (book.coverImageUrl && !imageUrls.includes(book.coverImageUrl)) {
-      imageUrls.push(book.coverImageUrl);
-    }
+    const imageUrls = allImages.map(img => img.url);
     
     // If no images available, don't open modal
     if (imageUrls.length === 0) return;
@@ -222,11 +264,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     setImageModalOpen(false);
     setSelectedBookForImage(null);
     setSelectedImageList([]);
-  };
-
-  // Function to handle image load error
-  const handleImageError = (bookId) => {
-    console.warn(`Failed to load image for book ${bookId}`);
   };
 
   // Function to calculate discount percentage
@@ -384,7 +421,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
             <div className={styles.booksGrid} ref={scrollContainerRef}>
               {currentBooks.map((book) => {
                 const bookId = book.bookId || book.id;
-                const allImages = book.allImages || [];
+                const allImages = getBookImages(book);
                 const currentImage = getCurrentImage(book);
                 const hasMultipleImages = allImages.length > 1;
                 const currentIndex = currentImageIndex[bookId] || 0;
@@ -393,29 +430,41 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                 
                 return (
                   <article key={bookId} className={styles.bookCard}>
-                    <div className={styles.bookImageContainer}>
-                      <div 
-                        className={styles.bookImage}
-                        onClick={() => handleImageClick(book)}
-                      >
+                    <div className={styles.imageContainer}>
+                      <div className={styles.imageWrapper}>
                         {currentImage ? (
                           <img 
                             key={`${bookId}-${currentIndex}`}
-                            src={currentImage} 
+                            src={currentImage.url} 
                             alt={`${book.bookName} - Image ${currentIndex + 1}`}
-                            className={`${styles.bookCover} ${styles.fadeIn}`}
+                            className={styles.bookImage}
                             loading="lazy"
-                            onError={() => handleImageError(bookId)}
-                            style={{
-                              transition: 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out',
-                              opacity: 1,
-                              transform: 'scale(1)'
-                            }}
+                            onError={() => handleImageError(currentImage.key)}
+                            onClick={() => handleImageClick(book)}
+                            style={{ cursor: 'pointer' }}
                           />
                         ) : (
-                          <div className={styles.bookPlaceholder}>
-                            <div className={styles.placeholderIcon}>📚</div>
-                            <div className={styles.placeholderText}>No Image</div>
+                          <div 
+                            className={styles.noImage}
+                            onClick={() => handleImageClick(book)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <div className={styles.noImageIcon}>📚</div>
+                            <div className={styles.noImageText}>No Image</div>
+                          </div>
+                        )}
+                        
+                        {/* Image Indicators */}
+                        {hasMultipleImages && (
+                          <div className={styles.imageIndicators}>
+                            {allImages.map((_, index) => (
+                              <div
+                                key={index}
+                                className={`${styles.indicator} ${
+                                  (currentImageIndex[bookId] || 0) === index ? styles.active : ''
+                                }`}
+                              />
+                            ))}
                           </div>
                         )}
                       </div>
@@ -424,6 +473,13 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                       {discountPercentage > 0 && (
                         <div className={styles.discountBadge}>
                           {discountPercentage}% OFF
+                        </div>
+                      )}
+
+                      {/* Book Tags */}
+                      {book.bookTags && book.bookTags.length > 0 && (
+                        <div className={`${styles.categoryTag} ${styles[book.bookTags[0].toLowerCase().replace(/\s+/g, '')] || styles.defaultTag}`}>
+                          {book.bookTags[0]}
                         </div>
                       )}
                       
@@ -499,40 +555,37 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                           </div>
                         </div>
                       </div>
-
-                      {book.bookTags && book.bookTags.length > 0 && (
-                        <div className={`${styles.bookTag} ${styles[book.bookTags[0].toLowerCase().replace(/\s+/g, '')] || styles.defaultTag}`}>
-                          {book.bookTags[0]}
-                        </div>
-                      )}
                     </div>
 
-                    <div className={styles.bookInfo}>
+                    <div className={styles.bookDetails}>
                       <h3 className={styles.bookTitle}>{book.bookName}</h3>
-                      <h3 className={styles.bookAuthor}>by {book.authorName}</h3>
+                      <p className={styles.bookAuthor}>by {book.authorName}</p>
+                      <p className={styles.bookDescription}>
+                        {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
+                      </p>
                       
-                      <div className={styles.bookFooter}>
-                        <div className={styles.priceContainer}>
+                      <div className={styles.bookMeta}>
+                        <div className={styles.priceInfo}>
                           {book.discount > 0 ? (
                             <div className={styles.priceWithDiscount}>
-                              <span className={styles.bookPrice}>₹{displayPrice}</span>
-                              <span className={styles.bookMrp}>₹{book.mrp}</span>
+                              <span className={styles.currentPrice}>₹{displayPrice}</span>
+                              <span className={styles.originalPrice}>₹{book.mrp}</span>
                               {book.gst > 0 && (
                                 <div className={styles.gstText}>Inclusive of GST</div>
                               )}
                             </div>
                           ) : (
                             <div>
-                              <span className={styles.bookPrice}>₹{displayPrice}</span>
+                              <span className={styles.currentPrice}>₹{displayPrice}</span>
                               {book.gst > 0 && (
                                 <div className={styles.gstText}>Inclusive of GST</div>
                               )}
                             </div>
                           )}
                         </div>
-                        <div className={styles.bookMeta}>
+                        <div className={styles.bookMetaRight}>
                           {book.category && (
-                            <span className={styles.bookCategory}>{book.category}</span>
+                            <span className={styles.categoryBadge}>{book.category}</span>
                           )}
                           {hasMultipleImages && (
                             <span className={styles.imageCount}>📷 {allImages.length}</span>
@@ -540,38 +593,39 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                         </div>
                       </div>
 
-                      <div className={styles.bookActions}>
-                        <div className={styles.actionButtons}>
-                          <button 
-                            className={`${styles.addToCartButton} ${cartLoading[bookId] ? styles.loading : ''}`}
-                            onClick={() => handleAddToCart(bookId)}
-                            disabled={cartLoading[bookId]}
-                            type="button"
-                          >
-                            {cartLoading[bookId] ? (
-                              <>
-                                <div className={styles.buttonSpinner}></div>
-                                Adding...
-                              </>
-                            ) : (
-                              <>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <circle cx="9" cy="21" r="1"/>
-                                  <circle cx="20" cy="21" r="1"/>
-                                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                                </svg>
-                                Add to Cart
-                              </>
-                            )}
-                          </button>
-                          <button 
-                            className={styles.checkoutButton} 
-                            type="button"
-                            onClick={() => handleBuyNow(bookId)}
-                          >
-                            Buy Now
-                          </button>
-                        </div>
+                      <div className={styles.actions}>
+                        <button 
+                          className={`${styles.cartButton} ${cartLoading[bookId] ? styles.loading : ''}`}
+                          onClick={() => handleAddToCart(bookId)}
+                          disabled={cartLoading[bookId]}
+                          type="button"
+                        >
+                          {cartLoading[bookId] ? (
+                            <>
+                              <div className={styles.spinner}></div>
+                              Adding...
+                            </>
+                          ) : (
+                            <>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="9" cy="21" r="1"/>
+                                <circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                              </svg>
+                              Add to Cart
+                            </>
+                          )}
+                        </button>
+                        <button 
+                          className={styles.buyButton} 
+                          type="button"
+                          onClick={() => handleBuyNow(bookId)}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
+                          </svg>
+                          Buy Now
+                        </button>
                       </div>
                     </div>
                   </article>
@@ -645,14 +699,14 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
         </>
       )}
 
-      {/* Replace old Image Popup Modal with new ImageViewModal component */}
+      {/* ImageViewModal component */}
       <ImageViewModal
         isOpen={imageModalOpen}
         onClose={closeImageModal}
         bookInfo={selectedBookForImage}
         imageUrlList={selectedImageList}
-        onAddToCart={handleAddToCart}           // Added: Cart functionality
-  onBuyNow={handleBuyNow}      
+        onAddToCart={handleAddToCart}           
+        onBuyNow={handleBuyNow}      
       />
 
       {/* Place Order Modal */}
