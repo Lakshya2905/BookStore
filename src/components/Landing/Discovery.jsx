@@ -1,4 +1,4 @@
-// Discovery.jsx
+// Discovery.jsx - Fixed Container Version
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { FIND_DISCOVERY_IMAGES, FIND_DISCOVERY_IMAGES_LIST } from '../../constants/apiConstants';
@@ -7,7 +7,6 @@ import styles from './Discovery.module.css';
 const Discovery = () => {
   const [images, setImages] = useState([]);
   const [imageNames, setImageNames] = useState([]);
-  const [imageDimensions, setImageDimensions] = useState([]);
   const [productLinks, setProductLinks] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -44,38 +43,6 @@ const Discovery = () => {
       jfif: 'image/jpeg',
     };
     return formatMap[extension] || 'image/jpeg';
-  }, []);
-
-  const getImageDimensions = useCallback((imageUrl) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        resolve({ width: img.width, height: img.height });
-      };
-      img.onerror = () => {
-        resolve({ width: 1200, height: 300 });
-      };
-      img.src = imageUrl;
-    });
-  }, []);
-
-  const getAspectRatioClass = useCallback((width, height) => {
-    if (!width || !height) return 'ratioAuto';
-    
-    const ratio = width / height;
-    
-    // For 1200x300 images (ratio = 4)
-    if (ratio >= 3.8 && ratio <= 4.2) {
-      return 'ratio4_1';
-    } 
-    // For 1200x400 images (ratio = 3)
-    else if (ratio >= 2.8 && ratio <= 3.2) {
-      return 'ratio3_1';
-    } 
-    // For other ratios
-    else {
-      return 'ratioAuto';
-    }
   }, []);
 
   // Cache management functions
@@ -150,7 +117,6 @@ const Discovery = () => {
 
     const imageUrls = [];
     const names = [];
-    const dimensions = [];
     const links = [];
     const cacheData = {};
 
@@ -162,11 +128,8 @@ const Discovery = () => {
         
         const imageUrl = await fetchImageById(discoveryId, fileName);
         if (imageUrl) {
-          const dims = await getImageDimensions(imageUrl);
-          
           imageUrls.push(imageUrl);
           names.push(fileName);
-          dimensions.push(dims);
           links.push(linkOfProduct || '');
           
           cacheData[fileName] = {
@@ -175,7 +138,7 @@ const Discovery = () => {
             linkOfProduct: linkOfProduct || ''
           };
           
-          console.log(`Successfully processed: ${fileName}, dimensions:`, dims);
+          console.log(`Successfully processed: ${fileName}`);
         }
       } catch (err) {
         console.error(`Error processing image ${fileName}:`, err);
@@ -187,7 +150,6 @@ const Discovery = () => {
     if (imageUrls.length > 0) {
       setImages(imageUrls);
       setImageNames(names);
-      setImageDimensions(dimensions);
       setProductLinks(links);
       setCurrentImageIndex(0);
       
@@ -198,7 +160,7 @@ const Discovery = () => {
       return true;
     }
     return false;
-  }, [fetchImageById, getImageDimensions, setCachedImages]);
+  }, [fetchImageById, setCachedImages]);
 
   // Fixed fetchImages to prevent infinite calls
   const fetchImages = useCallback(async () => {
@@ -341,7 +303,6 @@ const Discovery = () => {
     setError(null);
     setImages([]);
     setImageNames([]);
-    setImageDimensions([]);
     setProductLinks([]);
     fetchImages();
   };
@@ -434,8 +395,6 @@ const Discovery = () => {
               <div className={`${styles.carouselContainer} position-relative`}>
                 <div className={styles.carouselInner}>
                   {images.map((image, index) => {
-                    const dimensions = imageDimensions[index] || { width: 1200, height: 300 };
-                    const aspectRatioClass = getAspectRatioClass(dimensions.width, dimensions.height);
                     const hasProductLink = productLinks[index] && productLinks[index].trim();
                     
                     return (
@@ -446,7 +405,7 @@ const Discovery = () => {
                           display: index === currentImageIndex ? 'block' : 'none',
                         }}
                       >
-                        <div className={`${styles.imageContainer} ${styles[aspectRatioClass]}`}>
+                        <div className={styles.imageContainer}>
                           <img
                             src={image}
                             className={`${styles.carouselImage} ${hasProductLink ? styles.clickableImage : ''}`}
