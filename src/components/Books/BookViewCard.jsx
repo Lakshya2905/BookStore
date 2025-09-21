@@ -563,7 +563,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                       {/* <p className={styles.bookDescription}>
                         {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
                       </p> */}
-                      
+                  
                       <div className={styles.bookMeta}>
                         <div className={styles.priceInfo}>
                           {book.discount > 0 ? (
@@ -698,6 +698,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
           )}
         </>
       )}
+
 
       {/* ImageViewModal component */}
       <ImageViewModal
