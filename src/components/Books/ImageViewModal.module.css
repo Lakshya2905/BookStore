@@ -143,12 +143,10 @@
 
 @media (min-width: 992px) {
   .thumbnailGallery {
-    width: 80px !important;
-    height: auto !important;
-    border-right: 1px solid #dee2e6 !important;
-    border-bottom: none !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    height: 80px !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
   }
 }
 
@@ -163,9 +161,11 @@
   gap: 8px !important;
 }
 
+/* Keep horizontal layout for both mobile and desktop */
 @media (min-width: 992px) {
   .thumbnailContainer {
-    flex-direction: column !important;
+    flex-direction: row !important;
+    justify-content: center !important;
   }
 }
 
@@ -183,7 +183,6 @@
   .thumbnailButton {
     width: 60px !important;
     height: 60px !important;
-    margin-bottom: 8px !important;
   }
 }
 

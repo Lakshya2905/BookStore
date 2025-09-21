@@ -211,31 +211,6 @@ const ImageViewModal = ({
           <div className={`${styles.modalBody} modal-body p-0`}>
             {/* Left Side - Image Gallery */}
             <div className={styles.imageSection}>
-              {/* Thumbnail Gallery */}
-              {hasMultipleImages && (
-                <div className={styles.thumbnailGallery}>
-                  <div className={styles.thumbnailContainer}>
-                    {imageUrlList.map((image, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        className={`${styles.thumbnailButton} ${currentIndex === index ? styles.active : ''} btn border`}
-                        onClick={() => setCurrentIndex(index)}
-                        aria-label={`View image ${index + 1} of ${imageUrlList.length}`}
-                      >
-                        <img 
-                          src={image} 
-                          alt={`Thumbnail ${index + 1}`}
-                          className={styles.thumbnailImage}
-                          onError={(e) => handleImageError(e, index)}
-                          loading="lazy"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
               {/* Main Image Container */}
               <div className={styles.mainImageContainer}>
                 <img
@@ -282,6 +257,31 @@ const ImageViewModal = ({
                   </div>
                 )}
               </div>
+              
+              {/* Thumbnail Gallery */}
+              {hasMultipleImages && (
+                <div className={styles.thumbnailGallery}>
+                  <div className={styles.thumbnailContainer}>
+                    {imageUrlList.map((image, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className={`${styles.thumbnailButton} ${currentIndex === index ? styles.active : ''} btn border`}
+                        onClick={() => setCurrentIndex(index)}
+                        aria-label={`View image ${index + 1} of ${imageUrlList.length}`}
+                      >
+                        <img 
+                          src={image} 
+                          alt={`Thumbnail ${index + 1}`}
+                          className={styles.thumbnailImage}
+                          onError={(e) => handleImageError(e, index)}
+                          loading="lazy"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Right Side - Book Information */}
