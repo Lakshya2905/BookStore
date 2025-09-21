@@ -19,6 +19,22 @@ import DiscoveryImageEditPanel from "./components/Admin/DiscoveryImageEditPanel"
 import Privacy from "./components/General/Privacy";
 import ReturnPolicy from "./components/General/ReturnPolicy";
 import CustomerOrderView from "./components/User/CustomerOrderView";
+import BlogPage from "./components/Landing/BlogPage";
+import AdminBlogManagement from "./components/Admin/AdminBlogManagement";
+
+// ========================
+// Scroll to Top Component
+// ========================
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Scroll to top when route changes
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 // ========================
 // Auth Context
@@ -162,6 +178,46 @@ const CustomerProtectedRoute = React.memo(({ children }) => {
 const PUBLIC_PAGES = ["/", "/landing", "/books"];
 
 // ========================
+// Return to Home Button Component
+// ========================
+const ReturnToHomeButton = ({ className = "" }) => {
+  const navigate = useNavigate();
+  
+  return (
+    <button
+      onClick={() => navigate("/")}
+      className={`return-home-btn ${className}`}
+      style={{
+        position: 'fixed',
+        top: '20px',
+        left: '20px',
+        padding: '10px 20px',
+        backgroundColor: '#007bff',
+        color: 'white',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        zIndex: 1000,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        transition: 'all 0.3s ease'
+      }}
+      onMouseOver={(e) => {
+        e.target.style.backgroundColor = '#0056b3';
+        e.target.style.transform = 'translateY(-2px)';
+      }}
+      onMouseOut={(e) => {
+        e.target.style.backgroundColor = '#007bff';
+        e.target.style.transform = 'translateY(0)';
+      }}
+    >
+      ← Return to Home
+    </button>
+  );
+};
+
+// ========================
 // App Content
 // ========================
 const AppContent = React.memo(() => {
@@ -248,10 +304,11 @@ const AppContent = React.memo(() => {
   // Memoize display flags to prevent recalculation
   const displayFlags = useMemo(() => {
     const shouldShowNavbar = currentPath !== "/payment";
-    const shouldShowFooter = currentPath !== "/payment";
-    const shouldShowWhatsApp = currentPath !== "/payment" && !currentPath.startsWith("/admin");
+    const shouldShowFooter = currentPath !== "/payment" && currentPath !== "/blogs";
+    const shouldShowWhatsApp = currentPath !== "/payment" && !currentPath.startsWith("/admin") && currentPath !== "/blogs";
+    const shouldShowReturnHome = false; // Remove return home button since navbar is shown
     
-    return { shouldShowNavbar, shouldShowFooter, shouldShowWhatsApp };
+    return { shouldShowNavbar, shouldShowFooter, shouldShowWhatsApp, shouldShowReturnHome };
   }, [currentPath]);
 
   // Static WhatsApp configuration
@@ -265,6 +322,9 @@ const AppContent = React.memo(() => {
 
   return (
     <div className={styles.appContainer}>
+      {/* Scroll to top on route change */}
+      <ScrollToTop />
+      
       {displayFlags.shouldShowNavbar && (
         <NavBar
           onSignIn={openLogin}
@@ -277,6 +337,9 @@ const AppContent = React.memo(() => {
         />
       )}
 
+      {/* Return to Home Button for Blog Page */}
+      {displayFlags.shouldShowReturnHome && <ReturnToHomeButton />}
+
       <main>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -286,7 +349,7 @@ const AppContent = React.memo(() => {
           <Route path="/return" element={<ReturnPolicy />} />
 
          <Route path="/order/customer/view" element={<CustomerOrderView />} />
-
+          <Route path="/blogs" element={<BlogPage />} />
 
 
 
@@ -311,6 +374,16 @@ const AppContent = React.memo(() => {
               </AdminProtectedRoute>
             } 
           />
+
+      <Route 
+            path="/admin/blog/update" 
+            element={
+              <AdminProtectedRoute>
+                <AdminBlogManagement />
+              </AdminProtectedRoute>
+            } 
+          />
+
           <Route 
             path="/admin/category/add" 
             element={
@@ -319,8 +392,10 @@ const AppContent = React.memo(() => {
               </AdminProtectedRoute>
             } 
           />
+
+
           <Route 
-            path="/admin/invoice" 
+            path="/admin/orders" 
             element={
               <AdminProtectedRoute>
                 <InvoiceExportPage />

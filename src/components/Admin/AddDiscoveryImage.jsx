@@ -6,6 +6,7 @@ import { ADD_DISCOVERY_IMAGE } from '../../constants/apiConstants';
 const AddDiscoveryImage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
+  const [linkOfProduct, setLinkOfProduct] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
@@ -59,6 +60,10 @@ const AddDiscoveryImage = () => {
     }
   };
 
+  const handleLinkChange = (e) => {
+    setLinkOfProduct(e.target.value);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -79,7 +84,11 @@ const AddDiscoveryImage = () => {
     setMessage('');
     try {
       const formData = new FormData();
-      const requestBody = { user: user, token: token };
+      const requestBody = { 
+        user: user, 
+        token: token,
+        linkOfProduct: linkOfProduct.trim() || null
+      };
 
       formData.append('requestBody', new Blob([JSON.stringify(requestBody)], {
         type: 'application/json'
@@ -96,6 +105,7 @@ const AddDiscoveryImage = () => {
         setMessageType('success');
         setSelectedFile(null);
         setFilePreview(null);
+        setLinkOfProduct('');
 
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -123,6 +133,7 @@ const AddDiscoveryImage = () => {
   const handleReset = () => {
     setSelectedFile(null);
     setFilePreview(null);
+    setLinkOfProduct('');
     setMessage('');
     setMessageType('');
     if (fileInputRef.current) {
@@ -135,6 +146,21 @@ const AddDiscoveryImage = () => {
       <div className={styles.card}>
         <h1 className={styles.title}>Add Discovery Image</h1>
         <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Link of Product (Optional)</label>
+            <input
+              type="url"
+              value={linkOfProduct}
+              onChange={handleLinkChange}
+              placeholder="https://example.com/product"
+              className={styles.input}
+              disabled={loading}
+            />
+            <small className={styles.helpText}>
+              Enter a product link if you want to associate this image with a specific product
+            </small>
+          </div>
+
           <div className={styles.formGroup}>
             <label className={styles.label}>Select Image</label>
             <div className={styles.fileInputWrapper}>

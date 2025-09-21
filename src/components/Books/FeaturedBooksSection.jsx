@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { ArrowRight, ChevronLeft, ChevronRight, ShoppingCart, Zap, ImageOff } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ShoppingCart, Zap, X } from 'lucide-react';
 import { addItemToCart } from '../../api/addItemToCart';
 import PlaceOrderModal from "../Order/PlaceOrderModal";
+import ImageViewModal from "./ImageViewModal"; // Import the new component
 import styles from './FeaturedBooksSection.module.css';
 
 const loadBootstrap = () => {
@@ -27,7 +28,7 @@ const FeaturedBooksSection = ({
   // State for cart operations
   const [cartLoading, setCartLoading] = useState({});
   const [cartMessage, setCartMessage] = useState("");
-  const [messageType, setMessageType] = useState(""); // SUCCESS, FAILED, etc.
+  const [messageType, setMessageType] = useState("");
   
   // State for carousel positions
   const [carouselPositions, setCarouselPositions] = useState({
@@ -40,24 +41,17 @@ const FeaturedBooksSection = ({
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
 
-  // State for image loading
-  const [imageLoadStates, setImageLoadStates] = useState({});
+  // State for image errors
   const [imageErrors, setImageErrors] = useState({});
 
-  // State for cached images
-  const [cachedImages, setCachedImages] = useState({});
+  // State for Image View Modal - Updated for new component
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedBookForImage, setSelectedBookForImage] = useState(null);
+  const [selectedImageList, setSelectedImageList] = useState([]);
 
-  // Load cached images from sessionStorage
-  useEffect(() => {
-    try {
-      const storedImages = sessionStorage.getItem("bookImages");
-      if (storedImages) {
-        setCachedImages(JSON.parse(storedImages));
-      }
-    } catch (error) {
-      console.error("Error loading cached images:", error);
-    }
-  }, []);
+  // State for image slideshow in cards
+  const [currentImageIndex, setCurrentImageIndex] = useState({});
+  const [slideshowIntervals, setSlideshowIntervals] = useState({});
 
   // Function to get cached image from session storage
   const getCachedImage = (bookId) => {
@@ -70,28 +64,160 @@ const FeaturedBooksSection = ({
     }
   };
 
-  // Function to get book image URL with fallback logic
-  const getBookImageUrl = (book) => {
-    if (book.coverImageUrl) {
-      return book.coverImageUrl;
+  // Function to get all available images for a book
+  // Function to get all available images for a book
+const getBookImages = (book) => {
+  const images = [];
+  const bookId = book.bookId || book.id;
+  
+  // Helper function to validate if a string is a valid image URL
+  const isValidImageUrl = (url) => {
+    if (!url || typeof url !== 'string' || !url.trim()) return false;
+    
+    // Check if it's a valid URL format
+    try {
+      new URL(url);
+    } catch {
+      // If not a valid URL, check if it's a relative path that looks like an image
+      if (!url.includes('.') || (!url.includes('/') && !url.startsWith('data:'))) {
+        return false;
+      }
     }
     
-    if (book.imageUrl) {
-      return book.imageUrl;
-    }
+    // Check if it has image file extension or is a data URL
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+    const lowerUrl = url.toLowerCase();
+    const hasImageExtension = imageExtensions.some(ext => lowerUrl.includes(ext));
+    const isDataUrl = lowerUrl.startsWith('data:image/');
     
-    const cachedImage = getCachedImage(book.bookId);
-    if (cachedImage) {
-      return cachedImage;
-    }
+    return hasImageExtension || isDataUrl || lowerUrl.includes('image') || lowerUrl.includes('img');
+  };
+  
+  // Add coverImageUrl if available
+  if (book.coverImageUrl && isValidImageUrl(book.coverImageUrl) && !imageErrors[`${bookId}-cover`]) {
+    images.push({ url: book.coverImageUrl, type: 'cover', key: `${bookId}-cover` });
+  }
+  
+  // Add imageUrl if different from coverImageUrl
+  if (book.imageUrl && isValidImageUrl(book.imageUrl) && 
+      book.imageUrl !== book.coverImageUrl && 
+      !imageErrors[`${bookId}-main`]) {
+    images.push({ url: book.imageUrl, type: 'main', key: `${bookId}-main` });
+  }
+  
+  // Add cached image if available and different
+  const cachedImage = getCachedImage(bookId);
+  if (cachedImage && isValidImageUrl(cachedImage) &&
+      cachedImage !== book.coverImageUrl && 
+      cachedImage !== book.imageUrl &&
+      !imageErrors[`${bookId}-cached`]) {
+    images.push({ url: cachedImage, type: 'cached', key: `${bookId}-cached` });
+  }
+  
+  // Add allImages if available
+  if (book.allImages && Array.isArray(book.allImages)) {
+    book.allImages.forEach((imgObj, index) => {
+      let imgUrl;
+      
+      // Handle different formats of image objects
+      if (typeof imgObj === 'string') {
+        imgUrl = imgObj;
+      } else if (imgObj && typeof imgObj === 'object') {
+        imgUrl = imgObj.imageUrl || imgObj.url || imgObj.src;
+      }
+      
+      // Validate the image URL and check for duplicates
+      if (imgUrl && isValidImageUrl(imgUrl) &&
+          imgUrl !== book.coverImageUrl && 
+          imgUrl !== book.imageUrl &&
+          imgUrl !== cachedImage &&
+          !images.some(img => img.url === imgUrl) && // Prevent duplicates
+          !imageErrors[`${bookId}-all-${index}`]) {
+        images.push({ 
+          url: imgUrl, 
+          type: 'additional', 
+          key: `${bookId}-all-${index}` 
+        });
+      }
+    });
+  }
+  
+  return images;
+};
+
+  // Function to get current display image
+  const getCurrentImage = (book) => {
+    const allImages = getBookImages(book);
+    if (allImages.length === 0) return null;
     
-    return null;
+    const bookId = book.bookId || book.id;
+    const currentIndex = currentImageIndex[bookId] || 0;
+    return allImages[Math.min(currentIndex, allImages.length - 1)] || allImages[0];
   };
 
-  // Function to handle image load error
-  const handleImageError = (bookId) => {
-    console.warn(`Failed to load image for book ${bookId}`);
-    setImageErrors(prev => ({ ...prev, [bookId]: true }));
+  // Initialize slideshow for books with multiple images
+  useEffect(() => {
+    const intervals = {};
+    
+    books.forEach(book => {
+      const bookId = book.bookId || book.id;
+      const allImages = getBookImages(book);
+      
+      if (allImages.length > 1) {
+        intervals[bookId] = setInterval(() => {
+          setCurrentImageIndex(prev => ({
+            ...prev,
+            [bookId]: ((prev[bookId] || 0) + 1) % allImages.length
+          }));
+        }, 5000); // 5 seconds
+      }
+    });
+    
+    setSlideshowIntervals(intervals);
+    
+    // Cleanup intervals
+    return () => {
+      Object.values(intervals).forEach(interval => {
+        if (interval) clearInterval(interval);
+      });
+    };
+  }, [books, imageErrors]);
+
+  // Cleanup slideshow intervals on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(slideshowIntervals).forEach(interval => {
+        if (interval) clearInterval(interval);
+      });
+    };
+  }, [slideshowIntervals]);
+
+  // Function to handle image error
+  const handleImageError = (imageKey) => {
+    setImageErrors(prev => ({ ...prev, [imageKey]: true }));
+  };
+
+  // Updated function to open image modal with new component structure
+  const openImageModal = (book, event) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    const allImages = getBookImages(book);
+    if (allImages.length === 0) return;
+    
+    // Extract just the URLs for the modal
+    const imageUrls = allImages.map(img => img.url);
+    
+    setSelectedBookForImage(book);
+    setSelectedImageList(imageUrls);
+    setImageModalOpen(true);
+  };
+
+  // Function to close image modal
+  const closeImageModal = () => {
+    setImageModalOpen(false);
+    setSelectedBookForImage(null);
+    setSelectedImageList([]);
   };
 
   // Function to sort books by priority
@@ -123,7 +249,7 @@ const FeaturedBooksSection = ({
     };
   }, [books]);
 
-  // Handle Add to Cart
+  // Handle Add to Cart - API call unchanged
   const handleAddToCart = async (bookId, event) => {
     if (event) {
       event.preventDefault();
@@ -206,9 +332,8 @@ const FeaturedBooksSection = ({
     }
   };
 
-  // Get tag display name and style for specific tags
+  // Get tag info for display
   const getTagInfo = (bookTags, categoryKey) => {
-    // Determine which tag to show based on category
     if (categoryKey === 'bestsellers' && bookTags?.includes('BESTSELLER')) {
       return { label: 'Bestseller', className: styles.bestseller };
     }
@@ -219,7 +344,6 @@ const FeaturedBooksSection = ({
       return { label: 'New Release', className: styles.newrelease };
     }
     
-    // Fallback for general books or mixed categories
     if (bookTags?.includes('BESTSELLER')) {
       return { label: 'Bestseller', className: styles.bestseller };
     }
@@ -230,67 +354,108 @@ const FeaturedBooksSection = ({
       return { label: 'New Release', className: styles.newrelease };
     }
     
-    return null; // No tag to show
+    return null;
   };
 
+
+
   const BookCard = ({ book, categoryKey }) => {
-    const imageUrl = getBookImageUrl(book);
     const bookId = book.bookId || book.id;
+    const allImages = getBookImages(book);
+    const currentImage = getCurrentImage(book);
+    const hasMultipleImages = allImages.length > 1;
     const tagInfo = getTagInfo(book.bookTags, categoryKey);
+   
+    
+    // Price calculations
+    const price =book.price;
+    const mrp =book.mrp
+    const discount =book.discount;
+    
     
     return (
       <article className={styles.bookCard}>
-        <div className={styles.bookImageContainer}>
-          <div className={styles.bookImage}>
-            {imageUrl ? (
+        <div className={styles.imageContainer}>
+          {currentImage ? (
+            <div className={styles.imageWrapper}>
               <img 
-                src={imageUrl} 
+                src={currentImage.url} 
                 alt={book.bookName}
-                className={styles.bookCover}
+                className={styles.bookImage}
+                onError={() => handleImageError(currentImage.key)}
+                onClick={(e) => openImageModal(book, e)}
                 loading="lazy"
-                onError={() => handleImageError(bookId)}
+                style={{ cursor: 'pointer' }}
               />
-            ) : (
-              <div className={styles.bookPlaceholder}>
-                <div className={styles.placeholderIcon}>📚</div>
-                <div className={styles.placeholderText}>No Image</div>
-              </div>
-            )}
-          </div>
+              
+              {/* Image Indicators */}
+              {hasMultipleImages && (
+                <div className={styles.imageIndicators}>
+                  {allImages.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`${styles.indicator} ${
+                        (currentImageIndex[bookId] || 0) === index ? styles.active : ''
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div 
+              className={styles.noImage}
+              onClick={(e) => openImageModal(book, e)}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className={styles.noImageIcon}>📚</div>
+              <div className={styles.noImageText}>No Image</div>
+            </div>
+          )}
           
-          {/* Show tag only if it matches the category */}
+          {/* Discount Badge */}
+          {discount > 0 && (
+            <div className={styles.discountBadge}>
+              {discount}% OFF
+            </div>
+          )}
+          
+          {/* Category Tag */}
           {tagInfo && (
-            <div className={`${styles.bookTag} ${tagInfo.className}`}>
+            <div className={`${styles.categoryTag} ${tagInfo.className}`}>
               {tagInfo.label}
             </div>
           )}
         </div>
 
-        <div className={styles.bookInfo}>
+        <div className={styles.bookDetails}>
           <h3 className={styles.bookTitle}>{book.bookName}</h3>
           <p className={styles.bookAuthor}>by {book.authorName}</p>
           <p className={styles.bookDescription}>
             {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
           </p>
           
-          <div className={styles.bookFooter}>
-            <span className={styles.bookPrice}>₹{book.price}</span>
+          <div className={styles.bookMeta}>
+            <div className={styles.priceInfo}>
+              <span className={styles.currentPrice}>₹{price.toFixed(1)}</span>
+              {mrp > price && (
+                <span className={styles.originalPrice}>₹{mrp.toFixed(0)}</span>
+              )}
+            </div>
             {book.category && (
-              <span className={styles.bookCategory}>{book.category}</span>
+              <span className={styles.categoryBadge}>{book.category}</span>
             )}
-      
           </div>
 
-          <div className={styles.bookActions}>
+          <div className={styles.actions}>
             <button 
-              className={`${styles.addToCartButton} ${cartLoading[bookId] ? styles.loading : ''}`}
+              className={`${styles.cartButton} ${cartLoading[bookId] ? styles.loading : ''}`}
               onClick={(event) => handleAddToCart(bookId, event)}
               disabled={cartLoading[bookId]}
-              type="button"
             >
               {cartLoading[bookId] ? (
                 <>
-                  <div className={styles.buttonSpinner}></div>
+                  <div className={styles.spinner}></div>
                   Adding...
                 </>
               ) : (
@@ -301,8 +466,7 @@ const FeaturedBooksSection = ({
               )}
             </button>
             <button 
-              className={styles.checkoutButton} 
-              type="button"
+              className={styles.buyButton}
               onClick={(event) => handleBuyNow(bookId, event)}
             >
               <Zap size={14} />
@@ -323,47 +487,44 @@ const FeaturedBooksSection = ({
     const visibleBooks = books.slice(position, position + 4);
 
     return (
-      <div className={styles.categorySection}>
-        <div className={`${styles.categoryHeader} d-flex justify-content-between align-items-center mb-4`}>
-          <div className="d-flex align-items-center">
-            <span className={`${styles.categoryIcon} me-3`}>{icon}</span>
-            <div>
-              <h2 className={`${styles.categoryTitle} mb-0`}>{title}</h2>
-              <small className="text-muted">({books.length} books, sorted by priority)</small>
-            </div>
+      <section className={styles.categorySection}>
+        <div className={styles.categoryHeader}>
+          <div className={styles.categoryTitle}>
+            <span className={styles.categoryIcon}>{icon}</span>
+            <h2>{title}</h2>
           </div>
-          <div className={`${styles.categoryControls} d-flex gap-2`}>
+          <div className={styles.categoryNav}>
             <button 
-              className={`btn btn-outline-primary ${!canGoLeft ? 'disabled' : ''}`}
+              className={`${styles.carouselButton} ${!canGoLeft ? styles.disabled : ''}`}
               onClick={(event) => handleCarouselNav(categoryKey, -1, event)}
               disabled={!canGoLeft}
-              type="button"
             >
               <ChevronLeft size={20} />
             </button>
             <button 
-              className={`btn btn-outline-primary ${!canGoRight ? 'disabled' : ''}`}
+              className={`${styles.carouselButton} ${!canGoRight ? styles.disabled : ''}`}
               onClick={(event) => handleCarouselNav(categoryKey, 1, event)}
               disabled={!canGoRight}
-              type="button"
             >
               <ChevronRight size={20} />
             </button>
           </div>
         </div>
         
-        <div className="row g-4">
+        <div className={styles.booksGrid}>
           {visibleBooks.map((book) => (
-            <div key={book.bookId || book.id} className="col-xl-3 col-lg-4 col-md-6">
-              <BookCard book={book} categoryKey={categoryKey} />
-            </div>
+            <BookCard 
+              key={book.bookId || book.id} 
+              book={book} 
+              categoryKey={categoryKey} 
+            />
           ))}
         </div>
-      </div>
+      </section>
     );
   };
 
-  const renderBooksByCategory = () => {
+  const renderCategories = () => {
     const categories = [
       { 
         title: 'Best Sellers', 
@@ -398,103 +559,85 @@ const FeaturedBooksSection = ({
 
   return (
     <div className={styles.container}>
-      {/* Cart Message Display */}
+      {/* Cart Message */}
       {cartMessage && (
-        <div className={`${getMessageClass(messageType)} position-fixed`} 
-             style={{ top: '20px', right: '20px', zIndex: 1050, minWidth: '300px' }}>
-          <div className={styles.messageContent}>
-            <span>{cartMessage}</span>
-            <button 
-              className={styles.messageClose}
-              onClick={() => {
-                setCartMessage("");
-                setMessageType("");
-              }}
-              type="button"
-              aria-label="Close message"
-            >
-              ×
-            </button>
-          </div>
+        <div className={getMessageClass(messageType)}>
+          <span>{cartMessage}</span>
+          <button 
+            className={styles.messageClose}
+            onClick={() => {
+              setCartMessage("");
+              setMessageType("");
+            }}
+          >
+            ×
+          </button>
         </div>
       )}
 
-      <div className="container-fluid py-5">
-        {/* Main Header */}
-
-        {loading ? (
-          <div className={styles.loading}>
-            <div className={styles.spinner}></div>
-            <p>Loading featured books...</p>
-          </div>
-        ) : error ? (
-          <div className={styles.error}>
-            <div className="card border-danger mx-auto" style={{ maxWidth: '500px' }}>
-              <div className="card-body">
-                <div className="text-danger mb-3">
-                  <i className="fas fa-exclamation-triangle fa-3x"></i>
-                </div>
-                <h3 className="card-title text-danger">Oops! Something went wrong</h3>
-                <p className="card-text text-muted">{error}</p>
-                <button 
-                  onClick={() => window.location.reload()} 
-                  className="btn btn-danger"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Render books by categories */}
-            {renderBooksByCategory()}
-            
-            {/* If no categorized books, show all books */}
-            {organizedBooks.bestsellers.length === 0 && 
-             organizedBooks.newReleases.length === 0 && 
-             organizedBooks.topRated.length === 0 && (
-              <div className={styles.categorySection}>
-                <div className={`${styles.categoryHeader} d-flex align-items-center mb-4`}>
-                  <span className={`${styles.categoryIcon} me-3`}>📚</span>
-                  <div>
-                    <h2 className={`${styles.categoryTitle} mb-0`}>All Featured Books</h2>
-                    <small className="text-muted">(sorted by priority)</small>
-                  </div>
-                </div>
-                <div className="row g-4">
-                  {books.length > 0 ? (
-                    organizedBooks.all.slice(0, 8).map((book) => (
-                      <div key={book.bookId || book.id} className="col-xl-3 col-lg-4 col-md-6">
-                        <BookCard book={book} categoryKey="all" />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-12">
-                      <div className={styles.noBooks}>
-                        <h2>No featured books available</h2>
-                        <p>Check back soon for our latest picks!</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-        
-        {/* Section Footer with View All Button */}
-        <div className={`${styles.sectionFooter} text-center mt-5`}>
-          <button 
-            className={styles.viewAllButton}
-            onClick={onViewAllClick} 
-            type="button"
-          >
-            <span className="me-2">Explore Our Complete Collection</span>
-            <ArrowRight size={20} />
+      {loading ? (
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Loading featured books...</p>
+        </div>
+      ) : error ? (
+        <div className={styles.errorContainer}>
+          <h3>Oops! Something went wrong</h3>
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>
+            Try Again
           </button>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Category Sections */}
+          {renderCategories()}
+          
+          {/* Fallback - All Books */}
+          {organizedBooks.bestsellers.length === 0 && 
+           organizedBooks.newReleases.length === 0 && 
+           organizedBooks.topRated.length === 0 && (
+            <section className={styles.categorySection}>
+              <div className={styles.categoryHeader}>
+                <div className={styles.categoryTitle}>
+                  <span className={styles.categoryIcon}>📚</span>
+                  <h2>All Featured Books</h2>
+                </div>
+              </div>
+              <div className={styles.booksGrid}>
+                {organizedBooks.all.slice(0, 8).map((book) => (
+                  <BookCard 
+                    key={book.bookId || book.id} 
+                    book={book} 
+                    categoryKey="all" 
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+          
+          {/* View All Button */}
+          <div className={styles.viewAllSection}>
+            <button 
+              className={styles.viewAllButton}
+              onClick={onViewAllClick}
+            >
+              <span>Explore Our Complete Collection</span>
+              <ArrowRight size={20} />
+            </button>
+          </div>
+        </>
+      )}
+      
+      {/* Replace old modal with new ImageViewModal component */}
+<ImageViewModal
+  isOpen={imageModalOpen}
+  onClose={closeImageModal}
+  bookInfo={selectedBookForImage}
+  imageUrlList={selectedImageList}
+  onAddToCart={handleAddToCart}
+  onBuyNow={handleBuyNow}
+/>
       
       {/* Place Order Modal */}
       <PlaceOrderModal

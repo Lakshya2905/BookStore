@@ -19,7 +19,10 @@ const addItemToCart = async (bookId) => {
     if (!user || !token) {
       // 🔥 Trigger a global event instead of throwing error
       window.dispatchEvent(new Event("openLoginModal"));
-      return null;
+           return {
+        status: "FAILED",
+        message: "Login Required"
+      };
     }
     
     const requestData = {

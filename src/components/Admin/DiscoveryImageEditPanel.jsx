@@ -95,6 +95,14 @@ const DiscoveryImageEditPanel = () => {
     return `${VIEW_IMAGE}?discoveryImageId=${discoveryId}`;
   };
 
+  const formatUrl = (url) => {
+    if (!url) return null;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `https://${url}`;
+    }
+    return url;
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -119,7 +127,7 @@ const DiscoveryImageEditPanel = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2>Discovery Images</h2>
+        <h2>Header Images</h2>
         <button className={styles.refreshButton} onClick={fetchImages}>
           Refresh
         </button>
@@ -127,7 +135,7 @@ const DiscoveryImageEditPanel = () => {
 
       {images.length === 0 ? (
         <div className={styles.noImages}>
-          No discovery images found.
+          No Header images found.
         </div>
       ) : (
         <div className={styles.imageGrid}>
@@ -146,6 +154,22 @@ const DiscoveryImageEditPanel = () => {
 
               <div className={styles.imageInfo} title={image.fileName}>
                 {image.fileName}
+              </div>
+
+              <div className={styles.imageInfo}>
+                {image.linkOfProduct ? (
+                  <a 
+                    href={formatUrl(image.linkOfProduct)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.productLink}
+                    title={image.linkOfProduct}
+                  >
+                    {image.linkOfProduct}
+                  </a>
+                ) : (
+                  <span>No product link</span>
+                )}
               </div>
 
               <div className={styles.actions}>

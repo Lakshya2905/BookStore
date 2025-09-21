@@ -2,33 +2,72 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { addItemToCart } from "../../api/addItemToCart";
 import PlaceOrderModal from "../Order/PlaceOrderModal";
+import ImageViewModal from "./ImageViewModal";
 import styles from "./BookViewCard.module.css";
+
+// Load Bootstrap CSS dynamically
+const loadBootstrap = () => {
+  if (document.getElementById('bookview-bootstrap')) return;
+  const link = document.createElement('link');
+  link.id = 'bookview-bootstrap';
+  link.rel = 'stylesheet';
+  link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+  document.head.appendChild(link);
+};
 
 const BookViewCard = ({ books = [], loading, error, showPagination = true }) => {
   const [searchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const booksPerPage = 12;
   const scrollContainerRef = useRef(null);
-  
+
+  // Load Bootstrap when component mounts
+  useEffect(() => {
+    loadBootstrap();
+  }, []);
+
   // State for cart operations
   const [cartLoading, setCartLoading] = useState({});
   const [cartMessage, setCartMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   
-  // State for cached images
-  const [cachedImages, setCachedImages] = useState({});
+  // State for slideshow - Changed to 5 seconds
+  const [currentImageIndex, setCurrentImageIndex] = useState({});
+  const [slideshowIntervals, setSlideshowIntervals] = useState({});
 
   // State for Place Order Modal
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
 
-  // Extract search parameters - this will trigger re-renders when URL changes
+  // State for Image View Modal
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedBookForImage, setSelectedBookForImage] = useState(null);
+  const [selectedImageList, setSelectedImageList] = useState([]);
+
+  // State for image errors
+  const [imageErrors, setImageErrors] = useState({});
+
+  // Extract search parameters
   const searchQuery = searchParams.get("search");
   const categoryFilter = searchParams.get("category");
   const tagFilter = searchParams.get("tag");
 
   // Force re-render trigger
   const [forceUpdateKey, setForceUpdateKey] = useState(0);
+
+  // Load stored books from sessionStorage if no props given
+  const storedBooks = useMemo(() => {
+    try {
+      const saved = sessionStorage.getItem("allBooks");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Error reading books from sessionStorage:", e);
+      return [];
+    }
+  }, []);
+
+  // Decide which set of books to use
+  const sourceBooks = books.length > 0 ? books : storedBooks;
 
   // Listen for navigation changes from NavBar
   useEffect(() => {
@@ -49,48 +88,113 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     setCurrentPage(1);
   }, [searchQuery, categoryFilter, tagFilter, forceUpdateKey]);
 
-  // Load cached images from sessionStorage
+  // Function to get all available images for a book
+  const getBookImages = (book) => {
+    const images = [];
+    const bookId = book.bookId || book.id;
+    
+    // Add coverImageUrl if available
+    if (book.coverImageUrl && book.coverImageUrl.trim() && !imageErrors[`${bookId}-cover`]) {
+      images.push({ url: book.coverImageUrl, type: 'cover', key: `${bookId}-cover` });
+    }
+    
+    // Add imageUrl if different from coverImageUrl
+    if (book.imageUrl && book.imageUrl.trim() && 
+        book.imageUrl !== book.coverImageUrl && 
+        !imageErrors[`${bookId}-main`]) {
+      images.push({ url: book.imageUrl, type: 'main', key: `${bookId}-main` });
+    }
+    
+    // Add allImages if available
+    if (book.allImages && Array.isArray(book.allImages)) {
+      book.allImages.forEach((imgObj, index) => {
+        const imgUrl = imgObj.imageUrl || imgObj.url || imgObj;
+        if (imgUrl && imgUrl.trim() && 
+            imgUrl !== book.coverImageUrl && 
+            imgUrl !== book.imageUrl &&
+            !imageErrors[`${bookId}-all-${index}`]) {
+          images.push({ 
+            url: imgUrl, 
+            type: 'additional', 
+            key: `${bookId}-all-${index}` 
+          });
+        }
+      });
+    }
+    
+    return images;
+  };
+
+  // Function to get current display image
+  const getCurrentImage = (book) => {
+    const allImages = getBookImages(book);
+    if (allImages.length === 0) return null;
+    
+    const bookId = book.bookId || book.id;
+    const currentIndex = currentImageIndex[bookId] || 0;
+    return allImages[Math.min(currentIndex, allImages.length - 1)] || allImages[0];
+  };
+
+  // Initialize current image indices for all books
   useEffect(() => {
-    try {
-      const storedImages = sessionStorage.getItem("bookImages");
-      if (storedImages) {
-        setCachedImages(JSON.parse(storedImages));
+    const initialIndices = {};
+    sourceBooks.forEach(book => {
+      const bookId = book.bookId || book.id;
+      const allImages = getBookImages(book);
+      if (allImages.length > 0) {
+        initialIndices[bookId] = 0;
       }
-    } catch (error) {
-      console.error("Error loading cached images:", error);
-    }
-  }, []);
-
-  // Load stored books from sessionStorage if no props given
-  const storedBooks = useMemo(() => {
-    try {
-      const saved = sessionStorage.getItem("allBooks");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Error reading books from sessionStorage:", e);
-      return [];
-    }
-  }, []);
-
-  // Decide which set of books to use
-  const sourceBooks = books.length > 0 ? books : storedBooks;
-
-  // Enhance books with cached images
-  const booksWithImages = useMemo(() => {
-    return sourceBooks.map(book => {
-      const cachedImageUrl = cachedImages[book.bookId] || cachedImages[book.id];
-      return {
-        ...book,
-        imageUrl: cachedImageUrl || book.imageUrl || book.coverImageUrl || null
-      };
     });
-  }, [sourceBooks, cachedImages]);
+    setCurrentImageIndex(prev => ({ ...prev, ...initialIndices }));
+  }, [sourceBooks, imageErrors]);
+
+  // Auto-slideshow for all books with multiple images - 5 second intervals
+  useEffect(() => {
+    const intervals = {};
+    
+    sourceBooks.forEach(book => {
+      const bookId = book.bookId || book.id;
+      const allImages = getBookImages(book);
+      
+      if (allImages.length > 1) {
+        intervals[bookId] = setInterval(() => {
+          setCurrentImageIndex(prev => ({
+            ...prev,
+            [bookId]: ((prev[bookId] || 0) + 1) % allImages.length
+          }));
+        }, 5000); // 5 seconds
+      }
+    });
+    
+    setSlideshowIntervals(intervals);
+    
+    // Cleanup on unmount
+    return () => {
+      Object.values(intervals).forEach(interval => {
+        if (interval) clearInterval(interval);
+      });
+    };
+  }, [sourceBooks, imageErrors]);
+
+  // Cleanup slideshow intervals on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(slideshowIntervals).forEach(interval => {
+        if (interval) clearInterval(interval);
+      });
+    };
+  }, [slideshowIntervals]);
+
+  // Function to handle image error
+  const handleImageError = (imageKey) => {
+    setImageErrors(prev => ({ ...prev, [imageKey]: true }));
+  };
 
   // Apply search + filters + sorting - Now properly reactive to URL changes
   const filteredBooks = useMemo(() => {
     console.log('Filtering books with:', { searchQuery, categoryFilter, tagFilter });
     
-    let filtered = booksWithImages || [];
+    let filtered = sourceBooks || [];
 
     const searchTerm = (searchQuery || "").toLowerCase().trim();
     const categoryTerm = (categoryFilter || "").toLowerCase().trim();
@@ -128,9 +232,9 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
       return priorityA - priorityB;
     });
 
-    console.log(`Filtered and sorted ${filtered.length} books from ${booksWithImages.length} total`);
+    console.log(`Filtered and sorted ${filtered.length} books from ${sourceBooks.length} total`);
     return filtered;
-  }, [booksWithImages, searchQuery, categoryFilter, tagFilter]);
+  }, [sourceBooks, searchQuery, categoryFilter, tagFilter]);
 
   // Pagination logic
   const indexOfLastBook = currentPage * booksPerPage;
@@ -140,18 +244,37 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     : filteredBooks;
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
-  // Function to get image URL for a book
-  const getBookImageUrl = (book) => {
-    return book.imageUrl || 
-           cachedImages[book.bookId] || 
-           cachedImages[book.id] || 
-           book.coverImageUrl || 
-           null;
+  // Updated function to handle image click - open new modal
+  const handleImageClick = (book) => {
+    const allImages = getBookImages(book);
+    
+    // Build image URL list from all available sources
+    const imageUrls = allImages.map(img => img.url);
+    
+    // If no images available, don't open modal
+    if (imageUrls.length === 0) return;
+    
+    setSelectedBookForImage(book);
+    setSelectedImageList(imageUrls);
+    setImageModalOpen(true);
   };
 
-  // Function to handle image load error
-  const handleImageError = (bookId) => {
-    console.warn(`Failed to load image for book ${bookId}`);
+  // Function to close image modal
+  const closeImageModal = () => {
+    setImageModalOpen(false);
+    setSelectedBookForImage(null);
+    setSelectedImageList([]);
+  };
+
+  // Function to calculate discount percentage
+  const calculateDiscountPercentage = (book) => {
+    if (!book.mrp || !book.discount || book.discount <= 0) return 0;
+    return Math.round((book.discount / book.mrp) * 100);
+  };
+
+  // Function to get display price
+  const getDisplayPrice = (book) => {
+    return book.price || book.mrp || 0;
   };
 
   // Handle Add to Cart
@@ -230,15 +353,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     }
   };
 
-  // Show current filter status for debugging
-  const getFilterStatus = () => {
-    const filters = [];
-    if (searchQuery) filters.push(`Search: "${searchQuery}"`);
-    if (categoryFilter) filters.push(`Category: "${categoryFilter}"`);
-    if (tagFilter) filters.push(`Tag: "${tagFilter}"`);
-    return filters.length > 0 ? filters.join(', ') : 'No filters applied';
-  };
-
   if (loading) return <div className={styles.loading}><div className={styles.spinner}></div><p>Loading books...</p></div>;
   if (error) return <div className={styles.error}><p>Error loading books.</p></div>;
 
@@ -306,29 +420,68 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
             
             <div className={styles.booksGrid} ref={scrollContainerRef}>
               {currentBooks.map((book) => {
-                const imageUrl = getBookImageUrl(book);
                 const bookId = book.bookId || book.id;
+                const allImages = getBookImages(book);
+                const currentImage = getCurrentImage(book);
+                const hasMultipleImages = allImages.length > 1;
+                const currentIndex = currentImageIndex[bookId] || 0;
+                const discountPercentage = book.discount;
+                const displayPrice = getDisplayPrice(book);
                 
                 return (
                   <article key={bookId} className={styles.bookCard}>
-                    <div className={styles.bookImageContainer}>
-                      <div className={styles.bookImage}>
-                        {imageUrl ? (
+                    <div className={styles.imageContainer}>
+                      <div className={styles.imageWrapper}>
+                        {currentImage ? (
                           <img 
-                            src={imageUrl} 
-                            alt={book.bookName}
-                            className={styles.bookCover}
+                            key={`${bookId}-${currentIndex}`}
+                            src={currentImage.url} 
+                            alt={`${book.bookName} - Image ${currentIndex + 1}`}
+                            className={styles.bookImage}
                             loading="lazy"
-                            onError={() => handleImageError(bookId)}
-                            onLoad={() => console.log(`Image loaded for book: ${book.bookName}`)}
+                            onError={() => handleImageError(currentImage.key)}
+                            onClick={() => handleImageClick(book)}
+                            style={{ cursor: 'pointer' }}
                           />
                         ) : (
-                          <div className={styles.bookPlaceholder}>
-                            <div className={styles.placeholderIcon}>📚</div>
-                            <div className={styles.placeholderText}>No Image</div>
+                          <div 
+                            className={styles.noImage}
+                            onClick={() => handleImageClick(book)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <div className={styles.noImageIcon}>📚</div>
+                            <div className={styles.noImageText}>No Image</div>
+                          </div>
+                        )}
+                        
+                        {/* Image Indicators */}
+                        {hasMultipleImages && (
+                          <div className={styles.imageIndicators}>
+                            {allImages.map((_, index) => (
+                              <div
+                                key={index}
+                                className={`${styles.indicator} ${
+                                  (currentImageIndex[bookId] || 0) === index ? styles.active : ''
+                                }`}
+                              />
+                            ))}
                           </div>
                         )}
                       </div>
+
+                      {/* Discount Badge */}
+                      {discountPercentage > 0 && (
+                        <div className={styles.discountBadge}>
+                          {discountPercentage}% OFF
+                        </div>
+                      )}
+
+                      {/* Book Tags */}
+                      {book.bookTags && book.bookTags.length > 0 && (
+                        <div className={`${styles.categoryTag} ${styles[book.bookTags[0].toLowerCase().replace(/\s+/g, '')] || styles.defaultTag}`}>
+                          {book.bookTags[0]}
+                        </div>
+                      )}
                       
                       <button className={styles.infoButton} type="button" aria-label="Book details">
                         ℹ
@@ -342,70 +495,137 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                             <div className={styles.tooltipDescription}>
                               {book.description || book.bookDescription || "No description available for this book."}
                             </div>
+                            
+                            {/* Additional Book Details */}
+                            <div className={styles.tooltipDetails}>
+                              {book.publisher && (
+                                <div className={styles.tooltipDetailItem}>
+                                  <span className={styles.tooltipDetailLabel}>Publisher:</span>
+                                  <span className={styles.tooltipDetailValue}>{book.publisher}</span>
+                                </div>
+                              )}
+                              {book.isbn && (
+                                <div className={styles.tooltipDetailItem}>
+                                  <span className={styles.tooltipDetailLabel}>ISBN:</span>
+                                  <span className={styles.tooltipDetailValue}>{book.isbn}</span>
+                                </div>
+                              )}
+                              {book.year && (
+                                <div className={styles.tooltipDetailItem}>
+                                  <span className={styles.tooltipDetailLabel}>Year:</span>
+                                  <span className={styles.tooltipDetailValue}>{book.year}</span>
+                                </div>
+                              )}
+                              {book.edition && (
+                                <div className={styles.tooltipDetailItem}>
+                                  <span className={styles.tooltipDetailLabel}>Edition:</span>
+                                  <span className={styles.tooltipDetailValue}>{book.edition}</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {hasMultipleImages && (
+                              <div className={styles.tooltipImageInfo}>
+                                {allImages.length} images available
+                              </div>
+                            )}
                           </div>
                           <div className={styles.tooltipFooter}>
-                            <span className={styles.tooltipPrice}>₹{book.price}</span>
+                            <div className={styles.tooltipPriceContainer}>
+                              {book.discount > 0 ? (
+                                <div className={styles.tooltipPriceWithDiscount}>
+                                  <span className={styles.tooltipPrice}>₹{displayPrice}</span>
+                                  <span className={styles.tooltipMrp}>₹{book.mrp}</span>
+                                  {book.gst > 0 && (
+                                    <div className={styles.tooltipGst}>Inclusive of GST</div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div>
+                                  <span className={styles.tooltipPrice}>₹{displayPrice}</span>
+                                  {book.gst > 0 && (
+                                    <div className={styles.tooltipGst}>Inclusive of GST</div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                             {book.category && (
                               <span className={styles.tooltipCategory}>{book.category}</span>
                             )}
                           </div>
                         </div>
                       </div>
-
-                      {book.bookTags && book.bookTags.length > 0 && (
-                        <div className={`${styles.bookTag} ${styles[book.bookTags[0].toLowerCase().replace(/\s+/g, '')] || styles.defaultTag}`}>
-                          {book.bookTags[0]}
-                        </div>
-                      )}
                     </div>
 
-                    <div className={styles.bookInfo}>
+                    <div className={styles.bookDetails}>
                       <h3 className={styles.bookTitle}>{book.bookName}</h3>
                       <p className={styles.bookAuthor}>by {book.authorName}</p>
-                      <p className={styles.bookDescription}>
+                      {/* <p className={styles.bookDescription}>
                         {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
-                      </p>
-                      
-                      <div className={styles.bookFooter}>
-                        <span className={styles.bookPrice}>₹{book.price}</span>
-                        {book.category && (
-                          <span className={styles.bookCategory}>{book.category}</span>
-                        )}
+                      </p> */}
+                  
+                      <div className={styles.bookMeta}>
+                        <div className={styles.priceInfo}>
+                          {book.discount > 0 ? (
+                            <div className={styles.priceWithDiscount}>
+                              <span className={styles.currentPrice}>₹{displayPrice}</span>
+                              <span className={styles.originalPrice}>₹{book.mrp}</span>
+                              {book.gst > 0 && (
+                                <div className={styles.gstText}>Inclusive of GST</div>
+                              )}
+                            </div>
+                          ) : (
+                            <div>
+                              <span className={styles.currentPrice}>₹{displayPrice}</span>
+                              {book.gst > 0 && (
+                                <div className={styles.gstText}>Inclusive of GST</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className={styles.bookMetaRight}>
+                          {book.category && (
+                            <span className={styles.categoryBadge}>{book.category}</span>
+                          )}
+                          {hasMultipleImages && (
+                            <span className={styles.imageCount}>📷 {allImages.length}</span>
+                          )}
+                        </div>
                       </div>
 
-                      <div className={styles.bookActions}>
-                      
-                        <div className={styles.actionButtons}>
-                          <button 
-                            className={`${styles.addToCartButton} ${cartLoading[bookId] ? styles.loading : ''}`}
-                            onClick={() => handleAddToCart(bookId)}
-                            disabled={cartLoading[bookId]}
-                            type="button"
-                          >
-                            {cartLoading[bookId] ? (
-                              <>
-                                <div className={styles.buttonSpinner}></div>
-                                Adding...
-                              </>
-                            ) : (
-                              <>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <circle cx="9" cy="21" r="1"/>
-                                  <circle cx="20" cy="21" r="1"/>
-                                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                                </svg>
-                                Add to Cart
-                              </>
-                            )}
-                          </button>
-                          <button 
-                            className={styles.checkoutButton} 
-                            type="button"
-                            onClick={() => handleBuyNow(bookId)}
-                          >
-                            Buy Now
-                          </button>
-                        </div>
+                      <div className={styles.actions}>
+                        <button 
+                          className={`${styles.cartButton} ${cartLoading[bookId] ? styles.loading : ''}`}
+                          onClick={() => handleAddToCart(bookId)}
+                          disabled={cartLoading[bookId]}
+                          type="button"
+                        >
+                          {cartLoading[bookId] ? (
+                            <>
+                              <div className={styles.spinner}></div>
+                              Adding...
+                            </>
+                          ) : (
+                            <>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="9" cy="21" r="1"/>
+                                <circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                              </svg>
+                              Add to Cart
+                            </>
+                          )}
+                        </button>
+                        <button 
+                          className={styles.buyButton} 
+                          type="button"
+                          onClick={() => handleBuyNow(bookId)}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
+                          </svg>
+                          Buy Now
+                        </button>
                       </div>
                     </div>
                   </article>
@@ -478,6 +698,17 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
           )}
         </>
       )}
+
+
+      {/* ImageViewModal component */}
+      <ImageViewModal
+        isOpen={imageModalOpen}
+        onClose={closeImageModal}
+        bookInfo={selectedBookForImage}
+        imageUrlList={selectedImageList}
+        onAddToCart={handleAddToCart}           
+        onBuyNow={handleBuyNow}      
+      />
 
       {/* Place Order Modal */}
       <PlaceOrderModal

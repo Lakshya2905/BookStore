@@ -1,11 +1,270 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Loader, AlertCircle, CheckCircle, FileSpreadsheet, Filter, CreditCard, Truck, Package, X } from 'lucide-react';
+import { FileText, Download, Loader, AlertCircle, CheckCircle, FileSpreadsheet, Filter, CreditCard, Truck, Package, X, Eye, Calendar } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 import styles from './InvoiceExportPage.module.css';
-import { INVOICE_ADMIN_FETCH_URL,UPDATE_PAYMENT_URL,UPDATE_ORDER_STATUS_URL } from '../../constants/apiConstants';
+import { INVOICE_ADMIN_FETCH_URL, UPDATE_PAYMENT_URL, UPDATE_ORDER_STATUS_URL } from '../../constants/apiConstants';
 
-// Remark Modal Component
+// Invoice Detail Modal Component
+const InvoiceDetailModal = ({ isOpen, onClose, invoice, onMarkPaid, onDispatch, onDelivered, onCancel, actionLoading }) => {
+  if (!isOpen || !invoice) return null;
+
+  const getAvailableActions = (invoice) => {
+    const actions = [];
+    
+    if (invoice.orderStatus !== 'CANCELLED' && invoice.paymentStatus === 'DUE') {
+      actions.push({
+        type: 'payment',
+        label: 'Mark Paid',
+        icon: CreditCard,
+        handler: () => onMarkPaid(invoice.invoiceId),
+        variant: 'success'
+      });
+    }
+    
+    if (invoice.orderStatus === 'PENDING') {
+      actions.push({
+        type: 'dispatch',
+        label: 'Dispatch',
+        icon: Truck,
+        handler: () => onDispatch(invoice.invoiceId),
+        variant: 'primary'
+      });
+      actions.push({
+        type: 'cancel',
+        label: 'Cancel',
+        icon: X,
+        handler: () => onCancel(invoice.invoiceId),
+        variant: 'danger'
+      });
+    }
+    
+    if (invoice.orderStatus === 'DISPATCHED') {
+      actions.push({
+        type: 'delivered',
+        label: 'Delivered',
+        icon: Package,
+        handler: () => onDelivered(invoice.invoiceId),
+        variant: 'success'
+      });
+      actions.push({
+        type: 'cancel',
+        label: 'Cancel',
+        icon: X,
+        handler: () => onCancel(invoice.invoiceId),
+        variant: 'danger'
+      });
+    }
+    
+    return actions;
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(amount || 0);
+  };
+
+  const getStatusBadgeClass = (status, type) => {
+    if (type === 'payment') {
+      return status === 'PAID' ? styles.statusPaid : styles.statusDue;
+    } else {
+      switch (status) {
+        case 'DELIVERED':
+          return styles.statusDelivered;
+        case 'DISPATCHED':
+          return styles.statusDispatched;
+        case 'CANCELLED':
+          return styles.statusCancelled;
+        default:
+          return styles.statusPending;
+      }
+    }
+  };
+
+  const isActionLoading = (invoiceId) => {
+    if (!invoiceId) return false;
+    return Object.keys(actionLoading).some(key => 
+      key.includes(invoiceId.toString()) && actionLoading[key]
+    );
+  };
+
+  const availableActions = getAvailableActions(invoice);
+
+  return (
+    <div className={styles.detailModalOverlay} onClick={onClose}>
+      <div className={styles.detailModalContent} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className={styles.detailModalHeader}>
+          <div>
+            <h2 className={styles.detailModalTitle}>Invoice Details #{invoice.invoiceId}</h2>
+            <p className={styles.detailModalSubtitle}>
+              Created on {new Date(invoice.creationDate).toLocaleDateString('en-IN')}
+            </p>
+          </div>
+          <button className={styles.detailModalCloseButton} onClick={onClose}>
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className={styles.detailModalBody}>
+          {/* Customer Information */}
+          <div className={styles.detailSection}>
+            <h3 className={styles.detailSectionTitle}>Customer Information</h3>
+            <div className={styles.detailGrid}>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Name:</span>
+                <span className={styles.detailValue}>{invoice.customerName}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Mobile:</span>
+                <span className={styles.detailValue}>{invoice.mobileNo}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>City:</span>
+                <span className={styles.detailValue}>{invoice.city}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>State:</span>
+                <span className={styles.detailValue}>{invoice.state}</span>
+              </div>
+              <div className={styles.detailItemRow}>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Pincode:</span>
+                  <span className={styles.detailValue}>{invoice.pincode}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Delivery Address:</span>
+                  <span className={styles.detailValue}>{invoice.deliveryAddress || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Status & Payment */}
+          <div className={styles.detailSection}>
+            <h3 className={styles.detailSectionTitle}>Status & Payment</h3>
+            <div className={styles.detailGrid}>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Payment Status:</span>
+                <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.paymentStatus, 'payment')}`}>
+                  {invoice.paymentStatus}
+                </span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Order Status:</span>
+                <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.orderStatus, 'order')}`}>
+                  {invoice.orderStatus}
+                </span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Base Amount:</span>
+                <span className={styles.detailValue}>{formatCurrency(invoice.baseAmount)}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Total GST:</span>
+                <span className={styles.detailValue}>{formatCurrency(invoice.totalGstPaid)}</span>
+              </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Total Amount:</span>
+                <span className={styles.detailValueHighlight}>{formatCurrency(invoice.totalAmount)}</span>
+              </div>
+              {invoice.remark && (
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Remark:</span>
+                  <span className={styles.detailValue}>{invoice.remark}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Order Items */}
+          <div className={styles.detailSection}>
+            <h3 className={styles.detailSectionTitle}>
+              Books Ordered ({invoice.orderList?.length || 0} items)
+            </h3>
+            <div className={styles.orderItemsContainer}>
+              {invoice.orderList && invoice.orderList.length > 0 ? (
+                <div className={styles.orderItemsTable}>
+                  <table className={styles.orderTable}>
+                    <thead>
+                      <tr>
+                        <th>Book Name</th>
+                        <th>Author</th>
+                        <th>Qty</th>
+                        <th>MRP</th>
+                        <th>Discount</th>
+                        <th>Base Price</th>
+                        <th>GST%</th>
+                        <th>Price</th>
+                        <th>Amount Before Tax</th>
+                        <th>GST Amount</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoice.orderList.map((order, index) => (
+                        <tr key={order.orderId || index}>
+                          <td>{order.bookName || 'N/A'}</td>
+                          <td>{order.authorName || 'Unknown'}</td>
+                          <td>{order.quantity || 0}</td>
+                          <td>₹{order.mrp || 0}</td>
+                          <td>{order.discount > 0 ? `${order.discount}%` : '-'}</td>
+                          <td>₹{order.basePrice || 0}</td>
+                          <td>{order.gstPercentage || 0}%</td>
+                          <td>₹{order.price || 0}</td>
+                          <td>₹{order.amountBeforeTax || 0}</td>
+                          <td>₹{order.gstPaid || 0}</td>
+                          <td><strong>₹{order.totalAmount || 0}</strong></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className={styles.noOrderItems}>
+                  No order details available
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Action Buttons Footer */}
+        {availableActions.length > 0 && (
+          <div className={styles.detailModalFooter}>
+            <h3 className={styles.detailActionTitle}>Available Actions</h3>
+            <div className={styles.detailActionButtons}>
+              {availableActions.map(action => {
+                const Icon = action.icon;
+                const isLoading = actionLoading[`${action.type}-${invoice.invoiceId}`];
+                
+                return (
+                  <button
+                    key={action.type}
+                    onClick={action.handler}
+                    disabled={isLoading || isActionLoading(invoice.invoiceId)}
+                    className={`${styles.detailActionButton} ${styles[`detailActionButton${action.variant.charAt(0).toUpperCase() + action.variant.slice(1)}`]}`}
+                  >
+                    {isLoading ? (
+                      <Loader className={styles.detailActionButtonSpinner} />
+                    ) : (
+                      <Icon className={styles.detailActionButtonIcon} />
+                    )}
+                    <span>{action.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Remark Modal Component (unchanged)
 const RemarkModal = ({ isOpen, onClose, onSubmit, title, actionType, invoiceId, isLoading }) => {
   const [remark, setRemark] = useState('');
   const [error, setError] = useState('');
@@ -123,16 +382,33 @@ const InvoiceExportPage = () => {
     invoiceId: null,
     onSubmit: null
   });
+
+  // Detail modal state
+  const [detailModal, setDetailModal] = useState({
+    isOpen: false,
+    invoice: null
+  });
   
   // Filter states
   const [filters, setFilters] = useState({
     paymentStatus: 'All',
-    orderStatus: 'All'
+    orderStatus: 'All',
+    startDate: '',
+    endDate: ''
   });
 
-  // Filter options based on enums
   const paymentStatusOptions = ['All', 'DUE', 'PAID'];
   const orderStatusOptions = ['All', 'PENDING', 'DISPATCHED', 'CANCELLED', 'DELIVERED'];
+
+  // Open detail modal
+  const openDetailModal = (invoice) => {
+    setDetailModal({ isOpen: true, invoice });
+  };
+
+  // Close detail modal
+  const closeDetailModal = () => {
+    setDetailModal({ isOpen: false, invoice: null });
+  };
 
   // Get user data from session storage
   const getUserData = () => {
@@ -207,8 +483,8 @@ const InvoiceExportPage = () => {
       
       if (data.status === 'SUCCESS') {
         setSuccess(`Payment status updated successfully for invoice #${invoiceId}`);
-        // Refresh invoices to get updated data
         await fetchInvoices();
+        closeDetailModal(); // Close detail modal on success
       } else if (data.status === 'UNAUTHORIZED') {
         setError('Unauthorized access. Please login again.');
       } else {
@@ -255,8 +531,8 @@ const InvoiceExportPage = () => {
       
       if (data.status === 'SUCCESS') {
         setSuccess(`Order status updated to ${orderStatus.toLowerCase()} for invoice #${invoiceId}`);
-        // Refresh invoices to get updated data
         await fetchInvoices();
+        closeDetailModal(); // Close detail modal on success
         return true;
       } else if (data.status === 'UNAUTHORIZED') {
         setError('Unauthorized access. Please login again.');
@@ -353,62 +629,6 @@ const InvoiceExportPage = () => {
     );
   };
 
-  // Get available actions for an invoice based on business rules
-  const getAvailableActions = (invoice) => {
-    const actions = [];
-    
-    // If invoice is not cancelled and payment is due, show mark as complete
-    if (invoice.orderStatus !== 'CANCELLED' && invoice.paymentStatus === 'DUE') {
-      actions.push({
-        type: 'payment',
-        label: 'Mark Paid',
-        icon: CreditCard,
-        handler: () => handleMarkPaymentComplete(invoice.invoiceId),
-        variant: 'success'
-      });
-    }
-    
-    // If pending - show dispatch and cancel button
-    if (invoice.orderStatus === 'PENDING') {
-      actions.push({
-        type: 'dispatch',
-        label: 'Dispatch',
-        icon: Truck,
-        handler: () => handleDispatch(invoice.invoiceId),
-        variant: 'primary'
-      });
-      actions.push({
-        type: 'cancel',
-        label: 'Cancel',
-        icon: X,
-        handler: () => handleCancel(invoice.invoiceId),
-        variant: 'danger'
-      });
-    }
-    
-    // If dispatched - show delivered and cancel button
-    if (invoice.orderStatus === 'DISPATCHED') {
-      actions.push({
-        type: 'delivered',
-        label: 'Delivered',
-        icon: Package,
-        handler: () => handleDelivered(invoice.invoiceId),
-        variant: 'success'
-      });
-      actions.push({
-        type: 'cancel',
-        label: 'Cancel',
-        icon: X,
-        handler: () => handleCancel(invoice.invoiceId),
-        variant: 'danger'
-      });
-    }
-    
-    // If delivered or cancelled - no action buttons
-    
-    return actions;
-  };
-
   // Fetch all invoices using axios
   const fetchInvoices = async () => {
     setLoading(true);
@@ -436,9 +656,9 @@ const InvoiceExportPage = () => {
       
       if (data.status === 'SUCCESS') {
         setInvoices(data.payload || []);
-        if (!success) { // Only show this message if there's no other success message
+        if (!success) {
           setSuccess(`Successfully loaded ${data.payload?.length || 0} invoices`);
-          setTimeout(() => setSuccess(''), 3000); // Clear after 3 seconds
+          setTimeout(() => setSuccess(''), 3000);
         }
       } else if (data.status === 'UNAUTHORIZED') {
         setError('Unauthorized access. Please login again.');
@@ -463,14 +683,32 @@ const InvoiceExportPage = () => {
   const applyFilters = () => {
     let filtered = invoices;
 
-    // Filter by payment status
     if (filters.paymentStatus !== 'All') {
       filtered = filtered.filter(invoice => invoice.paymentStatus === filters.paymentStatus);
     }
 
-    // Filter by order status
     if (filters.orderStatus !== 'All') {
       filtered = filtered.filter(invoice => invoice.orderStatus === filters.orderStatus);
+    }
+
+    // Date range filter
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate);
+      startDate.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(invoice => {
+        const invoiceDate = new Date(invoice.creationDate);
+        invoiceDate.setHours(0, 0, 0, 0);
+        return invoiceDate >= startDate;
+      });
+    }
+
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(invoice => {
+        const invoiceDate = new Date(invoice.creationDate);
+        return invoiceDate <= endDate;
+      });
     }
 
     setFilteredInvoices(filtered);
@@ -488,48 +726,75 @@ const InvoiceExportPage = () => {
   const resetFilters = () => {
     setFilters({
       paymentStatus: 'All',
-      orderStatus: 'All'
+      orderStatus: 'All',
+      startDate: '',
+      endDate: ''
     });
   };
 
-  // Prepare data for Excel export (using filtered data)
-  const prepareExcelData = () => {
+  // Calculate revenue and GST excluding cancelled orders
+  const getRevenueStats = () => {
+    const nonCancelledInvoices = filteredInvoices.filter(inv => inv.orderStatus !== 'CANCELLED');
+    const totalRevenue = nonCancelledInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+    const totalGST = nonCancelledInvoices.reduce((sum, inv) => sum + (inv.totalGstPaid || 0), 0);
+    
+    return { totalRevenue, totalGST, nonCancelledInvoices };
+  };
+
+  // Prepare data for Excel export - ONLY SUMMARY
+  const prepareSummaryExcelData = () => {
     const excelData = [];
+    const { nonCancelledInvoices } = getRevenueStats();
     
     filteredInvoices.forEach(invoice => {
-      // Combine book names and quantities for single column
-      const bookDetails = invoice.orderList?.map(order => 
-        `${order.bookName} (Qty: ${order.quantity})`
-      ).join('; ') || 'N/A';
-      
-      // Create row with all invoice details
       const row = {
         'Invoice ID': invoice.invoiceId,
         'Customer Name': invoice.customerName,
         'Mobile No': invoice.mobileNo,
-        'Registered Mobile': invoice.customerRegisteredMobileNo,
-        'Delivery Address': invoice.deliveryAddress,
+        'Delivery Address': invoice.deliveryAddress || 'N/A',
         'City': invoice.city,
         'State': invoice.state,
         'Pincode': invoice.pincode,
         'Creation Date': new Date(invoice.creationDate).toLocaleDateString('en-IN'),
-        'Books & Quantities': bookDetails,
-        'Total Amount': `₹${invoice.totalAmount?.toFixed(2) || '0.00'}`,
+        'Base Amount': `₹${(invoice.baseAmount || 0).toFixed(2)}`,
+        'Total GST': `₹${(invoice.totalGstPaid || 0).toFixed(2)}`,
+        'Total Amount': `₹${(invoice.totalAmount || 0).toFixed(2)}`,
         'Payment Status': invoice.paymentStatus,
         'Order Status': invoice.orderStatus,
-        'User ID': invoice.userId,
-        'Remark': invoice.remark || 'N/A',
         'Total Items': invoice.orderList?.length || 0,
-        'Total Quantity': invoice.orderList?.reduce((sum, order) => sum + (order.quantity || 0), 0) || 0
+        'Total Quantity': invoice.orderList?.reduce((sum, order) => sum + (order.quantity || 0), 0) || 0,
+        'Remark': invoice.remark || 'N/A'
       };
       
       excelData.push(row);
     });
     
+    // Add Revenue and GST Collection summary
+    const { totalRevenue, totalGST } = getRevenueStats();
+    excelData.push({});
+    excelData.push({
+      'Invoice ID': 'SUMMARY',
+      'Customer Name': 'Revenue & GST Collection',
+      'Mobile No': '(Excluding Cancelled Orders)',
+      'Delivery Address': '',
+      'City': '',
+      'State': '',
+      'Pincode': '',
+      'Creation Date': '',
+      'Base Amount': '',
+      'Total GST': `₹${totalGST.toFixed(2)}`,
+      'Total Amount': `₹${totalRevenue.toFixed(2)}`,
+      'Payment Status': '',
+      'Order Status': '',
+      'Total Items': '',
+      'Total Quantity': '',
+      'Remark': `Active Orders: ${nonCancelledInvoices.length}`
+    });
+    
     return excelData;
   };
 
-  // Export to Excel (filtered data only)
+  // Export to Excel - ONLY SUMMARY
   const exportToExcel = () => {
     if (filteredInvoices.length === 0) {
       setError('No invoices to export based on current filters');
@@ -541,54 +806,39 @@ const InvoiceExportPage = () => {
     setError('');
 
     try {
-      const excelData = prepareExcelData();
+      const summaryData = prepareSummaryExcelData();
       
-      // Create workbook and worksheet
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
       
-      // Set column widths for better readability
-      const columnWidths = [
-        { wch: 12 }, // Invoice ID
-        { wch: 20 }, // Customer Name
-        { wch: 15 }, // Mobile No
-        { wch: 15 }, // Registered Mobile
-        { wch: 30 }, // Delivery Address
-        { wch: 15 }, // City
-        { wch: 15 }, // State
-        { wch: 10 }, // Pincode
-        { wch: 12 }, // Creation Date
-        { wch: 40 }, // Books & Quantities
-        { wch: 15 }, // Total Amount
-        { wch: 12 }, // Payment Status
-        { wch: 12 }, // Order Status
-        { wch: 12 }, // User ID
-        { wch: 25 }, // Remark
-        { wch: 12 }, // Total Items
-        { wch: 15 }  // Total Quantity
+      const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+      
+      summarySheet['!cols'] = [
+        { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 25 }, 
+        { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, 
+        { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, 
+        { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 25 }
       ];
       
-      worksheet['!cols'] = columnWidths;
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Invoice Summary');
       
-      // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Invoices');
-      
-      // Generate filename with current date and filter info
       const currentDate = new Date().toISOString().split('T')[0];
       let filterSuffix = '';
-      if (filters.paymentStatus !== 'All' || filters.orderStatus !== 'All') {
+      if (filters.paymentStatus !== 'All' || filters.orderStatus !== 'All' || filters.startDate || filters.endDate) {
         const filterParts = [];
         if (filters.paymentStatus !== 'All') filterParts.push(`payment_${filters.paymentStatus.toLowerCase()}`);
         if (filters.orderStatus !== 'All') filterParts.push(`order_${filters.orderStatus.toLowerCase()}`);
+        if (filters.startDate || filters.endDate) {
+          filterParts.push(`date_${filters.startDate || 'start'}_to_${filters.endDate || 'end'}`);
+        }
         filterSuffix = `_${filterParts.join('_')}`;
       }
       
-      const filename = `invoices_export_${currentDate}${filterSuffix}.xlsx`;
+      const filename = `invoice_summary_${currentDate}${filterSuffix}.xlsx`;
       
-      // Save the file
       XLSX.writeFile(workbook, filename);
       
-      setSuccess(`Excel file "${filename}" has been downloaded successfully! (${filteredInvoices.length} invoices exported)`);
+      const { totalRevenue, totalGST } = getRevenueStats();
+      setSuccess(`Excel file "${filename}" downloaded! Revenue: ${formatCurrency(totalRevenue)}, GST: ${formatCurrency(totalGST)} (${filteredInvoices.length} invoices)`);
       clearMessages();
     } catch (err) {
       setError('Failed to export Excel file. Please try again.');
@@ -633,18 +883,7 @@ const InvoiceExportPage = () => {
     }
   };
 
-
-  // Check if any action for this invoice is loading
-const isActionLoading = (invoiceId) => {
-  // Add null check to prevent toString() error
-  if (!invoiceId) {
-    return false;
-  }
-  
-  return Object.keys(actionLoading).some(key => 
-    key.includes(invoiceId.toString()) && actionLoading[key]
-  );
-};
+  const { totalRevenue, totalGST } = getRevenueStats();
 
   return (
     <div className={styles.container}>
@@ -657,7 +896,7 @@ const isActionLoading = (invoiceId) => {
                 <FileSpreadsheet className={styles.titleIcon} />
                 Invoice Export Manager
               </h1>
-              <p className={styles.subtitle}>Export all invoices to Excel with complete details</p>
+              <p className={styles.subtitle}>Export invoice summary and manage orders with detailed modal view</p>
             </div>
             
             <div className={styles.headerActions}>
@@ -676,7 +915,7 @@ const isActionLoading = (invoiceId) => {
                 className={`${styles.button} ${styles.buttonPrimary}`}
               >
                 {exporting ? <Loader className={styles.spinner} /> : <Download className={styles.buttonIcon} />}
-                {exporting ? 'Exporting...' : 'Export to Excel'}
+                {exporting ? 'Exporting...' : 'Export Summary'}
               </button>
             </div>
           </div>
@@ -738,15 +977,45 @@ const isActionLoading = (invoiceId) => {
                 ))}
               </select>
             </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                <Calendar className={styles.dateIcon} />
+                Start Date:
+              </label>
+              <input
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className={styles.filterDateInput}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                <Calendar className={styles.dateIcon} />
+                End Date:
+              </label>
+              <input
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className={styles.filterDateInput}
+                min={filters.startDate}
+              />
+            </div>
           </div>
           
           <div className={styles.filterSummary}>
             Showing {filteredInvoices.length} of {invoices.length} invoices
-            {(filters.paymentStatus !== 'All' || filters.orderStatus !== 'All') && (
+            {(filters.paymentStatus !== 'All' || filters.orderStatus !== 'All' || filters.startDate || filters.endDate) && (
               <span className={styles.filterActive}>
-                {' '}(Filtered: {filters.paymentStatus !== 'All' ? `Payment: ${filters.paymentStatus}` : ''}
-                {filters.paymentStatus !== 'All' && filters.orderStatus !== 'All' ? ', ' : ''}
-                {filters.orderStatus !== 'All' ? `Order: ${filters.orderStatus}` : ''})
+                {' '}(Filtered: {[
+                  filters.paymentStatus !== 'All' ? `Payment: ${filters.paymentStatus}` : '',
+                  filters.orderStatus !== 'All' ? `Order: ${filters.orderStatus}` : '',
+                  filters.startDate ? `From: ${new Date(filters.startDate).toLocaleDateString('en-IN')}` : '',
+                  filters.endDate ? `To: ${new Date(filters.endDate).toLocaleDateString('en-IN')}` : ''
+                ].filter(Boolean).join(', ')})
               </span>
             )}
           </div>
@@ -767,10 +1036,11 @@ const isActionLoading = (invoiceId) => {
           <div className={styles.statCard}>
             <div className={styles.statContent}>
               <div>
-                <p className={styles.statLabel}>Total Revenue</p>
+                <p className={styles.statLabel}>Active Revenue</p>
                 <p className={styles.statValueCurrency}>
-                  {formatCurrency(filteredInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0))}
+                  {formatCurrency(totalRevenue)}
                 </p>
+                <p className={styles.statNote}>Excluding cancelled orders</p>
               </div>
               <div className={styles.currencySymbol}>₹</div>
             </div>
@@ -779,21 +1049,22 @@ const isActionLoading = (invoiceId) => {
           <div className={styles.statCard}>
             <div className={styles.statContent}>
               <div>
-                <p className={styles.statLabel}>Total Items</p>
+                <p className={styles.statLabel}>Active GST Collected</p>
                 <p className={styles.statValuePurple}>
-                  {filteredInvoices.reduce((sum, inv) => sum + (inv.orderList?.reduce((s, order) => s + (order.quantity || 0), 0) || 0), 0)}
+                  {formatCurrency(totalGST)}
                 </p>
+                <p className={styles.statNote}>Excluding cancelled orders</p>
               </div>
               <div className={styles.itemSymbol}>#</div>
             </div>
           </div>
         </div>
 
-        {/* Invoice Preview Table */}
+        {/* Invoice Table */}
         <div className={styles.tableContainer}>
           <div className={styles.tableHeader}>
-            <h2 className={styles.tableTitle}>Invoice Preview</h2>
-            <p className={styles.tableSubtitle}>Preview of filtered invoices that will be exported</p>
+            <h2 className={styles.tableTitle}>Invoice Overview</h2>
+            <p className={styles.tableSubtitle}>Click "View Details" to see complete invoice information and perform actions</p>
           </div>
           
           {loading ? (
@@ -815,119 +1086,84 @@ const isActionLoading = (invoiceId) => {
                   <tr>
                     <th className={styles.th}>Invoice ID</th>
                     <th className={styles.th}>Customer</th>
-                    <th className={styles.th}>Books & Quantities</th>
-                    <th className={styles.th}>Amount</th>
+                    <th className={styles.th}>Total Amount</th>
                     <th className={styles.th}>Payment Status</th>
                     <th className={styles.th}>Order Status</th>
-                    <th className={styles.th}>Address</th>
                     <th className={styles.th}>Date</th>
                     <th className={styles.th}>Actions</th>
                   </tr>
                 </thead>
                 <tbody className={styles.tableBody}>
-                  {filteredInvoices.slice(0, 10).map((invoice) => {
-                    const availableActions = getAvailableActions(invoice);
-                    
-                    return (
-                      <tr key={invoice.invoiceId} className={styles.tableRow}>
-                        <td className={styles.td}>#{invoice.invoiceId}</td>
-                        <td className={styles.td}>
-                          <div>
-                            <div className={styles.customerName}>{invoice.customerName}</div>
-                            <div className={styles.customerLocation}>{invoice.city}, {invoice.state}</div>
+                  {filteredInvoices.slice(0, 20).map((invoice) => (
+                    <tr key={invoice.invoiceId} className={styles.tableRow}>
+                      <td className={styles.td}>#{invoice.invoiceId}</td>
+                      <td className={styles.td}>
+                        <div>
+                          <div className={styles.customerName}>{invoice.customerName}</div>
+                          <div className={styles.customerMobile}>{invoice.mobileNo}</div>
+                          <div className={styles.customerLocation}>{invoice.city}, {invoice.state}</div>
+                        </div>
+                      </td>
+                      <td className={styles.td}>
+                        <div className={styles.amountBreakdown}>
+                          <div className={styles.amountTotal}>{formatCurrency(invoice.totalAmount)}</div>
+                          <div className={styles.amountSubtext}>
+                            Base: {formatCurrency(invoice.baseAmount)} + GST: {formatCurrency(invoice.totalGstPaid)}
                           </div>
-                        </td>
-                        <td className={styles.td}>
-                          <div className={styles.booksColumn}>
-                            {invoice.orderList?.map(order => (
-                              <div key={order.orderId} className={styles.bookItem}>
-                                {order.bookName} (Qty: {order.quantity})
-                              </div>
-                            )) || 'N/A'}
-                          </div>
-                        </td>
-                        <td className={styles.td}>
-                          <span className={styles.amount}>{formatCurrency(invoice.totalAmount)}</span>
-                        </td>
-                        <td className={styles.td}>
-                          <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.paymentStatus, 'payment')}`}>
-                            {invoice.paymentStatus}
-                          </span>
-                        </td>
-                        <td className={styles.td}>
-                          <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.orderStatus, 'order')}`}>
-                            {invoice.orderStatus}
-                          </span>
-                        </td>
-                        <td className={styles.td}>
-                          <div className={styles.addressColumn}>
-                            <div className={styles.addressLine}>{invoice.deliveryAddress || 'N/A'}</div>
-                            <div className={styles.addressLocation}>{invoice.city}, {invoice.state}</div>
-                          </div>
-                        </td>
-                        <td className={styles.td}>
-                          <span className={styles.date}>
-                            {new Date(invoice.creationDate).toLocaleDateString('en-IN')}
-                          </span>
-                        </td>
-                        <td className={styles.td}>
-                          {availableActions.length > 0 ? (
-                            <div className={styles.actionButtons}>
-                              {availableActions.map(action => {
-                                const Icon = action.icon;
-                                const isLoading = actionLoading[`${action.type}-${invoice.invoiceId}`];
-                                
-                                return (
-                                  <button
-                                    key={action.type}
-                                    onClick={action.handler}
-                                    disabled={isLoading}
-                                    className={`${styles.actionButton} ${styles[`actionButton${action.variant.charAt(0).toUpperCase() + action.variant.slice(1)}`]}`}
-                                    title={action.label}
-                                  >
-                                    {isLoading ? (
-                                      <Loader className={styles.actionButtonSpinner} />
-                                    ) : (
-                                      <Icon className={styles.actionButtonIcon} />
-                                    )}
-                                    <span className={styles.actionButtonLabel}>{action.label}</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <span className={styles.noActions}>No actions available</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                        </div>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.paymentStatus, 'payment')}`}>
+                          {invoice.paymentStatus}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={`${styles.statusBadge} ${getStatusBadgeClass(invoice.orderStatus, 'order')}`}>
+                          {invoice.orderStatus}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={styles.date}>
+                          {new Date(invoice.creationDate).toLocaleDateString('en-IN')}
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <button
+                          onClick={() => openDetailModal(invoice)}
+                          className={styles.viewDetailsButton}
+                        >
+                          <Eye className={styles.viewDetailsIcon} />
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
               
-              {filteredInvoices.length > 10 && (
+              {filteredInvoices.length > 20 && (
                 <div className={styles.tableFooter}>
-                  ... and {filteredInvoices.length - 10} more invoices (showing first 10)
+                  ... and {filteredInvoices.length - 20} more invoices (showing first 20)
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Export Information */}
-        <div className={styles.exportInfo}>
-          <h3 className={styles.exportInfoTitle}>Excel Export Information</h3>
-          <div className={styles.exportInfoList}>
-            <p>• Exports only the currently filtered invoices ({filteredInvoices.length} invoices)</p>
-            <p>• All invoice details including customer information, delivery address, and payment status</p>
-            <p>• Book names and quantities combined in a single column format: "Book Name (Qty: X)"</p>
-            <p>• Multiple books separated by semicolons for easy reading</p>
-            <p>• Financial data formatted in Indian Rupees</p>
-            <p>• Dates formatted in Indian format (DD/MM/YYYY)</p>
-            <p>• File name includes applied filters for easy identification</p>
-          </div>
-        </div>
+
       </div>
+
+      {/* Invoice Detail Modal */}
+      <InvoiceDetailModal
+        isOpen={detailModal.isOpen}
+        onClose={closeDetailModal}
+        invoice={detailModal.invoice}
+        onMarkPaid={handleMarkPaymentComplete}
+        onDispatch={handleDispatch}
+        onDelivered={handleDelivered}
+        onCancel={handleCancel}
+        actionLoading={actionLoading}
+      />
 
       {/* Remark Modal */}
       <RemarkModal
@@ -937,7 +1173,7 @@ const isActionLoading = (invoiceId) => {
         title={modalState.title}
         actionType={modalState.actionType}
         invoiceId={modalState.invoiceId}
-        isLoading={isActionLoading(modalState.invoiceId)}
+        isLoading={Object.values(actionLoading).some(loading => loading)}
       />
     </div>
   );

@@ -8,11 +8,35 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
-    name: '', // Changed from fullName to match backend User model
+    name: '',
     emailId: '',
     password: '',
     mobileNo: ''
   });
+
+  // Load Bootstrap CSS and Icons
+  useEffect(() => {
+    const loadBootstrap = () => {
+      if (document.getElementById('bootstrap-css')) return;
+      const link = document.createElement('link');
+      link.id = 'bootstrap-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+      document.head.appendChild(link);
+    };
+
+    const loadBootstrapIcons = () => {
+      if (document.getElementById('bootstrap-icons')) return;
+      const link = document.createElement('link');
+      link.id = 'bootstrap-icons';
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css';
+      document.head.appendChild(link);
+    };
+
+    loadBootstrap();
+    loadBootstrapIcons();
+  }, []);
 
   // Reset form on close
   const resetForm = () => {
@@ -28,6 +52,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   };
 
   const handleClose = () => {
+    console.log('Close button clicked!'); // Debug log
     resetForm();
     onClose();
   };
@@ -53,56 +78,52 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   };
 
   const validateName = (name) => {
-    return name && name[0] === name[0].toUpperCase();
+    return name && name.trim().length > 0 && name[0] === name[0].toUpperCase();
   };
 
   const validatePhoneNumber = (phone) => {
-    const pattern = /^\d{10}$/;
+    const pattern = /^[6-9]\d{9}$/;
     return pattern.test(phone);
-  };
-
-  const validateField = (name, value) => {
-    let error = "";
-    switch (name) {
-      case "name": // Changed from fullName to name
-        if (!validateName(value)) error = "Name must start with a capital letter.";
-        break;
-      case "emailId":
-        if (!validateEmail(value)) error = "Email must be in the format: example@gmail.com";
-        break;
-      case "password":
-        if (!validatePassword(value)) error = "Password must be at least 8 characters with uppercase, lowercase, number, and special char.";
-        break;
-      case "mobileNo":
-        if (!validatePhoneNumber(value)) error = "Phone Number must be exactly 10 digits.";
-        break;
-      default:
-        break;
-    }
-    setFormError(prev => ({ ...prev, [name]: error }));
-    return error === "";
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Validate on change
-    if (formError[name]) validateField(name, value);
+    
+    if (formError[name]) {
+      setFormError(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const validateForm = () => {
     const errors = {};
-    let isValid = true;
-    for (const [key, value] of Object.entries(formData)) {
-      if (!value) {
-        errors[key] = "This field is required.";
-        isValid = false;
-      } else if (!validateField(key, value)) {
-        isValid = false;
-      }
+
+    if (!formData.name) {
+      errors.name = "Full name is required.";
+    } else if (!validateName(formData.name)) {
+      errors.name = "Name must start with a capital letter.";
     }
+
+    if (!formData.emailId) {
+      errors.emailId = "Email is required.";
+    } else if (!validateEmail(formData.emailId)) {
+      errors.emailId = "Please enter a valid email address.";
+    }
+
+    if (!formData.password) {
+      errors.password = "Password is required.";
+    } else if (!validatePassword(formData.password)) {
+      errors.password = "Password must be at least 8 characters with uppercase, lowercase, number, and special character.";
+    }
+
+    if (!formData.mobileNo) {
+      errors.mobileNo = "Mobile number is required.";
+    } else if (!validatePhoneNumber(formData.mobileNo)) {
+      errors.mobileNo = "Please enter a valid 10-digit mobile number.";
+    }
+
     setFormError(errors);
-    return isValid;
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -123,137 +144,242 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
         }
       });
 
-      // Check if response indicates success
-      if (response.data) {
-        setSuccessMessage("User registered successfully! Please contact admin for account activation.");
+      if (response.data.status === 'SUCCESS') {
+        
         resetForm();
+        setSuccessMessage("User registered successfully!");
       } else {
-        setFormError({ general: "Registration failed. Please try again." });
+        setFormError({ general: response.data.message });
       }
     } catch (error) {
-      // Handle different types of errors
+      console.error('Registration error:', error);
+      
+      let errorMessage = "Registration failed. Please try again.";
+      
       if (error.response) {
-        // Server responded with error status
-        const errorData = error.response.data;
-        const errMsg = errorData?.message || errorData?.error || `Registration failed: ${error.response.status}`;
-        setFormError({ general: errMsg });
+        if (error.response.status === 409) {
+          errorMessage = "User already exists with this email or mobile number.";
+        } else if (error.response.status === 400) {
+          errorMessage = "Please check your information and try again.";
+        } else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        }
       } else if (error.request) {
-        // Network error
-        setFormError({ general: "Network error. Please check your connection and try again." });
-      } else {
-        // Other error
-        setFormError({ general: "An unexpected error occurred. Please try again." });
+        errorMessage = "Network error. Please check your connection and try again.";
       }
+      
+      setFormError({ general: errorMessage });
     } finally {
       setLoadingSubmit(false);
+    }
+  };
+
+  // Close modal when clicking on overlay
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay}>
-      <div className={`${styles.modal} ${Object.keys(formError).length > 0 ? styles.modalWithErrors : ''}`}>
-        <button className={styles.closeButton} onClick={handleClose} aria-label="Close modal">
-          ×
-        </button>
-
-        <div className={styles.header}>
-          <div className={styles.logo}>
-            <span className={styles.logoIcon}>📚</span>
-            <span className={styles.logoText}>ShahKart</span>
-          </div>
-        </div>
-
-        {successMessage && <div className={styles.successMessage} role="alert">{successMessage}</div>}
-        {formError.general && <div className={styles.errorMessage} role="alert">{formError.general}</div>}
-
-        <form onSubmit={handleSubmit} className={styles.form} noValidate>
-          <div className={styles.inputGroup}>
-            <span className={styles.inputIcon}>👤</span>
-            <input
-              type="text"
-              name="name" // Changed from fullName to name
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={handleChange}
-              className={`${styles.input} ${formError.name ? styles.inputError : ''}`}
-              required
-              aria-invalid={!!formError.name}
-              aria-describedby={formError.name ? "name-error" : undefined}
-            />
-            {formError.name && <div id="name-error" className={styles.fieldErrorMessage} role="alert">{formError.name}</div>}
-          </div>
-
-          <div className={styles.inputGroup}>
-            <span className={styles.inputIcon}>📧</span>
-            <input
-              type="email"
-              name="emailId"
-              placeholder="Email"
-              value={formData.emailId}
-              onChange={handleChange}
-              className={`${styles.input} ${formError.emailId ? styles.inputError : ''}`}
-              required
-              aria-invalid={!!formError.emailId}
-              aria-describedby={formError.emailId ? "email-error" : undefined}
-            />
-            {formError.emailId && <div id="email-error" className={styles.fieldErrorMessage} role="alert">{formError.emailId}</div>}
-          </div>
-
-          <div className={styles.inputGroup}>
-            <span className={styles.inputIcon}>🔑</span>
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`${styles.input} ${formError.password ? styles.inputError : ''}`}
-              required
-              aria-invalid={!!formError.password}
-              aria-describedby={formError.password ? "password-error" : undefined}
-            />
-            {formError.password && <div id="password-error" className={styles.fieldErrorMessage} role="alert">{formError.password}</div>}
-          </div>
-
-          <div className={styles.inputGroup}>
-            <span className={styles.inputIcon}>📱</span>
-            <input
-              type="tel"
-              name="mobileNo"
-              placeholder="Phone Number"
-              value={formData.mobileNo}
-              onChange={handleChange}
-              className={`${styles.input} ${formError.mobileNo ? styles.inputError : ''}`}
-              required
-              aria-invalid={!!formError.mobileNo}
-              aria-describedby={formError.mobileNo ? "phone-error" : undefined}
-            />
-            {formError.mobileNo && <div id="phone-error" className={styles.fieldErrorMessage} role="alert">{formError.mobileNo}</div>}
-          </div>
-
-          <button
-            type="submit"
-            disabled={loadingSubmit}
-            className={styles.submitButton}
-            aria-busy={loadingSubmit}
-          >
-            {loadingSubmit ? "Loading..." : "Register"}
-          </button>
-        </form>
-
-        <div className={styles.footer}>
-          <span className={styles.switchText}>
-            Already have an Account?
-            <button
-              className={styles.switchButton}
-              onClick={onSwitchToLogin}
-              type="button"
+    <div className={styles.modalOverlay} onClick={handleOverlayClick}>
+      <div className={styles.modalContainer}>
+        <div className={styles.modalContent}>
+          {/* Header */}
+          <div className={styles.modalHeader}>
+            <button 
+              type="button" 
+              className={styles.closeBtn}
+              onClick={handleClose}
+              aria-label="Close modal"
             >
-              Login
+              <i className="bi bi-x"></i>
             </button>
-          </span>
+            
+            <div className={styles.logoSection}>
+              <div className={styles.logoIcon}>
+                <i className="bi bi-book-fill"></i>
+              </div>
+              <h2 className={styles.logoTitle}>ShahKart</h2>
+              <p className={styles.logoSubtitle}>Create your account</p>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className={styles.modalBody}>
+            {/* Success Message */}
+            {successMessage && (
+              <div className={`${styles.alert} ${styles.alertSuccess}`}>
+                <i className="bi bi-check-circle-fill"></i>
+                <span>{successMessage}</span>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {formError.general && (
+              <div className={`${styles.alert} ${styles.alertError}`}>
+                <i className="bi bi-exclamation-triangle-fill"></i>
+                <span>{formError.general}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className={styles.form}>
+              {/* Full Name */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  <i className="bi bi-person-fill"></i>
+                  Full Name
+                </label>
+                <div className={styles.inputGroup}>
+                  <input
+                    type="text"
+                    className={`${styles.input} ${formError.name ? styles.inputError : ''}`}
+                    name="name"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    autoComplete="name"
+                  />
+                  <div className={styles.inputIcon}>
+                    <i className="bi bi-person-circle"></i>
+                  </div>
+                </div>
+                {formError.name && (
+                  <div className={styles.errorMessage}>
+                    <i className="bi bi-exclamation-circle-fill"></i>
+                    {formError.name}
+                  </div>
+                )}
+              </div>
+
+              {/* Email and Mobile Row */}
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    <i className="bi bi-envelope-fill"></i>
+                    Email
+                  </label>
+                  <div className={styles.inputGroup}>
+                    <input
+                      type="email"
+                      className={`${styles.input} ${formError.emailId ? styles.inputError : ''}`}
+                      name="emailId"
+                      placeholder="Enter email"
+                      value={formData.emailId}
+                      onChange={handleChange}
+                      autoComplete="email"
+                    />
+                    <div className={styles.inputIcon}>
+                      <i className="bi bi-at"></i>
+                    </div>
+                  </div>
+                  {formError.emailId && (
+                    <div className={styles.errorMessage}>
+                      <i className="bi bi-exclamation-circle-fill"></i>
+                      {formError.emailId}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    <i className="bi bi-phone-fill"></i>
+                    Mobile
+                  </label>
+                  <div className={styles.inputGroup}>
+                    <input
+                      type="tel"
+                      className={`${styles.input} ${formError.mobileNo ? styles.inputError : ''}`}
+                      name="mobileNo"
+                      placeholder="10-digit number"
+                      value={formData.mobileNo}
+                      onChange={handleChange}
+                      autoComplete="tel"
+                      maxLength="10"
+                    />
+                    <div className={styles.inputIcon}>
+                      <i className="bi bi-telephone-fill"></i>
+                    </div>
+                  </div>
+                  {formError.mobileNo && (
+                    <div className={styles.errorMessage}>
+                      <i className="bi bi-exclamation-circle-fill"></i>
+                      {formError.mobileNo}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  <i className="bi bi-lock-fill"></i>
+                  Password
+                </label>
+                <div className={styles.inputGroup}>
+                  <input
+                    type="password"
+                    className={`${styles.input} ${formError.password ? styles.inputError : ''}`}
+                    name="password"
+                    placeholder="Create a strong password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                  />
+                  <div className={styles.inputIcon}>
+                    <i className="bi bi-key-fill"></i>
+                  </div>
+                </div>
+                {formError.password && (
+                  <div className={styles.errorMessage}>
+                    <i className="bi bi-exclamation-circle-fill"></i>
+                    {formError.password}
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <button 
+                type="submit" 
+                className={`${styles.submitBtn} ${loadingSubmit ? styles.loading : ''}`}
+                disabled={loadingSubmit}
+              >
+                {loadingSubmit ? (
+                  <>
+                    <div className={styles.spinner}></div>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-person-plus"></i>
+                    Create Account
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Footer */}
+            <div className={styles.footer}>
+              <p className={styles.footerText}>
+                Already have an account? 
+                <button 
+                  type="button"
+                  className={styles.linkBtn}
+                  onClick={onSwitchToLogin}
+                >
+                  Sign In
+                </button>
+              </p>
+              
+              <div className={styles.termsText}>
+                <i className="bi bi-shield-check"></i>
+                By creating an account, you agree to our Terms of Service
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@
 .container {
   min-height: auto;
   padding: 20px;
+  margin-top: 50px;
   background: #f8fafc;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -154,6 +155,25 @@
 .categoryCard:hover .categoryTitle {
   color: #3b82f6;
 }
+
+.categoryHeading {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 16px;
+  text-align: center; /* Fixes centering */
+}
+
+.categorySubHeading {
+  font-size: 1.2rem;
+  color: #64748b;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+  text-align: center; /* Ensures text is centered */
+  padding-bottom: 10px;
+}
+
 
 /* Category Count - UPDATED */
 .categoryCount {

@@ -1,3 +1,126 @@
+/* Top Contact Bar Styles */
+.topBar {
+  background: linear-gradient(135deg, #1e293b, #334155);
+  color: white;
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #475569;
+}
+
+.topBarContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.contactInfo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e2e8f0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.contactItem:hover {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+.topBarSocialIcons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topBarSocialIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #e2e8f0;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.topBarSocialIcon:hover {
+  transform: translateY(-1px);
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Specific social media brand colors on hover for top bar */
+.topBarSocialIcon:nth-child(1):hover { /* Facebook */
+  background-color: #1877f2;
+  color: white;
+  border-color: #1877f2;
+}
+
+.topBarSocialIcon:nth-child(2):hover { /* Instagram */
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.topBarSocialIcon:nth-child(3):hover { /* X (Twitter) */
+  background-color: #000000;
+  color: white;
+  border-color: #000000;
+}
+
+.topBarSocialIcon:nth-child(4):hover { /* WhatsApp */
+  background-color: #25d366;
+  color: white;
+  border-color: #25d366;
+}
+
+/* Mobile responsive adjustments for top bar */
+@media (max-width: 768px) {
+  .topBar {
+    padding: 6px 0;
+    font-size: 12px;
+  }
+  
+  .topBarContent {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .contactInfo {
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .topBarSocialIcon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 576px) {
+  .contactInfo {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .topBarSocialIcon {
+    width: 30px;
+    height: 30px;
+  }
+}
+
 /* Header Styles */
 .header {
   background-color: #fff;
@@ -5,7 +128,6 @@
   position: sticky; 
   top: 0;
   z-index: 990;
-  margin-top: -30px;
   margin-bottom: 25px;
 }
 

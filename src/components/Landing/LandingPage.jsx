@@ -48,33 +48,33 @@ const LandingPage = () => {
     fetchStats();
   }, []);
 
-  // Function to get cached book image from session storage
-  const getCachedImage = (bookId) => {
+  // Function to get cached book images from session storage
+  const getCachedBookImages = (bookId) => {
     try {
       const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
-      return cachedImages[bookId] || null;
+      return cachedImages[bookId] || [];
     } catch (error) {
-      console.error("Error reading cached images:", error);
-      return null;
+      console.error("Error reading cached book images:", error);
+      return [];
     }
   };
 
-  // Function to cache book image in session storage
-  const cacheImage = (bookId, imageData) => {
+  // Function to cache book images in session storage
+  const cacheBookImages = (bookId, imagesData) => {
     try {
       const cachedImages = JSON.parse(sessionStorage.getItem("bookImages") || "{}");
-      cachedImages[bookId] = imageData;
+      cachedImages[bookId] = imagesData;
       sessionStorage.setItem("bookImages", JSON.stringify(cachedImages));
     } catch (error) {
-      console.error("Error caching image:", error);
+      console.error("Error caching book images:", error);
       // If storage is full, clear old cache and try again
       if (error.name === 'QuotaExceededError') {
         try {
           sessionStorage.removeItem("bookImages");
-          const newCache = { [bookId]: imageData };
+          const newCache = { [bookId]: imagesData };
           sessionStorage.setItem("bookImages", JSON.stringify(newCache));
         } catch (e) {
-          console.error("Failed to cache image even after clearing:", e);
+          console.error("Failed to cache book images even after clearing:", e);
         }
       }
     }
@@ -109,6 +109,98 @@ const LandingPage = () => {
           console.error("Failed to cache category image even after clearing:", e);
         }
       }
+    }
+  };
+
+  // Function to fetch single image by imageId
+  const fetchSingleImageById = async (imageId) => {
+    try {
+      const imageResponse = await axios.get(`${BOOK_IMAGE_FETCH_URL}?imageId=${imageId}`, {
+        responseType: 'blob',
+        timeout: 15000 // 15 second timeout
+      });
+
+      const blob = imageResponse.data;
+      
+      // Convert blob to base64 for caching
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result;
+          resolve(base64data);
+        };
+        reader.onerror = () => {
+          console.warn(`Failed to convert image to base64 for imageId ${imageId}`);
+          resolve(null);
+        };
+        reader.readAsDataURL(blob);
+      });
+
+    } catch (error) {
+      console.warn(`Failed to load image for imageId ${imageId}:`, error.message);
+      return null;
+    }
+  };
+
+  // Function to fetch all images for a single book
+  const fetchAllBookImages = async (book) => {
+    try {
+      // First check cache
+      const cachedImages = getCachedBookImages(book.bookId);
+      if (cachedImages.length > 0) {
+        return {
+          ...book,
+          allImages: cachedImages,
+          coverImageUrl: cachedImages.find(img => img.imageType === 'COVER')?.imageUrl || cachedImages[0]?.imageUrl || null
+        };
+      }
+
+      // Fetch all images for this book if not cached
+      const bookImageList = book.bookImageList || [];
+      if (bookImageList.length === 0) {
+        // No images available
+        return {
+          ...book,
+          allImages: [],
+          coverImageUrl: null
+        };
+      }
+
+      // Fetch all images
+      const imagePromises = bookImageList.map(async (imageInfo) => {
+        const imageData = await fetchSingleImageById(imageInfo.imageId);
+        return {
+          imageId: imageInfo.imageId,
+          fileName: imageInfo.fileName,
+          imageType: imageInfo.imageType,
+          imageUrl: imageData
+        };
+      });
+
+      const allImages = await Promise.all(imagePromises);
+      
+      // Filter out failed image loads
+      const validImages = allImages.filter(img => img.imageUrl !== null);
+      
+      // Cache the images
+      cacheBookImages(book.bookId, validImages);
+      
+      // Find cover image or use first available
+      const coverImage = validImages.find(img => img.imageType === 'COVER') || validImages[0];
+      
+      return {
+        ...book,
+        allImages: validImages,
+        coverImageUrl: coverImage?.imageUrl || null
+      };
+
+    } catch (error) {
+      console.warn(`Failed to load images for book ${book.bookId}:`, error.message);
+      return {
+        ...book,
+        allImages: [],
+        coverImageUrl: null
+      };
     }
   };
 
@@ -202,59 +294,6 @@ const LandingPage = () => {
     }
   };
 
-  // Function to fetch single book image
-  const fetchSingleBookImage = async (book) => {
-    try {
-      // First check cache
-      const cachedImage = getCachedImage(book.bookId);
-      if (cachedImage) {
-        return {
-          ...book,
-          coverImageUrl: cachedImage
-        };
-      }
-
-      // Fetch from server if not cached
-      const imageResponse = await axios.get(`${BOOK_IMAGE_FETCH_URL}?bookId=${book.bookId}`, {
-        responseType: 'blob',
-        timeout: 15000 // 15 second timeout
-      });
-
-      const blob = imageResponse.data;
-      
-      // Convert blob to base64 for caching
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64data = reader.result;
-          
-          // Cache the image
-          cacheImage(book.bookId, base64data);
-          
-          resolve({
-            ...book,
-            coverImageUrl: base64data
-          });
-        };
-        reader.onerror = () => {
-          console.warn(`Failed to convert image to base64 for book ${book.bookId}`);
-          resolve({
-            ...book,
-            coverImageUrl: null
-          });
-        };
-        reader.readAsDataURL(blob);
-      });
-
-    } catch (error) {
-      console.warn(`Failed to load image for book ${book.bookId}:`, error.message);
-      return {
-        ...book,
-        coverImageUrl: null
-      };
-    }
-  };
-
   // Function to load book images one by one with progress tracking
   const loadBookImagesSequentially = async (books) => {
     if (!books || books.length === 0) return books;
@@ -271,25 +310,28 @@ const LandingPage = () => {
         const book = books[i];
         
         // Check cache first
-        const cachedImage = getCachedImage(book.bookId);
+        const cachedImages = getCachedBookImages(book.bookId);
         
-        if (cachedImage) {
-          // Use cached image
+        if (cachedImages.length > 0) {
+          // Use cached images
+          const coverImage = cachedImages.find(img => img.imageType === 'COVER') || cachedImages[0];
           booksWithImages.push({
             ...book,
-            coverImageUrl: cachedImage
+            allImages: cachedImages,
+            coverImageUrl: coverImage?.imageUrl || null
           });
           cachedCount++;
         } else {
           // Fetch from server
           try {
-            const bookWithImage = await fetchSingleBookImage(book);
-            booksWithImages.push(bookWithImage);
+            const bookWithImages = await fetchAllBookImages(book);
+            booksWithImages.push(bookWithImages);
             fetchedCount++;
           } catch (error) {
-            console.warn(`Failed to process image for book ${book.bookId}:`, error);
+            console.warn(`Failed to process images for book ${book.bookId}:`, error);
             booksWithImages.push({
               ...book,
+              allImages: [],
               coverImageUrl: null
             });
           }
@@ -305,15 +347,20 @@ const LandingPage = () => {
         }
       }
 
-      console.log(`Image loading complete: ${cachedCount} from cache, ${fetchedCount} fetched from server`);
+      console.log(`Book image loading complete: ${cachedCount} from cache, ${fetchedCount} fetched from server`);
       return booksWithImages;
 
     } catch (error) {
-      console.error("Error in sequential image loading:", error);
-      return books.map(book => ({
-        ...book,
-        coverImageUrl: getCachedImage(book.bookId) || null
-      }));
+      console.error("Error in sequential book image loading:", error);
+      return books.map(book => {
+        const cachedImages = getCachedBookImages(book.bookId);
+        const coverImage = cachedImages.find(img => img.imageType === 'COVER') || cachedImages[0];
+        return {
+          ...book,
+          allImages: cachedImages,
+          coverImageUrl: coverImage?.imageUrl || null
+        };
+      });
     } finally {
       setImageLoading(false);
       setImageLoadingProgress(0);
@@ -334,21 +381,31 @@ const LandingPage = () => {
       // Load priority images first
       const priorityBooksWithImages = await Promise.all(
         priorityBooks.map(async (book) => {
-          const cachedImage = getCachedImage(book.bookId);
-          if (cachedImage) {
-            return { ...book, coverImageUrl: cachedImage };
+          const cachedImages = getCachedBookImages(book.bookId);
+          if (cachedImages.length > 0) {
+            const coverImage = cachedImages.find(img => img.imageType === 'COVER') || cachedImages[0];
+            return { 
+              ...book, 
+              allImages: cachedImages,
+              coverImageUrl: coverImage?.imageUrl || null 
+            };
           }
-          return await fetchSingleBookImage(book);
+          return await fetchAllBookImages(book);
         })
       );
 
       // Update state with priority books immediately
       const initialBooksWithImages = [
         ...priorityBooksWithImages,
-        ...remainingBooks.map(book => ({ 
-          ...book, 
-          coverImageUrl: getCachedImage(book.bookId) || null 
-        }))
+        ...remainingBooks.map(book => {
+          const cachedImages = getCachedBookImages(book.bookId);
+          const coverImage = cachedImages.find(img => img.imageType === 'COVER') || cachedImages[0];
+          return { 
+            ...book, 
+            allImages: cachedImages,
+            coverImageUrl: coverImage?.imageUrl || null 
+          };
+        })
       ];
 
       setAllBooks(initialBooksWithImages);
@@ -359,11 +416,16 @@ const LandingPage = () => {
       if (remainingBooks.length > 0) {
         const remainingBooksWithImages = await Promise.all(
           remainingBooks.map(async (book) => {
-            const cachedImage = getCachedImage(book.bookId);
-            if (cachedImage) {
-              return { ...book, coverImageUrl: cachedImage };
+            const cachedImages = getCachedBookImages(book.bookId);
+            if (cachedImages.length > 0) {
+              const coverImage = cachedImages.find(img => img.imageType === 'COVER') || cachedImages[0];
+              return { 
+                ...book, 
+                allImages: cachedImages,
+                coverImageUrl: coverImage?.imageUrl || null 
+              };
             }
-            return await fetchSingleBookImage(book);
+            return await fetchAllBookImages(book);
           })
         );
 
@@ -383,10 +445,15 @@ const LandingPage = () => {
 
     } catch (error) {
       console.error("Error in priority image loading:", error);
-      return books.map(book => ({
-        ...book,
-        coverImageUrl: getCachedImage(book.bookId) || null
-      }));
+      return books.map(book => {
+        const cachedImages = getCachedBookImages(book.bookId);
+        const coverImage = cachedImages.find(img => img.imageType === 'COVER') || cachedImages[0];
+        return {
+          ...book,
+          allImages: cachedImages,
+          coverImageUrl: coverImage?.imageUrl || null
+        };
+      });
     } finally {
       setImageLoading(false);
     }
@@ -415,11 +482,16 @@ const LandingPage = () => {
             imageUrl: getCachedCategoryImage(category.categoryId) || category.imageUrl
           }));
           
-          // Verify cached books
-          const validCachedBooks = bookData.map(book => ({
-            ...book,
-            coverImageUrl: getCachedImage(book.bookId) || book.coverImageUrl
-          }));
+          // Verify cached books and restore image data
+          const validCachedBooks = bookData.map(book => {
+            const cachedImages = getCachedBookImages(book.bookId);
+            const coverImage = cachedImages.find(img => img.imageType === 'COVER') || cachedImages[0];
+            return {
+              ...book,
+              allImages: cachedImages,
+              coverImageUrl: coverImage?.imageUrl || book.coverImageUrl
+            };
+          });
           
           if (validCachedCategories.length > 0 && validCachedBooks.length > 0) {
             setCategories(validCachedCategories);
@@ -581,7 +653,7 @@ const LandingPage = () => {
       const categoryCacheSize = JSON.stringify(cachedCategoryImages).length;
       const totalCacheSize = bookCacheSize + categoryCacheSize;
       
-      const bookImageCount = Object.keys(cachedBookImages).length;
+      const bookImageCount = Object.values(cachedBookImages).reduce((total, images) => total + images.length, 0);
       const categoryImageCount = Object.keys(cachedCategoryImages).length;
       
       console.log(`Book images cache: ${bookImageCount} images, ${(bookCacheSize / 1024 / 1024).toFixed(2)} MB`);
@@ -628,15 +700,13 @@ const LandingPage = () => {
         <Discovery />
       </div>
 
-      
-
       {/* Loading indicator for images */}
       {(imageLoading || categoryImageLoading) && (
         <div className={styles.imageLoadingIndicator}>
           <div className={styles.loadingContent}>
             <p>
               {categoryImageLoading && "Loading category images..."}
-              {imageLoading && `Loading book covers... ${imageLoadingProgress > 0 ? `${imageLoadingProgress}%` : ''}`}
+              {imageLoading && `Loading book images... ${imageLoadingProgress > 0 ? `${imageLoadingProgress}%` : ''}`}
             </p>
             {imageLoading && imageLoadingProgress > 0 && (
               <div className={styles.progressBar}>
@@ -667,37 +737,26 @@ const LandingPage = () => {
       />
 
       {/* Categories Section */}
-      <section id="categories" className={styles.categoriesSection}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Browse by Category</h2>
-          <p className={styles.sectionSubtitle}>Find your favorite genre and discover new worlds</p>
-        </div>
+      <div id="categories" className={styles.categoriesSection}>
         <CategoriesView 
           categories={categories} 
           books={previewBooks}
           onCategoryClick={handleCategoryClick} 
         />
-      </section>
+      </div>
 
       {/* Books Preview Section */}
-      <section className={styles.booksPreviewSection}>
-  
+      <div className={styles.booksPreviewSection}>
         <BookViewCard 
           books={previewBooks}
           loading={loading}
           error={error}
           showPagination={false}
         />
-        <div className={styles.sectionFooter}>
-          <button className={styles.viewAllButton} onClick={handleExploreBooks}>
-            View All {stats.totalBooks} Books
-            <ArrowRight size={18} />
-          </button>
-        </div>
-      </section>
+      </div>
 
       {/* Why Choose Us Section */}
-      <section className={styles.whyChooseSection}>
+      <div className={styles.whyChooseSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Why Choose ShaaKkart?</h2>
           <p className={styles.sectionSubtitle}>More than just a bookstore</p>
@@ -707,7 +766,7 @@ const LandingPage = () => {
             <div className={styles.featureIcon}>📦</div>
             <h3 className={styles.featureTitle}>Free Shipping</h3>
             <p className={styles.featureDescription}>
-              Free shipping on all orders over $35. Get your books delivered right to your doorstep.
+              Free shipping on all orders. Get your books delivered right to your doorstep.
             </p>
           </div>
           <div className={styles.featureCard}>
@@ -732,10 +791,10 @@ const LandingPage = () => {
             </p>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Call to Action Section */}
-      <section className={styles.ctaSection}>
+      <div className={styles.ctaSection}>
         <div className={styles.ctaContent}>
           <h2 className={styles.ctaTitle}>Ready to Start Reading?</h2>
           <p className={styles.ctaSubtitle}>
@@ -747,10 +806,10 @@ const LandingPage = () => {
             <ArrowRight size={20} />
           </button>
         </div>
-      </section>
+      </div>
 
-{/* Stats Section */}
-      <section className={styles.statsSection}>
+      {/* Stats Section */}
+      <div className={styles.statsSection}>
         <div className={styles.statsContainer}>
           <div className={styles.statCard}>
             <BookOpen className={styles.statIcon} />
@@ -777,9 +836,7 @@ const LandingPage = () => {
             <div className={styles.statLabel}>Avg Rating</div>
           </div>
         </div>
-      </section>
-
-
+      </div>
     </div>
   );
 };
