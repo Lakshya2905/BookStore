@@ -120,6 +120,7 @@ const ImageViewModal = ({
     
     if (onAddToCart && bookInfo) {
       const bookId = bookInfo.bookId || bookInfo.id;
+      onClose();
       onAddToCart(bookId, event);
       
       // Show success feedback
