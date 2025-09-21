@@ -651,6 +651,8 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
         onClose={closeImageModal}
         bookInfo={selectedBookForImage}
         imageUrlList={selectedImageList}
+        onAddToCart={handleAddToCart}           // Added: Cart functionality
+  onBuyNow={handleBuyNow}      
       />
 
       {/* Place Order Modal */}

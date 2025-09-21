@@ -1,46 +1,40 @@
-/* Enhanced Image Modal */
+/* Professional Amazon-Style Image Modal */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  animation: fadeIn 0.3s ease;
-  backdrop-filter: blur(8px);
+  animation: fadeIn 0.25s ease;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 @keyframes fadeIn {
-  from { 
-    opacity: 0;
-    backdrop-filter: blur(0);
-  }
-  to { 
-    opacity: 1;
-    backdrop-filter: blur(8px);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modalContent {
   position: relative;
-  max-width: 95vw;
-  max-height: 95vh;
-  background: white;
-  border-radius: 16px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
-  animation: modalSlideIn 0.4s ease-out;
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.28);
+  animation: slideIn 0.3s ease-out;
 }
 
-@keyframes modalSlideIn {
+@keyframes slideIn {
   from {
-    transform: scale(0.8) translateY(-30px);
+    transform: scale(0.95) translateY(20px);
     opacity: 0;
   }
   to {
@@ -51,266 +45,511 @@
 
 .modalClose {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.8);
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.6);
   color: white;
   border: none;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 10001;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(4px);
+  transition: background-color 0.2s ease;
 }
 
 .modalClose:hover {
-  background: rgba(0, 0, 0, 1);
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .modalBody {
   display: flex;
-  flex-direction: column;
   height: 100%;
+  max-height: 90vh;
 }
 
-.modalImageContainer {
-  position: relative;
+/* Left Side - Image Gallery */
+.modalImageSection {
+  flex: 0 0 50%;
+  display: flex;
   background: #f8f9fa;
+  position: relative;
+}
+
+.thumbnailGallery {
+  width: 80px;
+  background: #fff;
+  border-right: 1px solid #e9ecef;
+  padding: 12px 8px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thumbnail {
+  width: 64px;
+  height: 64px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: none;
+  padding: 0;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail:hover {
+  border-color: #007185;
+}
+
+.thumbnailActive {
+  border-color: #007185 !important;
+  box-shadow: 0 0 0 1px #007185;
+}
+
+.mainImageContainer {
+  flex: 1;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
-  max-height: 70vh;
-  padding: 2rem;
-  flex: 1;
+  padding: 20px;
+  background: #fff;
 }
 
-.modalImage {
+.mainImage {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  cursor: zoom-in;
   transition: transform 0.3s ease;
 }
 
-.modalImage:hover {
-  transform: scale(1.02);
+.mainImage.zoomed {
+  transform: scale(1.5);
+  cursor: zoom-out;
 }
 
-.modalNavButton {
+.navButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 56px;
-  height: 56px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10002;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.modalNavButton:hover {
-  background: rgba(0, 0, 0, 1);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  transform: translateY(-50%) scale(1.1);
+.navButton:hover {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.modalNavPrev {
-  left: 24px;
+.navPrev {
+  left: 12px;
 }
 
-.modalNavNext {
-  right: 24px;
+.navNext {
+  right: 12px;
 }
 
-.modalInfo {
-  padding: 2rem;
-  text-align: center;
-  border-top: 1px solid #e9ecef;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-}
-
-.modalInfo h3 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.modalInfo p {
-  margin: 0 0 1rem 0;
-  color: #6c757d;
-  font-style: italic;
-  font-size: 1.1rem;
-}
-
-.modalImageCounter {
-  font-size: 0.9rem;
-  color: #868e96;
-  margin-bottom: 1.5rem;
+.imageCounter {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
   font-weight: 500;
 }
 
-.modalIndicators {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 1rem;
+.zoomIndicator {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.modalIndicator {
+.mainImageContainer:hover .zoomIndicator {
+  opacity: 1;
+}
+
+/* Right Side - Book Information */
+.modalInfoSection {
+  flex: 0 0 50%;
+  padding: 24px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.bookDetails {
+  max-width: 100%;
+}
+
+.titleSection {
+  margin-bottom: 16px;
+}
+
+.bookTitle {
+  font-size: 24px;
+  font-weight: 400;
+  color: #0f1111;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #007185;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.tagsSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tagIcon {
+  font-size: 10px;
+}
+
+.tagNewRelease {
+  background: #e7f3ff;
+  color: #007185;
+}
+
+.tagBestseller {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.tagTopRated {
+  background: #d4edda;
+  color: #155724;
+}
+
+.tagSale {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.tagDefault {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.pricingSection {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.currentPrice {
+  font-size: 28px;
+  color: #b12704;
+  font-weight: 400;
+}
+
+.originalPrice {
+  font-size: 14px;
+  color: #565959;
+  text-decoration: line-through;
+}
+
+.discount {
+  font-size: 14px;
+  color: #cc0c39;
+  font-weight: 500;
+}
+
+.priceDetails {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #565959;
+}
+
+.gstInfo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.cartButton,
+.buyButton {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+}
+
+.cartButton {
+  background: #fff;
+  color: #0f1111;
+  border: 1px solid #d5d9d9;
+}
+
+.cartButton:hover:not(:disabled) {
+  background: #f7fafa;
+  border-color: #007185;
+}
+
+.cartButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.buyButton {
+  background: #ff9900;
+  color: #0f1111;
+}
+
+.buyButton:hover {
+  background: #fa8900;
+}
+
+.loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.spinner {
   width: 16px;
   height: 16px;
-  border-radius: 50%;
-  background: #e9ecef;
   border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-.modalIndicator:hover {
-  background: #007bff;
-  transform: scale(1.2);
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.modalIndicator.active {
-  background: #007bff;
-  border-color: #ffffff;
-  transform: scale(1.3);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+.descriptionSection {
+  margin-bottom: 24px;
+}
+
+.descriptionSection h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f1111;
+  margin: 0 0 8px 0;
+}
+
+.description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #0f1111;
+  margin: 0;
+}
+
+.detailsSection {
+  margin-bottom: 16px;
+}
+
+.detailsSection h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f1111;
+  margin: 0 0 12px 0;
+}
+
+.detailsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #565959;
+}
+
+.detailLabel {
+  font-weight: 600;
+  min-width: 80px;
+  color: #0f1111;
+}
+
+.detailValue {
+  color: #0f1111;
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .modalBody {
+    flex-direction: column;
+  }
+  
+  .modalImageSection {
+    flex: 0 0 50vh;
+  }
+  
+  .modalInfoSection {
+    flex: 1;
+    max-height: 40vh;
+  }
+  
+  .thumbnailGallery {
+    flex-direction: row;
+    width: 100%;
+    height: 80px;
+    padding: 8px 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .mainImageContainer {
+    padding: 16px;
+  }
+}
+
 @media (max-width: 768px) {
+  .modal {
+    padding: 12px;
+  }
+  
   .modalContent {
-    max-width: 98vw;
-    max-height: 98vh;
-    margin: 1rem;
+    max-height: 95vh;
   }
-
-  .modalImageContainer {
-    min-height: 300px;
-    max-height: 60vh;
-    padding: 1rem;
+  
+  .modalImageSection {
+    flex: 0 0 45vh;
   }
-
-  .modalNavButton {
-    width: 48px;
-    height: 48px;
+  
+  .modalInfoSection {
+    padding: 16px;
   }
-
-  .modalNavPrev {
-    left: 16px;
+  
+  .bookTitle {
+    font-size: 20px;
   }
-
-  .modalNavNext {
-    right: 16px;
+  
+  .currentPrice {
+    font-size: 24px;
   }
-
-  .modalInfo {
-    padding: 1.5rem;
+  
+  .actionButtons {
+    flex-direction: column;
   }
-
-  .modalClose {
-    width: 40px;
-    height: 40px;
-    top: 16px;
-    right: 16px;
+  
+  .cartButton,
+  .buyButton {
+    flex: none;
+  }
+  
+  .detailsGrid {
+    gap: 6px;
+  }
+  
+  .detailItem {
+    font-size: 13px;
   }
 }
 
 @media (max-width: 576px) {
-  .modalContent {
-    max-width: 100vw;
-    max-height: 100vh;
-    border-radius: 0;
-    margin: 0;
-  }
-
-  .modalImageContainer {
-    min-height: 250px;
-    max-height: 50vh;
-    padding: 0.75rem;
-  }
-
-  .modalInfo {
-    padding: 1rem;
-  }
-
-  .modalInfo h3 {
-    font-size: 1.25rem;
-  }
-
-  .modalClose {
-    width: 36px;
-    height: 36px;
-    top: 12px;
-    right: 12px;
-  }
-
-  .modalNavButton {
-    width: 40px;
-    height: 40px;
-  }
-
-  .modalNavPrev {
-    left: 12px;
-  }
-
-  .modalNavNext {
-    right: 12px;
-  }
-
-  .modalIndicators {
-    gap: 8px;
-  }
-
-  .modalIndicator {
-    width: 12px;
-    height: 12px;
-  }
-}
-
-/* High contrast and accessibility */
-@media (prefers-contrast: high) {
-  .modalNavButton,
-  .modalClose {
-    background: #000;
-    color: #fff;
-  }
-}
-
-/* Reduced motion for users who prefer it */
-@media (prefers-reduced-motion: reduce) {
-  .modal,
-  .modalContent {
-    animation: none;
-  }
-
-  .modalIndicator.active {
-    transform: none;
-  }
-}
-
-/* Print styles - hide modal when printing */
-@media print {
   .modal {
-    display: none !important;
+    padding: 8px;
+  }
+  
+  .modalImageSection {
+    flex: 0 0 40vh;
+  }
+  
+  .thumbnailGallery {
+    height: 60px;
+    padding: 4px 8px;
+  }
+  
+  .thumbnail {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .modalInfoSection {
+    padding: 12px;
+  }
+  
+  .bookTitle {
+    font-size: 18px;
+  }
+  
+  .currentPrice {
+    font-size: 22px;
+  }
+  
+  .pricingSection {
+    padding: 12px;
   }
 }

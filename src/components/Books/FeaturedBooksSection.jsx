@@ -598,12 +598,15 @@ const FeaturedBooksSection = ({
       )}
       
       {/* Replace old modal with new ImageViewModal component */}
-      <ImageViewModal
-        isOpen={imageModalOpen}
-        onClose={closeImageModal}
-        bookInfo={selectedBookForImage}
-        imageUrlList={selectedImageList}
-      />
+<ImageViewModal
+  isOpen={imageModalOpen}
+  onClose={closeImageModal}
+  bookInfo={selectedBookForImage}
+  imageUrlList={selectedImageList}
+  onAddToCart={handleAddToCart}
+  onBuyNow={handleBuyNow}
+  cartLoading={selectedBookForImage ? cartLoading[selectedBookForImage.bookId || selectedBookForImage.id] : false}
+/>
       
       {/* Place Order Modal */}
       <PlaceOrderModal
