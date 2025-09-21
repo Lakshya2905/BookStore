@@ -60,7 +60,7 @@
   opacity: 1;
 }
 
-/* Image Container with Aspect Ratios */
+/* Image Container with Fixed Aspect Ratios */
 .imageContainer {
   position: relative;
   width: 100%;
@@ -72,36 +72,49 @@
   border-radius: 1rem;
 }
 
-/* Aspect ratio containers for different image sizes */
+/* Fixed aspect ratio containers for different image sizes */
 .imageContainer.ratio4_1 {
-  aspect-ratio: 4 / 1;
-  max-height: 350px;
+  height: 300px; /* Fixed height for 1200x300 images */
+  max-height: 300px;
 }
 
 .imageContainer.ratio3_1 {
-  aspect-ratio: 3 / 1;
+  height: 400px; /* Fixed height for 1200x400 images */
   max-height: 400px;
 }
 
 .imageContainer.ratioAuto {
-  min-height: 250px;
-  max-height: 400px;
-  aspect-ratio: 3 / 1;
+  height: 350px; /* Default height */
+  max-height: 350px;
 }
 
-/* Carousel Image Styling */
+/* Carousel Image Styling - Fixed to fit container properly */
 .carouselImage {
   width: 100%;
   height: 100%;
-  object-fit: contain !important;
+  object-fit: cover !important; /* Changed from contain to cover */
   object-position: center center;
   transition: transform 0.3s ease;
   border-radius: 1rem;
   background-color: #f8f9fa;
 }
 
+/* Alternative styling for images that should maintain aspect ratio */
+.carouselImage.fitContain {
+  object-fit: contain !important;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
 .carouselImage:hover {
   transform: scale(1.02);
+}
+
+/* Clickable image cursor */
+.clickableImage {
+  cursor: pointer !important;
 }
 
 /* Navigation Controls */
@@ -388,19 +401,18 @@
   }
 
   .imageContainer.ratio4_1 {
-    aspect-ratio: 3 / 1;
+    height: 250px;
     max-height: 250px;
   }
 
   .imageContainer.ratio3_1 {
-    aspect-ratio: 2.5 / 1;
+    height: 280px;
     max-height: 280px;
   }
 
   .imageContainer.ratioAuto {
-    min-height: 180px;
+    height: 250px;
     max-height: 250px;
-    aspect-ratio: 2.5 / 1;
   }
 
   .carouselControl {
@@ -463,19 +475,18 @@
   }
 
   .imageContainer.ratio4_1 {
-    aspect-ratio: 2.5 / 1;
+    height: 200px;
     max-height: 200px;
   }
 
   .imageContainer.ratio3_1 {
-    aspect-ratio: 2 / 1;
+    height: 220px;
     max-height: 220px;
   }
 
   .imageContainer.ratioAuto {
-    min-height: 150px;
+    height: 200px;
     max-height: 200px;
-    aspect-ratio: 2 / 1;
   }
 
   .carouselControl {
@@ -539,9 +550,8 @@
   .imageContainer.ratio4_1,
   .imageContainer.ratio3_1,
   .imageContainer.ratioAuto {
-    aspect-ratio: 1.8 / 1;
+    height: 180px;
     max-height: 180px;
-    min-height: 140px;
   }
 
   .carouselControl {

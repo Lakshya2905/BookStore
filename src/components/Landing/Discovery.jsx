@@ -60,16 +60,21 @@ const Discovery = () => {
   }, []);
 
   const getAspectRatioClass = useCallback((width, height) => {
-    if (!width || !height) return 'ratio-auto';
+    if (!width || !height) return 'ratioAuto';
     
     const ratio = width / height;
     
+    // For 1200x300 images (ratio = 4)
     if (ratio >= 3.8 && ratio <= 4.2) {
-      return 'ratio-4-1';
-    } else if (ratio >= 2.8 && ratio <= 3.2) {
-      return 'ratio-3-1';
-    } else {
-      return 'ratio-auto';
+      return 'ratio4_1';
+    } 
+    // For 1200x400 images (ratio = 3)
+    else if (ratio >= 2.8 && ratio <= 3.2) {
+      return 'ratio3_1';
+    } 
+    // For other ratios
+    else {
+      return 'ratioAuto';
     }
   }, []);
 
@@ -488,24 +493,6 @@ const Discovery = () => {
                         </svg>
                       </div>
                     </button>
-
-                    {/* Play/Pause Button
-                    <button
-                      className={styles.playPauseButton}
-                      type="button"
-                      onClick={togglePlayPause}
-                      aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
-                    >
-                      {isPlaying ? (
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16zM7 6.5C7 6.776 6.776 7 6.5 7h-1C5.224 7 5 6.776 5 6.5v-3C5 3.224 5.224 3 5.5 3h1C6.776 3 7 3.224 7 3.5v3zm4 0C11 6.776 10.776 7 10.5 7h-1C9.224 7 9 6.776 9 6.5v-3C9 3.224 9.224 3 9.5 3h1c.276 0 .5.224.5.5v3z"/>
-                        </svg>
-                      ) : (
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16zM6.271 5.055a.5.5 0 0 1 .52.036L11.5 7.556a.5.5 0 0 1 0 .888L6.791 10.91a.5.5 0 0 1-.791-.39V5.604a.5.5 0 0 1 .271-.549z"/>
-                        </svg>
-                      )}
-                    </button> */}
                   </>
                 )}
 
