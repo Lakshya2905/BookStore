@@ -52,6 +52,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   };
 
   const handleClose = () => {
+    console.log('Close button clicked!'); // Debug log
     resetForm();
     onClose();
   };
@@ -144,10 +145,11 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
       });
 
       if (response.data.status === 'SUCCESS') {
-        setSuccessMessage("User registered successfully!");
+        
         resetForm();
+        setSuccessMessage("User registered successfully!");
       } else {
-        setFormError({ general: "Registration failed. Please try again." });
+        setFormError({ general: response.data.message });
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -172,10 +174,17 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     }
   };
 
+  // Close modal when clicking on overlay
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className={styles.modalOverlay}>
+    <div className={styles.modalOverlay} onClick={handleOverlayClick}>
       <div className={styles.modalContainer}>
         <div className={styles.modalContent}>
           {/* Header */}
@@ -184,7 +193,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
               type="button" 
               className={styles.closeBtn}
               onClick={handleClose}
-              aria-label="Close"
+              aria-label="Close modal"
             >
               <i className="bi bi-x"></i>
             </button>
