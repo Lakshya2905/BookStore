@@ -1,4 +1,4 @@
-/* Professional Amazon-Style Image Modal */
+/* Professional Bootstrap-based Image Modal - Module CSS */
 .modal {
   position: fixed;
   top: 0;
@@ -9,9 +9,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 1055;
   animation: fadeIn 0.25s ease;
-  padding: 20px;
+  padding: 1rem;
   box-sizing: border-box;
 }
 
@@ -23,18 +23,18 @@
 .modalContent {
   position: relative;
   width: 100%;
-  max-width: 1200px;
-  max-height: 90vh;
+  max-width: 1400px;
+  max-height: 95vh;
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.3s ease-out;
 }
 
 @keyframes slideIn {
   from {
-    transform: scale(0.95) translateY(20px);
+    transform: scale(0.9) translateY(30px);
     opacity: 0;
   }
   to {
@@ -45,61 +45,73 @@
 
 .modalClose {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  background: rgba(0, 0, 0, 0.6);
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.7);
   color: white;
   border: none;
-  border-radius: 4px;
-  width: 32px;
-  height: 32px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 10001;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .modalClose:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.modalClose:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
 }
 
 .modalBody {
   display: flex;
   height: 100%;
-  max-height: 90vh;
+  max-height: 95vh;
+  min-height: 500px;
 }
 
 /* Left Side - Image Gallery */
 .modalImageSection {
-  flex: 0 0 50%;
+  flex: 0 0 55%;
   display: flex;
   background: #f8f9fa;
   position: relative;
 }
 
 .thumbnailGallery {
-  width: 80px;
+  width: 90px;
   background: #fff;
   border-right: 1px solid #e9ecef;
-  padding: 12px 8px;
+  padding: 1rem 0.5rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
+  box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.05);
 }
 
 .thumbnail {
-  width: 64px;
-  height: 64px;
-  border: 2px solid transparent;
-  border-radius: 4px;
+  width: 70px;
+  height: 70px;
+  border: 3px solid transparent;
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   background: none;
   padding: 0;
+  position: relative;
 }
 
 .thumbnail img {
@@ -109,12 +121,28 @@
 }
 
 .thumbnail:hover {
-  border-color: #007185;
+  border-color: #007bff;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
 .thumbnailActive {
-  border-color: #007185 !important;
-  box-shadow: 0 0 0 1px #007185;
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.thumbnailActive::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: #007bff;
+  border-radius: 50%;
+  border: 2px solid white;
 }
 
 .mainImageContainer {
@@ -123,8 +151,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: #fff;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 400px;
 }
 
 .mainImage {
@@ -133,10 +162,12 @@
   object-fit: contain;
   cursor: zoom-in;
   transition: transform 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .mainImage.zoomed {
-  transform: scale(1.5);
+  transform: scale(1.8);
   cursor: zoom-out;
 }
 
@@ -144,56 +175,68 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 40px;
-  height: 40px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  font-size: 20px;
+  color: #333;
 }
 
 .navButton:hover {
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-50%) scale(1.1);
+  color: #007bff;
+}
+
+.navButton:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
 }
 
 .navPrev {
-  left: 12px;
+  left: 20px;
 }
 
 .navNext {
-  right: 12px;
+  right: 20px;
 }
 
 .imageCounter {
   position: absolute;
-  bottom: 16px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
   font-weight: 500;
+  backdrop-filter: blur(10px);
 }
 
 .zoomIndicator {
   position: absolute;
-  bottom: 16px;
-  right: 16px;
-  background: rgba(0, 0, 0, 0.7);
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .mainImageContainer:hover .zoomIndicator {
@@ -202,8 +245,8 @@
 
 /* Right Side - Book Information */
 .modalInfoSection {
-  flex: 0 0 50%;
-  padding: 24px;
+  flex: 0 0 45%;
+  padding: 2rem;
   overflow-y: auto;
   background: #fff;
 }
@@ -213,149 +256,168 @@
 }
 
 .titleSection {
-  margin-bottom: 16px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .bookTitle {
-  font-size: 24px;
-  font-weight: 400;
-  color: #0f1111;
-  margin: 0 0 8px 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 0.5rem 0;
   line-height: 1.3;
 }
 
 .authorInfo {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #007185;
-  font-size: 14px;
-  margin-bottom: 4px;
+  gap: 0.5rem;
+  color: #007bff;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
 }
 
 .tagsSection {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .tag {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .tagIcon {
-  font-size: 10px;
+  font-size: 0.75rem;
 }
 
 .tagNewRelease {
-  background: #e7f3ff;
-  color: #007185;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  color: #0277bd;
+  border: 1px solid #81c784;
 }
 
 .tagBestseller {
-  background: #fff3cd;
-  color: #856404;
+  background: linear-gradient(135deg, #fff8e1, #ffecb3);
+  color: #f57c00;
+  border: 1px solid #ffb74d;
 }
 
 .tagTopRated {
-  background: #d4edda;
-  color: #155724;
+  background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+  color: #2e7d32;
+  border: 1px solid #66bb6a;
 }
 
 .tagSale {
-  background: #f8d7da;
-  color: #721c24;
+  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+  color: #c62828;
+  border: 1px solid #e57373;
 }
 
 .tagDefault {
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
   color: #495057;
+  border: 1px solid #ced4da;
 }
 
 .pricingSection {
-  margin-bottom: 20px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
 }
 
 .priceRow {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .currentPrice {
-  font-size: 28px;
-  color: #b12704;
-  font-weight: 400;
+  font-size: 2rem;
+  color: #dc3545;
+  font-weight: 700;
 }
 
 .originalPrice {
-  font-size: 14px;
-  color: #565959;
+  font-size: 1.125rem;
+  color: #6c757d;
   text-decoration: line-through;
 }
 
 .discount {
-  font-size: 14px;
-  color: #cc0c39;
-  font-weight: 500;
+  font-size: 1rem;
+  color: #dc3545;
+  font-weight: 600;
+  background: #fff3cd;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
 }
 
 .priceDetails {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
-  color: #565959;
+  font-size: 0.875rem;
+  color: #6c757d;
 }
 
 .gstInfo {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .actionButtons {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .cartButton,
 .buyButton {
   flex: 1;
-  padding: 12px 16px;
+  padding: 0.875rem 1.25rem;
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0.5rem;
   border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .cartButton {
   background: #fff;
-  color: #0f1111;
-  border: 1px solid #d5d9d9;
+  color: #212529;
+  border: 2px solid #6c757d;
 }
 
 .cartButton:hover:not(:disabled) {
-  background: #f7fafa;
-  border-color: #007185;
+  background: #f8f9fa;
+  border-color: #007bff;
+  color: #007bff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
 .cartButton:disabled {
@@ -364,12 +426,15 @@
 }
 
 .buyButton {
-  background: #ff9900;
-  color: #0f1111;
+  background: linear-gradient(135deg, #ff9900, #ff8c00);
+  color: #fff;
+  border: 2px solid transparent;
 }
 
 .buyButton:hover {
-  background: #fa8900;
+  background: linear-gradient(135deg, #ff8c00, #ff7700);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 153, 0, 0.4);
 }
 
 .loading {
@@ -378,8 +443,8 @@
 }
 
 .spinner {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border: 2px solid transparent;
   border-top: 2px solid currentColor;
   border-radius: 50%;
@@ -392,66 +457,89 @@
 }
 
 .descriptionSection {
-  margin-bottom: 24px;
+  margin-bottom: 2rem;
 }
 
 .descriptionSection h3 {
-  font-size: 16px;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #0f1111;
-  margin: 0 0 8px 0;
+  color: #212529;
+  margin: 0 0 0.75rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
 }
 
 .description {
-  font-size: 14px;
-  line-height: 1.5;
-  color: #0f1111;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #495057;
   margin: 0;
 }
 
 .detailsSection {
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 .detailsSection h3 {
-  font-size: 16px;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #0f1111;
-  margin: 0 0 12px 0;
+  color: #212529;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
 }
 
 .detailsGrid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.75rem;
 }
 
 .detailItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #565959;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #007bff;
 }
 
 .detailLabel {
   font-weight: 600;
-  min-width: 80px;
-  color: #0f1111;
+  min-width: 100px;
+  color: #495057;
 }
 
 .detailValue {
-  color: #0f1111;
+  color: #212529;
+  font-weight: 500;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
+/* Bootstrap Responsive Breakpoints */
+@media (max-width: 1200px) {
+  .modalContent {
+    max-width: 95vw;
+  }
+  
+  .modalImageSection {
+    flex: 0 0 50%;
+  }
+  
+  .modalInfoSection {
+    flex: 0 0 50%;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 992px) {
   .modalBody {
     flex-direction: column;
   }
   
   .modalImageSection {
-    flex: 0 0 50vh;
+    flex: 0 0 55vh;
   }
   
   .modalInfoSection {
@@ -462,94 +550,199 @@
   .thumbnailGallery {
     flex-direction: row;
     width: 100%;
-    height: 80px;
-    padding: 8px 12px;
+    height: 90px;
+    padding: 0.75rem 1rem;
     overflow-x: auto;
     overflow-y: hidden;
     border-right: none;
     border-bottom: 1px solid #e9ecef;
   }
   
+  .thumbnail {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+  }
+  
   .mainImageContainer {
-    padding: 16px;
+    padding: 1.5rem;
+  }
+  
+  .bookTitle {
+    font-size: 1.5rem;
+  }
+  
+  .currentPrice {
+    font-size: 1.75rem;
   }
 }
 
 @media (max-width: 768px) {
   .modal {
-    padding: 12px;
+    padding: 0.5rem;
   }
   
   .modalContent {
-    max-height: 95vh;
+    max-height: 98vh;
+    border-radius: 8px;
+  }
+  
+  .modalClose {
+    width: 36px;
+    height: 36px;
+    top: 10px;
+    right: 10px;
+  }
+  
+  .modalImageSection {
+    flex: 0 0 50vh;
+  }
+  
+  .modalInfoSection {
+    padding: 1rem;
+  }
+  
+  .bookTitle {
+    font-size: 1.25rem;
+  }
+  
+  .currentPrice {
+    font-size: 1.5rem;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .cartButton,
+  .buyButton {
+    flex: none;
+    padding: 0.75rem 1rem;
+  }
+  
+  .detailsGrid {
+    gap: 0.5rem;
+  }
+  
+  .detailItem {
+    font-size: 0.875rem;
+    padding: 0.375rem;
+  }
+  
+  .thumbnailGallery {
+    height: 80px;
+    padding: 0.5rem;
+  }
+  
+  .thumbnail {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .navButton {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .navPrev {
+    left: 10px;
+  }
+  
+  .navNext {
+    right: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal {
+    padding: 0.25rem;
+  }
+  
+  .modalContent {
+    border-radius: 6px;
   }
   
   .modalImageSection {
     flex: 0 0 45vh;
   }
   
+  .thumbnailGallery {
+    height: 70px;
+    padding: 0.375rem;
+  }
+  
+  .thumbnail {
+    width: 45px;
+    height: 45px;
+  }
+  
   .modalInfoSection {
-    padding: 16px;
+    padding: 0.75rem;
   }
   
   .bookTitle {
-    font-size: 20px;
+    font-size: 1.125rem;
   }
   
   .currentPrice {
-    font-size: 24px;
+    font-size: 1.375rem;
   }
   
-  .actionButtons {
-    flex-direction: column;
+  .pricingSection {
+    padding: 1rem;
   }
   
-  .cartButton,
-  .buyButton {
-    flex: none;
+  .mainImageContainer {
+    padding: 1rem;
   }
   
-  .detailsGrid {
-    gap: 6px;
+  .navButton {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
   }
   
-  .detailItem {
-    font-size: 13px;
+  .detailLabel {
+    min-width: 80px;
+    font-size: 0.8rem;
+  }
+  
+  .detailValue {
+    font-size: 0.8rem;
   }
 }
 
-@media (max-width: 576px) {
-  .modal {
-    padding: 8px;
-  }
-  
+@media (max-width: 480px) {
   .modalImageSection {
     flex: 0 0 40vh;
   }
   
   .thumbnailGallery {
     height: 60px;
-    padding: 4px 8px;
   }
   
   .thumbnail {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .mainImageContainer {
+    padding: 0.75rem;
   }
   
   .modalInfoSection {
-    padding: 12px;
+    padding: 0.5rem;
   }
   
-  .bookTitle {
-    font-size: 18px;
+  .actionButtons {
+    gap: 0.5rem;
   }
   
-  .currentPrice {
-    font-size: 22px;
-  }
-  
-  .pricingSection {
-    padding: 12px;
+  .cartButton,
+  .buyButton {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
   }
 }

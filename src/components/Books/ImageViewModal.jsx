@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X, ShoppingCart, Zap, Star, StarHalf, Calendar, BookOpen, User, Building2, Hash, Percent, Package } from 'lucide-react';
 import styles from './ImageViewModal.module.css';
 
+// Load Bootstrap CSS
+const loadBootstrap = () => {
+  if (document.getElementById('bootstrap-modal-css')) return;
+  const link = document.createElement('link');
+  link.id = 'bootstrap-modal-css';
+  link.rel = 'stylesheet';
+  link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+  link.integrity = 'sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN';
+  link.crossOrigin = 'anonymous';
+  document.head.appendChild(link);
+};
+
 const ImageViewModal = ({ 
   isOpen, 
   onClose, 
@@ -14,6 +26,11 @@ const ImageViewModal = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 
+  // Load Bootstrap on component mount
+  useEffect(() => {
+    loadBootstrap();
+  }, []);
+
   // Reset current index when modal opens or images change
   useEffect(() => {
     if (isOpen && imageUrlList.length > 0) {
@@ -21,6 +38,22 @@ const ImageViewModal = ({
     }
     setIsZoomed(false);
   }, [isOpen, imageUrlList]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = '15px'; // Prevent layout shift
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '0px';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '0px';
+    };
+  }, [isOpen]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -37,6 +70,13 @@ const ImageViewModal = ({
         case 'ArrowRight':
           if (!isZoomed) navigateImage('next');
           break;
+        case 'Enter':
+        case ' ':
+          if (event.target === document.activeElement) {
+            event.preventDefault();
+            setIsZoomed(!isZoomed);
+          }
+          break;
         default:
           break;
       }
@@ -44,7 +84,7 @@ const ImageViewModal = ({
     
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentIndex, imageUrlList.length, isZoomed]);
+  }, [isOpen, currentIndex, imageUrlList.length, isZoomed, onClose]);
 
   // Navigate between images
   const navigateImage = (direction) => {
@@ -58,6 +98,7 @@ const ImageViewModal = ({
     }
     
     setCurrentIndex(newIndex);
+    setIsZoomed(false); // Reset zoom when changing images
   };
 
   // Handle backdrop click
@@ -75,7 +116,17 @@ const ImageViewModal = ({
     if (onAddToCart && bookInfo) {
       const bookId = bookInfo.bookId || bookInfo.id;
       onAddToCart(bookId, event);
-      onClose();
+      
+      // Show success feedback
+      const button = event.currentTarget;
+      const originalText = button.innerHTML;
+      button.innerHTML = '<span class="me-2">✓</span>Added to Cart!';
+      button.style.background = '#28a745';
+      
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.style.background = '';
+      }, 1500);
     }
   };
 
@@ -119,6 +170,13 @@ const ImageViewModal = ({
     return `${gst}% GST`;
   };
 
+  // Handle image load error
+  const handleImageError = (e, index) => {
+    console.error(`Image failed to load at index ${index}:`, imageUrlList[index]);
+    // You could set a placeholder image here
+    // e.target.src = '/path/to/placeholder-image.jpg';
+  };
+
   // Don't render if not open or no images
   if (!isOpen || !imageUrlList.length) {
     return null;
@@ -129,13 +187,15 @@ const ImageViewModal = ({
   const pricing = getBookPricing();
 
   return (
-    <div className={styles.modal} onClick={handleBackdropClick}>
+    <div className={styles.modal} onClick={handleBackdropClick} role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         {/* Close Button */}
         <button
           className={styles.modalClose}
           onClick={onClose}
           aria-label="Close modal"
+          type="button"
+          autoFocus
         >
           <X size={20} />
         </button>
@@ -151,9 +211,15 @@ const ImageViewModal = ({
                     key={index}
                     className={`${styles.thumbnail} ${currentIndex === index ? styles.thumbnailActive : ''}`}
                     onClick={() => setCurrentIndex(index)}
-                    aria-label={`View image ${index + 1}`}
+                    aria-label={`View image ${index + 1} of ${imageUrlList.length}`}
+                    type="button"
                   >
-                    <img src={image} alt={`Thumbnail ${index + 1}`} />
+                    <img 
+                      src={image} 
+                      alt={`Thumbnail ${index + 1}`}
+                      onError={(e) => handleImageError(e, index)}
+                      loading="lazy"
+                    />
                   </button>
                 ))}
               </div>
@@ -166,8 +232,13 @@ const ImageViewModal = ({
                 alt={`${bookInfo?.bookName || 'Book'} - Image ${currentIndex + 1}`}
                 className={`${styles.mainImage} ${isZoomed ? styles.zoomed : ''}`}
                 onClick={() => setIsZoomed(!isZoomed)}
-                onError={(e) => {
-                  console.error('Image failed to load:', currentImage);
+                onError={(e) => handleImageError(e, currentIndex)}
+                tabIndex="0"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setIsZoomed(!isZoomed);
+                  }
                 }}
               />
               
@@ -178,6 +249,7 @@ const ImageViewModal = ({
                     className={`${styles.navButton} ${styles.navPrev}`}
                     onClick={() => navigateImage('prev')}
                     aria-label="Previous image"
+                    type="button"
                   >
                     <ChevronLeft size={20} />
                   </button>
@@ -185,6 +257,7 @@ const ImageViewModal = ({
                     className={`${styles.navButton} ${styles.navNext}`}
                     onClick={() => navigateImage('next')}
                     aria-label="Next image"
+                    type="button"
                   >
                     <ChevronRight size={20} />
                   </button>
@@ -193,7 +266,7 @@ const ImageViewModal = ({
               
               {/* Image Counter */}
               {hasMultipleImages && (
-                <div className={styles.imageCounter}>
+                <div className={styles.imageCounter} aria-live="polite">
                   {currentIndex + 1} / {imageUrlList.length}
                 </div>
               )}
@@ -211,7 +284,7 @@ const ImageViewModal = ({
               <div className={styles.bookDetails}>
                 {/* Book Title and Author */}
                 <div className={styles.titleSection}>
-                  <h1 className={styles.bookTitle}>{bookInfo.bookName}</h1>
+                  <h1 id="modal-title" className={styles.bookTitle}>{bookInfo.bookName}</h1>
                   {bookInfo.authorName && (
                     <div className={styles.authorInfo}>
                       <User size={16} />
@@ -227,7 +300,7 @@ const ImageViewModal = ({
                       const tagInfo = getTagInfo(tag);
                       return (
                         <span key={index} className={`${styles.tag} ${tagInfo.className}`}>
-                          <span className={styles.tagIcon}>{tagInfo.icon}</span>
+                          <span className={styles.tagIcon} role="img" aria-label={tagInfo.label}>{tagInfo.icon}</span>
                           {tagInfo.label}
                         </span>
                       );
@@ -239,11 +312,17 @@ const ImageViewModal = ({
                 {pricing && (
                   <div className={styles.pricingSection}>
                     <div className={styles.priceRow}>
-                      <span className={styles.currentPrice}>₹{pricing.price.toFixed(2)}</span>
+                      <span className={styles.currentPrice} aria-label={`Current price ₹${pricing.price.toFixed(2)}`}>
+                        ₹{pricing.price.toFixed(2)}
+                      </span>
                       {pricing.mrp > pricing.price && (
                         <>
-                          <span className={styles.originalPrice}>₹{pricing.mrp.toFixed(2)}</span>
-                          <span className={styles.discount}>({pricing.discount}% OFF)</span>
+                          <span className={styles.originalPrice} aria-label={`Original price ₹${pricing.mrp.toFixed(2)}`}>
+                            ₹{pricing.mrp.toFixed(2)}
+                          </span>
+                          <span className={styles.discount} aria-label={`${pricing.discount}% discount`}>
+                            ({pricing.discount}% OFF)
+                          </span>
                         </>
                       )}
                     </div>
@@ -267,15 +346,17 @@ const ImageViewModal = ({
                         className={`${styles.cartButton} ${cartLoading ? styles.loading : ''}`}
                         onClick={handleAddToCart}
                         disabled={cartLoading}
+                        type="button"
+                        aria-label="Add to shopping cart"
                       >
                         {cartLoading ? (
                           <>
-                            <div className={styles.spinner}></div>
+                            <div className={styles.spinner} aria-hidden="true"></div>
                             Adding to Cart...
                           </>
                         ) : (
                           <>
-                            <ShoppingCart size={18} />
+                            <ShoppingCart size={18} aria-hidden="true" />
                             Add to Cart
                           </>
                         )}
@@ -286,8 +367,10 @@ const ImageViewModal = ({
                       <button 
                         className={styles.buyButton}
                         onClick={handleBuyNow}
+                        type="button"
+                        aria-label="Buy now"
                       >
-                        <Zap size={18} />
+                        <Zap size={18} aria-hidden="true" />
                         Buy Now
                       </button>
                     )}
@@ -310,7 +393,7 @@ const ImageViewModal = ({
                   <div className={styles.detailsGrid}>
                     {bookInfo.category && (
                       <div className={styles.detailItem}>
-                        <BookOpen size={16} />
+                        <BookOpen size={16} aria-hidden="true" />
                         <span className={styles.detailLabel}>Category:</span>
                         <span className={styles.detailValue}>{bookInfo.category}</span>
                       </div>
@@ -318,7 +401,7 @@ const ImageViewModal = ({
                     
                     {bookInfo.publisher && (
                       <div className={styles.detailItem}>
-                        <Building2 size={16} />
+                        <Building2 size={16} aria-hidden="true" />
                         <span className={styles.detailLabel}>Publisher:</span>
                         <span className={styles.detailValue}>{bookInfo.publisher}</span>
                       </div>
@@ -326,7 +409,7 @@ const ImageViewModal = ({
                     
                     {bookInfo.isbn && (
                       <div className={styles.detailItem}>
-                        <Hash size={16} />
+                        <Hash size={16} aria-hidden="true" />
                         <span className={styles.detailLabel}>ISBN:</span>
                         <span className={styles.detailValue}>{bookInfo.isbn}</span>
                       </div>
@@ -334,7 +417,7 @@ const ImageViewModal = ({
                     
                     {bookInfo.year && (
                       <div className={styles.detailItem}>
-                        <Calendar size={16} />
+                        <Calendar size={16} aria-hidden="true" />
                         <span className={styles.detailLabel}>Year:</span>
                         <span className={styles.detailValue}>{bookInfo.year}</span>
                       </div>
@@ -342,7 +425,7 @@ const ImageViewModal = ({
                     
                     {bookInfo.edition && (
                       <div className={styles.detailItem}>
-                        <Package size={16} />
+                        <Package size={16} aria-hidden="true" />
                         <span className={styles.detailLabel}>Edition:</span>
                         <span className={styles.detailValue}>{bookInfo.edition}</span>
                       </div>
@@ -350,7 +433,7 @@ const ImageViewModal = ({
                     
                     {bookInfo.hsn && (
                       <div className={styles.detailItem}>
-                        <Hash size={16} />
+                        <Hash size={16} aria-hidden="true" />
                         <span className={styles.detailLabel}>HSN Code:</span>
                         <span className={styles.detailValue}>{bookInfo.hsn}</span>
                       </div>
