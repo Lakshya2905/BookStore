@@ -639,7 +639,6 @@ const getBookImages = (book) => {
   imageUrlList={selectedImageList}
   onAddToCart={handleAddToCart}
   onBuyNow={handleBuyNow}
-  cartLoading={selectedBookForImage ? cartLoading[selectedBookForImage.bookId || selectedBookForImage.id] : false}
 />
       
       {/* Place Order Modal */}
