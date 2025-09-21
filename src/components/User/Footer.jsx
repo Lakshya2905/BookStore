@@ -1,5 +1,6 @@
 import React from "react";
-import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa";
+import { FaFacebookF, FaInstagram, FaWhatsapp, FaLinkedinIn } from "react-icons/fa";
+import { MdEmail } from "react-icons/md";
 import { FaXTwitter } from "react-icons/fa6";
 import Logo from "../images/logo.jpg";
 import styles from "./Footer.module.css";
@@ -58,6 +59,26 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className={styles.bottomBar}>
           <p>Copyright © 2025. ShaahKart.com. All rights reserved.</p>
+        </div>
+
+        {/* Developer Credit Section */}
+        <div className={styles.developerCredit}>
+          <p className={styles.developerText}>Designed & Developed By <strong>Mehul Jain</strong></p>
+          <div className={styles.developerContact}>
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=mehuljain1590@gmail.com" target="_blank" rel="noopener noreferrer" title="Email">
+              <MdEmail />
+            </a>
+            <a href="https://www.linkedin.com/in/mehul-jain-765529227/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+              <FaLinkedinIn />
+            </a>
+            <a href="https://wa.link/srf9l9" target="_blank" rel="noopener noreferrer" title="WhatsApp">
+              <FaWhatsapp />
+            </a>
+          </div>
+          <div className={styles.contactInfo}>
+            <p className={styles.phoneNumber}>+919644344129 | mehuljain1590@gmail.com</p>
+          
+          </div>
         </div>
       </footer>
 
