@@ -560,9 +560,9 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                     <div className={styles.bookDetails}>
                       <h3 className={styles.bookTitle}>{book.bookName}</h3>
                       <p className={styles.bookAuthor}>by {book.authorName}</p>
-                      <p className={styles.bookDescription}>
+                      {/* <p className={styles.bookDescription}>
                         {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
-                      </p>
+                      </p> */}
                       
                       <div className={styles.bookMeta}>
                         <div className={styles.priceInfo}>

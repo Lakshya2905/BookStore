@@ -197,8 +197,8 @@
 /* Discount Badge */
 .discountBadge {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  bottom: 12px;
+  left: 10px;
   background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
   color: white;
   padding: 4px 8px;
