@@ -357,11 +357,7 @@ const getBookImages = (book) => {
     return null;
   };
 
-  // Calculate discount percentage
-  const calculateDiscount = (price, mrp) => {
-    if (!mrp || !price || mrp <= price) return 0;
-    return Math.round(((mrp - price) / mrp) * 100);
-  };
+
 
   const BookCard = ({ book, categoryKey }) => {
     const bookId = book.bookId || book.id;
@@ -369,11 +365,13 @@ const getBookImages = (book) => {
     const currentImage = getCurrentImage(book);
     const hasMultipleImages = allImages.length > 1;
     const tagInfo = getTagInfo(book.bookTags, categoryKey);
+   
     
     // Price calculations
-    const price = parseFloat(book.price) || 0;
-    const mrp = parseFloat(book.mrp || book.originalPrice) || price;
-    const discount = calculateDiscount(price, mrp);
+    const price =book.price;
+    const mrp =book.mrp
+    const discount =book.discount;
+    
     
     return (
       <article className={styles.bookCard}>
