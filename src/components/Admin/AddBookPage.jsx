@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './AddBookPage.module.css';
-import { BOOK_ADD_URL,BOOK_CATEGORIES_FETCH_URL } from '../../constants/apiConstants';
+import { BOOK_ADD_URL, BOOK_CATEGORIES_FETCH_URL } from '../../constants/apiConstants';
 
 const AddBookPage = () => {
   const [formData, setFormData] = useState({
@@ -9,11 +9,11 @@ const AddBookPage = () => {
     description: '',
     category: '',
     authorName: '',
-    price: 0, // This will be calculated automatically
+    price: 0,
     bookTags: [],
     categoryId: '',
     mrp: '',
-    discount: '0', // Default discount to 0
+    discount: '0',
     publisher: '',
     isbn: '',
     year: '',
@@ -48,9 +48,7 @@ const AddBookPage = () => {
     }
   };
 
-  // Function to calculate discounted price
   const getDiscountPrice = (mrp, discountInPercent) => {
-    // Handle case when discount is 0 or empty
     if (!mrp) return 0;
     if (!discountInPercent || discountInPercent === 0 || discountInPercent === '0') {
       return parseFloat(mrp);
@@ -60,7 +58,6 @@ const AddBookPage = () => {
     return Math.round(discountedPrice * 100.0) / 100.0;
   };
 
-  // Update price when MRP or discount changes
   useEffect(() => {
     const calculatedPrice = getDiscountPrice(
       parseFloat(formData.mrp) || 0, 
@@ -79,7 +76,7 @@ const AddBookPage = () => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${BOOK_CATEGORIES_FETCH_URL}`);
-      if (response.data && response.data.status=='SUCCESS') {
+      if (response.data && response.data.status == 'SUCCESS') {
         setCategories(response.data.payload);
       }
     } catch (error) {
@@ -109,7 +106,6 @@ const AddBookPage = () => {
     }));
   };
 
-  // Prevent arrow key changes for numeric inputs
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
@@ -117,14 +113,12 @@ const AddBookPage = () => {
   };
 
   const validateImageFile = (file, fieldName) => {
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
       setMessage({ text: `Please select a valid image file for ${fieldName} (JPG, JPEG, or PNG)`, type: 'error' });
       return false;
     }
 
-    // Validate file size (5MB limit)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
       setMessage({ text: `File size for ${fieldName} must be less than 5MB`, type: 'error' });
@@ -147,7 +141,6 @@ const AddBookPage = () => {
 
       setCoverImage(file);
       
-      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target.result);
@@ -163,10 +156,15 @@ const AddBookPage = () => {
     
     if (files.length === 0) return;
 
-    // Validate maximum number of secondary images (e.g., 5)
     const maxSecondaryImages = 5;
-    if (files.length > maxSecondaryImages) {
-      setMessage({ text: `You can upload maximum ${maxSecondaryImages} secondary images`, type: 'error' });
+    const currentImagesCount = secondaryImages.length;
+    const totalImagesAfterAdd = currentImagesCount + files.length;
+
+    if (totalImagesAfterAdd > maxSecondaryImages) {
+      setMessage({ 
+        text: `You can upload maximum ${maxSecondaryImages} secondary images. Currently you have ${currentImagesCount} images. You can add ${maxSecondaryImages - currentImagesCount} more.`, 
+        type: 'error' 
+      });
       e.target.value = '';
       return;
     }
@@ -179,25 +177,29 @@ const AddBookPage = () => {
       }
     }
 
-    setSecondaryImages(files);
+    // Add new files to existing ones
+    const updatedSecondaryImages = [...secondaryImages, ...files];
+    setSecondaryImages(updatedSecondaryImages);
     
-    // Create previews
-    const previews = [];
+    // Create previews for new files only
+    const newPreviews = [...secondaryImagePreviews];
     let loadedCount = 0;
     
     files.forEach((file, index) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        previews[index] = e.target.result;
+        newPreviews[currentImagesCount + index] = e.target.result;
         loadedCount++;
         
         if (loadedCount === files.length) {
-          setSecondaryImagePreviews([...previews]);
+          setSecondaryImagePreviews(newPreviews);
         }
       };
       reader.readAsDataURL(file);
     });
     
+    // Reset file input but keep existing images
+    e.target.value = '';
     setMessage({ text: '', type: '' });
   };
 
@@ -207,8 +209,11 @@ const AddBookPage = () => {
     
     setSecondaryImages(updatedImages);
     setSecondaryImagePreviews(updatedPreviews);
-    
-    // Reset file input
+  };
+
+  const clearAllSecondaryImages = () => {
+    setSecondaryImages([]);
+    setSecondaryImagePreviews([]);
     document.getElementById('secondaryImages').value = '';
   };
 
@@ -283,15 +288,12 @@ const AddBookPage = () => {
 
       const formDataToSend = new FormData();
       
-      // Add request body
       formDataToSend.append('requestBody', new Blob([JSON.stringify(requestBody)], {
         type: 'application/json'
       }));
       
-      // Add cover image
       formDataToSend.append('coverImage', coverImage);
       
-      // Add secondary images (now optional)
       secondaryImages.forEach((image, index) => {
         formDataToSend.append('secondaryImages', image);
       });
@@ -314,7 +316,7 @@ const AddBookPage = () => {
           bookTags: [],
           categoryId: '',
           mrp: '',
-          discount: '0', // Reset discount to default 0
+          discount: '0',
           publisher: '',
           isbn: '',
           year: '',
@@ -611,7 +613,19 @@ const AddBookPage = () => {
             </div>
 
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>Secondary Images (Optional)</h3>
+              <div className={styles.sectionHeader}>
+                <h3 className={styles.sectionTitle}>Secondary Images (Optional)</h3>
+                {secondaryImages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearAllSecondaryImages}
+                    className={styles.clearAllButton}
+                    title="Clear all secondary images"
+                  >
+                    Clear All ({secondaryImages.length})
+                  </button>
+                )}
+              </div>
               <div className={styles.imageUploadArea}>
                 <input
                   type="file"
@@ -624,8 +638,15 @@ const AddBookPage = () => {
                 <label htmlFor="secondaryImages" className={styles.fileLabel}>
                   <div className={styles.uploadPlaceholder}>
                     <div className={styles.uploadIcon}>📷</div>
-                    <div className={styles.uploadText}>Click to upload secondary images</div>
-                    <div className={styles.uploadSubtext}>Multiple JPG, JPEG, PNG (Max 5) - Optional</div>
+                    <div className={styles.uploadText}>
+                      {secondaryImages.length > 0 
+                        ? `Add more images (${secondaryImages.length}/5)` 
+                        : 'Click to upload secondary images'
+                      }
+                    </div>
+                    <div className={styles.uploadSubtext}>
+                      Multiple JPG, JPEG, PNG (Max 5) - Optional
+                    </div>
                   </div>
                 </label>
               </div>
