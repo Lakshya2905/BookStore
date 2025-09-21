@@ -65,51 +65,85 @@ const FeaturedBooksSection = ({
   };
 
   // Function to get all available images for a book
-  const getBookImages = (book) => {
-    const images = [];
-    const bookId = book.bookId || book.id;
+  // Function to get all available images for a book
+const getBookImages = (book) => {
+  const images = [];
+  const bookId = book.bookId || book.id;
+  
+  // Helper function to validate if a string is a valid image URL
+  const isValidImageUrl = (url) => {
+    if (!url || typeof url !== 'string' || !url.trim()) return false;
     
-    // Add coverImageUrl if available
-    if (book.coverImageUrl && book.coverImageUrl.trim() && !imageErrors[`${bookId}-cover`]) {
-      images.push({ url: book.coverImageUrl, type: 'cover', key: `${bookId}-cover` });
+    // Check if it's a valid URL format
+    try {
+      new URL(url);
+    } catch {
+      // If not a valid URL, check if it's a relative path that looks like an image
+      if (!url.includes('.') || (!url.includes('/') && !url.startsWith('data:'))) {
+        return false;
+      }
     }
     
-    // Add imageUrl if different from coverImageUrl
-    if (book.imageUrl && book.imageUrl.trim() && 
-        book.imageUrl !== book.coverImageUrl && 
-        !imageErrors[`${bookId}-main`]) {
-      images.push({ url: book.imageUrl, type: 'main', key: `${bookId}-main` });
-    }
+    // Check if it has image file extension or is a data URL
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+    const lowerUrl = url.toLowerCase();
+    const hasImageExtension = imageExtensions.some(ext => lowerUrl.includes(ext));
+    const isDataUrl = lowerUrl.startsWith('data:image/');
     
-    // Add cached image if available and different
-    const cachedImage = getCachedImage(bookId);
-    if (cachedImage && 
-        cachedImage !== book.coverImageUrl && 
-        cachedImage !== book.imageUrl &&
-        !imageErrors[`${bookId}-cached`]) {
-      images.push({ url: cachedImage, type: 'cached', key: `${bookId}-cached` });
-    }
-    
-    // Add allImages if available
-    if (book.allImages && Array.isArray(book.allImages)) {
-      book.allImages.forEach((imgObj, index) => {
-        const imgUrl = imgObj.imageUrl || imgObj.url || imgObj;
-        if (imgUrl && imgUrl.trim() && 
-            imgUrl !== book.coverImageUrl && 
-            imgUrl !== book.imageUrl &&
-            imgUrl !== cachedImage &&
-            !imageErrors[`${bookId}-all-${index}`]) {
-          images.push({ 
-            url: imgUrl, 
-            type: 'additional', 
-            key: `${bookId}-all-${index}` 
-          });
-        }
-      });
-    }
-    
-    return images;
+    return hasImageExtension || isDataUrl || lowerUrl.includes('image') || lowerUrl.includes('img');
   };
+  
+  // Add coverImageUrl if available
+  if (book.coverImageUrl && isValidImageUrl(book.coverImageUrl) && !imageErrors[`${bookId}-cover`]) {
+    images.push({ url: book.coverImageUrl, type: 'cover', key: `${bookId}-cover` });
+  }
+  
+  // Add imageUrl if different from coverImageUrl
+  if (book.imageUrl && isValidImageUrl(book.imageUrl) && 
+      book.imageUrl !== book.coverImageUrl && 
+      !imageErrors[`${bookId}-main`]) {
+    images.push({ url: book.imageUrl, type: 'main', key: `${bookId}-main` });
+  }
+  
+  // Add cached image if available and different
+  const cachedImage = getCachedImage(bookId);
+  if (cachedImage && isValidImageUrl(cachedImage) &&
+      cachedImage !== book.coverImageUrl && 
+      cachedImage !== book.imageUrl &&
+      !imageErrors[`${bookId}-cached`]) {
+    images.push({ url: cachedImage, type: 'cached', key: `${bookId}-cached` });
+  }
+  
+  // Add allImages if available
+  if (book.allImages && Array.isArray(book.allImages)) {
+    book.allImages.forEach((imgObj, index) => {
+      let imgUrl;
+      
+      // Handle different formats of image objects
+      if (typeof imgObj === 'string') {
+        imgUrl = imgObj;
+      } else if (imgObj && typeof imgObj === 'object') {
+        imgUrl = imgObj.imageUrl || imgObj.url || imgObj.src;
+      }
+      
+      // Validate the image URL and check for duplicates
+      if (imgUrl && isValidImageUrl(imgUrl) &&
+          imgUrl !== book.coverImageUrl && 
+          imgUrl !== book.imageUrl &&
+          imgUrl !== cachedImage &&
+          !images.some(img => img.url === imgUrl) && // Prevent duplicates
+          !imageErrors[`${bookId}-all-${index}`]) {
+        images.push({ 
+          url: imgUrl, 
+          type: 'additional', 
+          key: `${bookId}-all-${index}` 
+        });
+      }
+    });
+  }
+  
+  return images;
+};
 
   // Function to get current display image
   const getCurrentImage = (book) => {
