@@ -1,0 +1,546 @@
+/* ImageViewModal.module.css */
+
+/* Modal Backdrop */
+.modalBackdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  z-index: 1055 !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(2px);
+}
+
+/* Modal Container */
+.modalContainer {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px !important;
+}
+
+/* Modal Content */
+.modalContent {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 1400px !important;
+  max-height: 95vh !important;
+  background: white !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Close Button */
+.closeButton {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  z-index: 1060 !important;
+  width: 40px !important;
+  height: 40px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.closeButton:hover {
+  background: white !important;
+  transform: scale(1.1) !important;
+}
+
+/* Modal Body */
+.modalBody {
+  display: flex !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+/* Desktop Layout */
+@media (min-width: 992px) {
+  .modalBody {
+    flex-direction: row !important;
+  }
+  
+  .imageSection {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  }
+  
+  .bookInfoSection {
+    width: 420px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: white !important;
+    border-left: 1px solid #dee2e6 !important;
+  }
+}
+
+/* Mobile Layout */
+@media (max-width: 991px) {
+  .modalContainer {
+    padding: 4px !important;
+  }
+  
+  .modalContent {
+    max-height: 100vh !important;
+    border-radius: 8px !important;
+  }
+  
+  .modalBody {
+    flex-direction: column !important;
+  }
+  
+  .imageSection {
+    height: 50vh !important;
+    max-height: 50vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  }
+  
+  .bookInfoSection {
+    height: 50vh !important;
+    max-height: 50vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: white !important;
+    border-top: 1px solid #dee2e6 !important;
+  }
+  
+  .closeButton {
+    top: 8px !important;
+    right: 8px !important;
+    width: 36px !important;
+    height: 36px !important;
+  }
+}
+
+/* Thumbnail Gallery */
+.thumbnailGallery {
+  flex-shrink: 0 !important;
+  background: white !important;
+  border-bottom: 1px solid #dee2e6 !important;
+  padding: 12px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+@media (min-width: 992px) {
+  .thumbnailGallery {
+    width: 80px !important;
+    height: auto !important;
+    border-right: 1px solid #dee2e6 !important;
+    border-bottom: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .thumbnailGallery {
+    height: 70px !important;
+  }
+}
+
+.thumbnailContainer {
+  display: flex !important;
+  gap: 8px !important;
+}
+
+@media (min-width: 992px) {
+  .thumbnailContainer {
+    flex-direction: column !important;
+  }
+}
+
+.thumbnailButton {
+  flex-shrink: 0 !important;
+  width: 50px !important;
+  height: 50px !important;
+  padding: 2px !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  transition: all 0.2s ease !important;
+}
+
+@media (min-width: 992px) {
+  .thumbnailButton {
+    width: 60px !important;
+    height: 60px !important;
+    margin-bottom: 8px !important;
+  }
+}
+
+.thumbnailButton:hover {
+  transform: scale(1.05) !important;
+}
+
+.thumbnailButton.active {
+  border: 2px solid #007bff !important;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+}
+
+.thumbnailImage {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Main Image Container */
+.mainImageContainer {
+  flex: 1 !important;
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 991px) {
+  .mainImageContainer {
+    padding: 12px !important;
+  }
+}
+
+.mainImage {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  border-radius: 8px !important;
+  transition: transform 0.3s ease !important;
+  cursor: zoom-in !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.mainImage.zoomed {
+  transform: scale(1.8) !important;
+  cursor: zoom-out !important;
+}
+
+@media (max-width: 991px) {
+  .mainImage.zoomed {
+    transform: scale(1.4) !important;
+  }
+}
+
+/* Navigation Buttons */
+.navButton {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  z-index: 10 !important;
+}
+
+.navButton:hover {
+  background: white !important;
+  transform: translateY(-50%) scale(1.1) !important;
+}
+
+.navButton.prev {
+  left: 12px !important;
+}
+
+.navButton.next {
+  right: 12px !important;
+}
+
+@media (max-width: 991px) {
+  .navButton {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .navButton.prev {
+    left: 8px !important;
+  }
+  
+  .navButton.next {
+    right: 8px !important;
+  }
+}
+
+/* Image Counter */
+.imageCounter {
+  position: absolute !important;
+  bottom: 12px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  color: white !important;
+  padding: 6px 12px !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Book Info Header */
+.bookInfoHeader {
+  flex-shrink: 0 !important;
+  padding: 20px !important;
+  border-bottom: 1px solid #dee2e6 !important;
+  background: white !important;
+}
+
+@media (max-width: 991px) {
+  .bookInfoHeader {
+    padding: 16px !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 5 !important;
+  }
+}
+
+.bookTitle {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #212529 !important;
+  margin-bottom: 8px !important;
+  line-height: 1.3 !important;
+}
+
+@media (max-width: 991px) {
+  .bookTitle {
+    font-size: 1.25rem !important;
+  }
+}
+
+.bookAuthor {
+  display: flex !important;
+  align-items: center !important;
+  color: #007bff !important;
+  font-size: 0.95rem !important;
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 991px) {
+  .bookAuthor {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Scrollable Content */
+.scrollableContent {
+  flex: 1 !important;
+  padding: 20px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-height: 0 !important;
+}
+
+@media (max-width: 991px) {
+  .scrollableContent {
+    padding: 16px !important;
+    padding-bottom: 80px !important;
+  }
+}
+
+/* Custom Scrollbar */
+.scrollableContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollableContent::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+
+.scrollableContent::-webkit-scrollbar-thumb {
+  background: #dee2e6;
+  border-radius: 3px;
+}
+
+.scrollableContent::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+/* Action Footer */
+.actionFooter {
+  flex-shrink: 0 !important;
+  padding: 16px 20px !important;
+  border-top: 1px solid #dee2e6 !important;
+  background: white !important;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+@media (max-width: 991px) {
+  .actionFooter {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 12px 16px !important;
+    z-index: 10 !important;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+.actionButtons {
+  display: flex !important;
+  gap: 12px !important;
+}
+
+.actionButton {
+  flex: 1 !important;
+  padding: 12px 20px !important;
+  font-weight: 600 !important;
+  min-height: 50px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+@media (max-width: 991px) {
+  .actionButton {
+    padding: 10px 16px !important;
+    min-height: 44px !important;
+    font-size: 0.875rem !important;
+  }
+}
+
+.actionButton:hover {
+  transform: translateY(-1px) !important;
+}
+
+/* Price Section */
+.priceSection {
+  background: #f8f9fa !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e9ecef !important;
+  margin-bottom: 16px !important;
+}
+
+.priceRow {
+  display: flex !important;
+  align-items: baseline !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+.currentPrice {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #dc3545 !important;
+}
+
+@media (max-width: 991px) {
+  .currentPrice {
+    font-size: 1.25rem !important;
+  }
+}
+
+.originalPrice {
+  color: #6c757d !important;
+  text-decoration: line-through !important;
+  font-size: 1rem !important;
+}
+
+.discountBadge {
+  background: #ffc107 !important;
+  color: #212529 !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+.taxInfo {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 0.875rem !important;
+  color: #6c757d !important;
+}
+
+/* Section Headers */
+.sectionHeader {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: #212529 !important;
+  border-bottom: 2px solid #e9ecef !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 16px !important;
+}
+
+/* Book Details */
+.detailItem {
+  display: flex !important;
+  align-items: center !important;
+  background: #f8f9fa !important;
+  padding: 12px !important;
+  border-radius: 6px !important;
+  border-left: 3px solid #007bff !important;
+  margin-bottom: 8px !important;
+}
+
+.detailLabel {
+  font-weight: 600 !important;
+  min-width: 90px !important;
+  margin-right: 8px !important;
+  font-size: 0.875rem !important;
+}
+
+.detailValue {
+  color: #212529 !important;
+  font-size: 0.875rem !important;
+}
+
+/* Tags */
+.tagContainer {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-bottom: 16px !important;
+}
+
+.tag {
+  display: flex !important;
+  align-items: center !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+}
+
+/* Responsive utilities */
+@media (max-width: 991px) {
+  .hideOnMobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .hideOnDesktop {
+    display: none !important;
+  }
+}
