@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X, ShoppingCart, Zap, Star, StarHalf, Calendar, BookOpen, User, Building2, Hash, Percent, Package } from 'lucide-react';
-import styles from './ImageViewModal.module.css';
 
 // Load Bootstrap CSS
 const loadBootstrap = () => {
@@ -39,20 +38,38 @@ const ImageViewModal = ({
     setIsZoomed(false);
   }, [isOpen, imageUrlList]);
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when modal is open and fix modal positioning
   useEffect(() => {
     if (isOpen) {
+      // Store original values
+      const originalOverflow = document.body.style.overflow;
+      const originalPaddingRight = document.body.style.paddingRight;
+      const originalPosition = document.documentElement.style.position;
+      const originalTop = document.documentElement.style.top;
+      const originalWidth = document.documentElement.style.width;
+      
+      // Get scroll position
+      const scrollY = window.scrollY;
+      
+      // Apply styles to prevent scroll
       document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = '15px'; // Prevent layout shift
-    } else {
-      document.body.style.overflow = 'unset';
       document.body.style.paddingRight = '0px';
+      document.documentElement.style.position = 'fixed';
+      document.documentElement.style.top = `-${scrollY}px`;
+      document.documentElement.style.width = '100%';
+      
+      return () => {
+        // Restore original values
+        document.body.style.overflow = originalOverflow;
+        document.body.style.paddingRight = originalPaddingRight;
+        document.documentElement.style.position = originalPosition;
+        document.documentElement.style.top = originalTop;
+        document.documentElement.style.width = originalWidth;
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+      };
     }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-      document.body.style.paddingRight = '0px';
-    };
   }, [isOpen]);
 
   // Handle keyboard navigation
@@ -98,7 +115,7 @@ const ImageViewModal = ({
     }
     
     setCurrentIndex(newIndex);
-    setIsZoomed(false); // Reset zoom when changing images
+    setIsZoomed(false);
   };
 
   // Handle backdrop click
@@ -156,12 +173,12 @@ const ImageViewModal = ({
   // Get tag display info
   const getTagInfo = (tag) => {
     const tagMap = {
-      'NEW_RELEASE': { label: 'New Release', className: styles.tagNewRelease, icon: '🆕' },
-      'BESTSELLER': { label: 'Bestseller', className: styles.tagBestseller, icon: '🏆' },
-      'TOP_RATED': { label: 'Top Rated', className: styles.tagTopRated, icon: '⭐' },
-      'SALE': { label: 'On Sale', className: styles.tagSale, icon: '🔥' }
+      'NEW_RELEASE': { label: 'New Release', className: 'badge bg-primary', icon: '🆕' },
+      'BESTSELLER': { label: 'Bestseller', className: 'badge bg-warning', icon: '🏆' },
+      'TOP_RATED': { label: 'Top Rated', className: 'badge bg-success', icon: '⭐' },
+      'SALE': { label: 'On Sale', className: 'badge bg-danger', icon: '🔥' }
     };
-    return tagMap[tag] || { label: tag.replace('_', ' '), className: styles.tagDefault, icon: '📖' };
+    return tagMap[tag] || { label: tag.replace('_', ' '), className: 'badge bg-secondary', icon: '📖' };
   };
 
   // Format GST display
@@ -173,8 +190,6 @@ const ImageViewModal = ({
   // Handle image load error
   const handleImageError = (e, index) => {
     console.error(`Image failed to load at index ${index}:`, imageUrlList[index]);
-    // You could set a placeholder image here
-    // e.target.src = '/path/to/placeholder-image.jpg';
   };
 
   // Don't render if not open or no images
@@ -187,176 +202,379 @@ const ImageViewModal = ({
   const pricing = getBookPricing();
 
   return (
-    <div className={styles.modal} onClick={handleBackdropClick} role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        {/* Close Button */}
-        <button
-          className={styles.modalClose}
-          onClick={onClose}
-          aria-label="Close modal"
-          type="button"
-          autoFocus
-        >
-          <X size={20} />
-        </button>
-        
-        <div className={styles.modalBody}>
-          {/* Left Side - Image Gallery */}
-          <div className={styles.modalImageSection}>
-            {/* Thumbnail Gallery */}
-            {hasMultipleImages && (
-              <div className={styles.thumbnailGallery}>
-                {imageUrlList.map((image, index) => (
-                  <button
-                    key={index}
-                    className={`${styles.thumbnail} ${currentIndex === index ? styles.thumbnailActive : ''}`}
-                    onClick={() => setCurrentIndex(index)}
-                    aria-label={`View image ${index + 1} of ${imageUrlList.length}`}
-                    type="button"
-                  >
-                    <img 
-                      src={image} 
-                      alt={`Thumbnail ${index + 1}`}
-                      onError={(e) => handleImageError(e, index)}
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-            
-            {/* Main Image Container */}
-            <div className={styles.mainImageContainer}>
-              <img
-                src={currentImage}
-                alt={`${bookInfo?.bookName || 'Book'} - Image ${currentIndex + 1}`}
-                className={`${styles.mainImage} ${isZoomed ? styles.zoomed : ''}`}
-                onClick={() => setIsZoomed(!isZoomed)}
-                onError={(e) => handleImageError(e, currentIndex)}
-                tabIndex="0"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setIsZoomed(!isZoomed);
-                  }
-                }}
-              />
-              
-              {/* Navigation Buttons for main image */}
-              {hasMultipleImages && !isZoomed && (
-                <>
-                  <button
-                    className={`${styles.navButton} ${styles.navPrev}`}
-                    onClick={() => navigateImage('prev')}
-                    aria-label="Previous image"
-                    type="button"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button
-                    className={`${styles.navButton} ${styles.navNext}`}
-                    onClick={() => navigateImage('next')}
-                    aria-label="Next image"
-                    type="button"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </>
-              )}
-              
-              {/* Image Counter */}
+    <div 
+      className="modal fade show d-block position-fixed w-100 h-100" 
+      style={{ 
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        zIndex: 1055,
+        top: 0,
+        left: 0,
+        overflow: 'hidden'
+      }} 
+      onClick={handleBackdropClick} 
+      role="dialog" 
+      aria-modal="true" 
+      aria-labelledby="modal-title"
+    >
+      <div className="modal-dialog modal-xl modal-dialog-centered position-relative w-100 h-100 m-0 d-flex align-items-center justify-content-center p-3">
+        <div className="modal-content position-relative" style={{ 
+          maxHeight: '100%', 
+          maxWidth: '100%',
+          width: '100%',
+          height: 'auto',
+          minHeight: '60vh',
+          overflow: 'hidden'
+        }}>
+          {/* Close Button */}
+          <button
+            type="button"
+            className="btn-close position-absolute top-0 end-0 m-3"
+            style={{ zIndex: 1060 }}
+            onClick={onClose}
+            aria-label="Close modal"
+            autoFocus
+          ></button>
+          
+          <div className="modal-body p-0 d-flex flex-column flex-lg-row h-100" style={{ minHeight: '60vh' }}>
+            {/* Left Side - Image Gallery */}
+            <div className="flex-fill d-flex flex-column order-0 order-lg-0 mb-3 mb-lg-0" style={{ minHeight: '300px', backgroundColor: '#f8f9fa' }}>
+              {/* Thumbnail Gallery - Responsive positioning */}
               {hasMultipleImages && (
-                <div className={styles.imageCounter} aria-live="polite">
-                  {currentIndex + 1} / {imageUrlList.length}
+                <div className="d-flex d-lg-block bg-white border-end border-bottom border-lg-bottom-0 p-2 overflow-auto" 
+                     style={{ 
+                       flexShrink: 0,
+                       height: 'auto',
+                       maxHeight: '80px'
+                     }}
+                >
+                  <div className="d-flex d-lg-block gap-2">
+                    {imageUrlList.map((image, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className={`btn p-1 flex-shrink-0 ${currentIndex === index ? 'border-primary border-3' : 'border-secondary border-2'}`}
+                        style={{ 
+                          width: '60px', 
+                          height: '60px',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          marginBottom: '8px'
+                        }}
+                        onClick={() => setCurrentIndex(index)}
+                        aria-label={`View image ${index + 1} of ${imageUrlList.length}`}
+                      >
+                        <img 
+                          src={image} 
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-100 h-100"
+                          style={{ objectFit: 'cover' }}
+                          onError={(e) => handleImageError(e, index)}
+                          loading="lazy"
+                        />
+                        {currentIndex === index && (
+                          <div 
+                            className="position-absolute top-50 start-50 translate-middle bg-primary rounded-circle border border-2 border-white"
+                            style={{ width: '20px', height: '20px' }}
+                          ></div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               
-              {/* Zoom Indicator */}
-              <div className={styles.zoomIndicator}>
-                {isZoomed ? 'Click to zoom out' : 'Click to zoom in'}
+              {/* Main Image Container */}
+              <div className="flex-fill position-relative d-flex align-items-center justify-content-center p-3 p-lg-4"
+                   style={{ 
+                     background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                     minHeight: '250px'
+                   }}
+              >
+                <img
+                  src={currentImage}
+                  alt={`${bookInfo?.bookName || 'Book'} - Image ${currentIndex + 1}`}
+                  className={`img-fluid ${isZoomed ? '' : 'shadow'}`}
+                  style={{ 
+                    maxHeight: '100%',
+                    objectFit: 'contain',
+                    cursor: isZoomed ? 'zoom-out' : 'zoom-in',
+                    transform: isZoomed ? 'scale(1.8)' : 'scale(1)',
+                    transition: 'transform 0.3s ease',
+                    borderRadius: '8px'
+                  }}
+                  onClick={() => setIsZoomed(!isZoomed)}
+                  onError={(e) => handleImageError(e, currentIndex)}
+                  tabIndex="0"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setIsZoomed(!isZoomed);
+                    }
+                  }}
+                />
+                
+                {/* Navigation Buttons for main image */}
+                {hasMultipleImages && !isZoomed && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-light position-absolute start-0 top-50 translate-middle-y ms-2 shadow-sm"
+                      style={{ 
+                        width: '45px', 
+                        height: '45px',
+                        borderRadius: '50%',
+                        zIndex: 10
+                      }}
+                      onClick={() => navigateImage('prev')}
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-light position-absolute end-0 top-50 translate-middle-y me-2 shadow-sm"
+                      style={{ 
+                        width: '45px', 
+                        height: '45px',
+                        borderRadius: '50%',
+                        zIndex: 10
+                      }}
+                      onClick={() => navigateImage('next')}
+                      aria-label="Next image"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </>
+                )}
+                
+                {/* Image Counter */}
+                {hasMultipleImages && (
+                  <div 
+                    className="position-absolute bottom-0 start-50 translate-middle-x mb-3 px-3 py-1 text-white rounded-pill small"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+                    aria-live="polite"
+                  >
+                    {currentIndex + 1} / {imageUrlList.length}
+                  </div>
+                )}
+                
+                {/* Zoom Indicator */}
+                <div 
+                  className="position-absolute bottom-0 end-0 mb-3 me-3 px-2 py-1 text-white rounded small opacity-0 opacity-100-hover"
+                  style={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    transition: 'opacity 0.3s ease',
+                    fontSize: '12px'
+                  }}
+                >
+                  {isZoomed ? 'Click to zoom out' : 'Click to zoom in'}
+                </div>
               </div>
             </div>
-          </div>
-          
-          {/* Right Side - Book Information */}
-          <div className={styles.modalInfoSection}>
-            {bookInfo && (
-              <div className={styles.bookDetails}>
-                {/* Book Title and Author */}
-                <div className={styles.titleSection}>
-                  <h1 id="modal-title" className={styles.bookTitle}>{bookInfo.bookName}</h1>
+            
+            {/* Right Side - Book Information */}
+            <div className="col-12 col-lg-5 bg-white order-1 order-lg-1 d-flex flex-column" 
+                 style={{ minHeight: 0, maxHeight: '100%' }}>
+              {/* Fixed Header - Title and Author */}
+              {bookInfo && (
+                <div className="flex-shrink-0 border-bottom p-4 pb-3">
+                  <h1 id="modal-title" className="h4 h3-lg fw-bold text-dark mb-2">{bookInfo.bookName}</h1>
                   {bookInfo.authorName && (
-                    <div className={styles.authorInfo}>
-                      <User size={16} />
+                    <div className="d-flex align-items-center text-primary mb-0">
+                      <User size={16} className="me-2" />
                       <span>by {bookInfo.authorName}</span>
                     </div>
                   )}
                 </div>
-                
-                {/* Tags */}
-                {bookInfo.bookTags && bookInfo.bookTags.length > 0 && (
-                  <div className={styles.tagsSection}>
-                    {bookInfo.bookTags.map((tag, index) => {
-                      const tagInfo = getTagInfo(tag);
-                      return (
-                        <span key={index} className={`${styles.tag} ${tagInfo.className}`}>
-                          <span className={styles.tagIcon} role="img" aria-label={tagInfo.label}>{tagInfo.icon}</span>
-                          {tagInfo.label}
+              )}
+              
+              {/* Scrollable Content */}
+              <div className="flex-grow-1 overflow-auto p-4 pt-3" style={{ minHeight: 0 }}>
+              {bookInfo && (
+                <div>
+                  {/* Tags */}
+                  {bookInfo.bookTags && bookInfo.bookTags.length > 0 && (
+                    <div className="d-flex flex-wrap gap-2 mb-3">
+                      {bookInfo.bookTags.map((tag, index) => {
+                        const tagInfo = getTagInfo(tag);
+                        return (
+                          <span key={index} className={`${tagInfo.className} d-flex align-items-center`}>
+                            <span className="me-1" role="img" aria-label={tagInfo.label}>{tagInfo.icon}</span>
+                            {tagInfo.label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  {/* Price Section */}
+                  {pricing && (
+                    <div className="bg-light p-3 rounded border mb-3">
+                      <div className="d-flex align-items-baseline flex-wrap gap-2 mb-2">
+                        <span className="h4 text-danger fw-bold mb-0" aria-label={`Current price ₹${pricing.price.toFixed(2)}`}>
+                          ₹{pricing.price.toFixed(2)}
                         </span>
-                      );
-                    })}
-                  </div>
-                )}
-                
-                {/* Price Section */}
-                {pricing && (
-                  <div className={styles.pricingSection}>
-                    <div className={styles.priceRow}>
-                      <span className={styles.currentPrice} aria-label={`Current price ₹${pricing.price.toFixed(2)}`}>
-                        ₹{pricing.price.toFixed(2)}
-                      </span>
-                      {pricing.mrp > pricing.price && (
-                        <>
-                          <span className={styles.originalPrice} aria-label={`Original price ₹${pricing.mrp.toFixed(2)}`}>
-                            ₹{pricing.mrp.toFixed(2)}
-                          </span>
-                          <span className={styles.discount} aria-label={`${pricing.discount}% discount`}>
-                            ({pricing.discount}% OFF)
-                          </span>
-                        </>
+                        {pricing.mrp > pricing.price && (
+                          <>
+                            <span className="text-muted text-decoration-line-through" aria-label={`Original price ₹${pricing.mrp.toFixed(2)}`}>
+                              ₹{pricing.mrp.toFixed(2)}
+                            </span>
+                            <span className="badge bg-warning text-dark" aria-label={`${pricing.discount}% discount`}>
+                              {pricing.discount}% OFF
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center small text-muted">
+                        <span>Inclusive of all taxes</span>
+                        {bookInfo.gst && (
+                          <div className="d-flex align-items-center">
+                            <Percent size={14} className="me-1" />
+                            {formatGST(bookInfo.gst)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Description */}
+                  {(bookInfo.description || bookInfo.bookDescription) && (
+                    <div className="mb-4">
+                      <h3 className="h6 fw-bold text-dark border-bottom pb-2 mb-3">Description</h3>
+                      <p className="text-muted lh-base small">
+                        {bookInfo.description || bookInfo.bookDescription}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Book Details */}
+                  <div className="mb-4">
+                    <h3 className="h6 fw-bold text-dark border-bottom pb-2 mb-3">Book Details</h3>
+                    <div className="d-flex flex-column gap-2">
+                      {bookInfo.category && (
+                        <div className="d-flex align-items-center bg-light p-2 rounded border-start border-primary border-3">
+                          <BookOpen size={16} className="me-2 text-primary" />
+                          <span className="fw-semibold me-2" style={{ minWidth: '100px' }}>Category:</span>
+                          <span className="text-dark">{bookInfo.category}</span>
+                        </div>
+                      )}
+                      
+                      {bookInfo.publisher && (
+                        <div className="d-flex align-items-center bg-light p-2 rounded border-start border-primary border-3">
+                          <Building2 size={16} className="me-2 text-primary" />
+                          <span className="fw-semibold me-2" style={{ minWidth: '100px' }}>Publisher:</span>
+                          <span className="text-dark">{bookInfo.publisher}</span>
+                        </div>
+                      )}
+                      
+                      {bookInfo.isbn && (
+                        <div className="d-flex align-items-center bg-light p-2 rounded border-start border-primary border-3">
+                          <Hash size={16} className="me-2 text-primary" />
+                          <span className="fw-semibold me-2" style={{ minWidth: '100px' }}>ISBN:</span>
+                          <span className="text-dark">{bookInfo.isbn}</span>
+                        </div>
+                      )}
+                      
+                      {bookInfo.year && (
+                        <div className="d-flex align-items-center bg-light p-2 rounded border-start border-primary border-3">
+                          <Calendar size={16} className="me-2 text-primary" />
+                          <span className="fw-semibold me-2" style={{ minWidth: '100px' }}>Year:</span>
+                          <span className="text-dark">{bookInfo.year}</span>
+                        </div>
+                      )}
+                      
+                      {bookInfo.edition && (
+                        <div className="d-flex align-items-center bg-light p-2 rounded border-start border-primary border-3">
+                          <Package size={16} className="me-2 text-primary" />
+                          <span className="fw-semibold me-2" style={{ minWidth: '100px' }}>Edition:</span>
+                          <span className="text-dark">{bookInfo.edition}</span>
+                        </div>
+                      )}
+                      
+                      {bookInfo.hsn && (
+                        <div className="d-flex align-items-center bg-light p-2 rounded border-start border-primary border-3">
+                          <Hash size={16} className="me-2 text-primary" />
+                          <span className="fw-semibold me-2" style={{ minWidth: '100px' }}>HSN Code:</span>
+                          <span className="text-dark">{bookInfo.hsn}</span>
+                        </div>
                       )}
                     </div>
-                    <div className={styles.priceDetails}>
-                      <span>Inclusive of all taxes</span>
-                      {bookInfo.gst && (
-                        <span className={styles.gstInfo}>
-                          <Percent size={14} />
-                          {formatGST(bookInfo.gst)}
-                        </span>
-                      )}
-                    </div>
                   </div>
-                )}
-                
-                {/* Action Buttons */}
-                {(onAddToCart || onBuyNow) && (
-                  <div className={styles.actionButtons}>
+
+                  {/* Desktop Action Buttons - Inside scrollable content */}
+                  {(onAddToCart || onBuyNow) && (
+                    <div className="d-none d-lg-block mb-4">
+                      <div className="d-flex gap-3">
+                        {onAddToCart && (
+                          <button 
+                            type="button"
+                            className={`btn btn-outline-primary flex-fill py-3 px-4 fw-semibold ${cartLoading ? 'disabled' : ''}`}
+                            onClick={handleAddToCart}
+                            disabled={cartLoading}
+                            aria-label="Add to shopping cart"
+                            style={{ minHeight: '50px' }}
+                          >
+                            {cartLoading ? (
+                              <>
+                                <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                                Adding to Cart...
+                              </>
+                            ) : (
+                              <>
+                                <ShoppingCart size={18} className="me-2" />
+                                Add to Cart
+                              </>
+                            )}
+                          </button>
+                        )}
+                        
+                        {onBuyNow && (
+                          <button 
+                            type="button"
+                            className="btn btn-warning flex-fill text-white fw-bold py-3 px-4"
+                            onClick={handleBuyNow}
+                            aria-label="Buy now"
+                            style={{ minHeight: '50px' }}
+                          >
+                            <Zap size={18} className="me-2" />
+                            Buy Now
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              </div>
+              
+              {/* Fixed Action Buttons Footer - Mobile only */}
+              {(onAddToCart || onBuyNow) && (
+                <div className="d-lg-none border-top bg-white p-3 mt-auto flex-shrink-0" 
+                     style={{ 
+                       position: 'sticky',
+                       bottom: 0,
+                       left: 0,
+                       right: 0,
+                       zIndex: 10
+                     }}>
+                  <div className="d-flex gap-2">
                     {onAddToCart && (
                       <button 
-                        className={`${styles.cartButton} ${cartLoading ? styles.loading : ''}`}
+                        type="button"
+                        className={`btn btn-outline-primary flex-fill py-3 px-4 fw-semibold ${cartLoading ? 'disabled' : ''}`}
                         onClick={handleAddToCart}
                         disabled={cartLoading}
-                        type="button"
                         aria-label="Add to shopping cart"
+                        style={{ minHeight: '50px' }}
                       >
                         {cartLoading ? (
                           <>
-                            <div className={styles.spinner} aria-hidden="true"></div>
-                            Adding to Cart...
+                            <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                            Adding...
                           </>
                         ) : (
                           <>
-                            <ShoppingCart size={18} aria-hidden="true" />
+                            <ShoppingCart size={18} className="me-2" />
                             Add to Cart
                           </>
                         )}
@@ -365,83 +583,20 @@ const ImageViewModal = ({
                     
                     {onBuyNow && (
                       <button 
-                        className={styles.buyButton}
-                        onClick={handleBuyNow}
                         type="button"
+                        className="btn btn-warning flex-fill text-white fw-bold py-3 px-4"
+                        onClick={handleBuyNow}
                         aria-label="Buy now"
+                        style={{ minHeight: '50px' }}
                       >
-                        <Zap size={18} aria-hidden="true" />
+                        <Zap size={18} className="me-2" />
                         Buy Now
                       </button>
                     )}
                   </div>
-                )}
-                
-                {/* Description */}
-                {(bookInfo.description || bookInfo.bookDescription) && (
-                  <div className={styles.descriptionSection}>
-                    <h3>Description</h3>
-                    <p className={styles.description}>
-                      {bookInfo.description || bookInfo.bookDescription}
-                    </p>
-                  </div>
-                )}
-                
-                {/* Book Details */}
-                <div className={styles.detailsSection}>
-                  <h3>Book Details</h3>
-                  <div className={styles.detailsGrid}>
-                    {bookInfo.category && (
-                      <div className={styles.detailItem}>
-                        <BookOpen size={16} aria-hidden="true" />
-                        <span className={styles.detailLabel}>Category:</span>
-                        <span className={styles.detailValue}>{bookInfo.category}</span>
-                      </div>
-                    )}
-                    
-                    {bookInfo.publisher && (
-                      <div className={styles.detailItem}>
-                        <Building2 size={16} aria-hidden="true" />
-                        <span className={styles.detailLabel}>Publisher:</span>
-                        <span className={styles.detailValue}>{bookInfo.publisher}</span>
-                      </div>
-                    )}
-                    
-                    {bookInfo.isbn && (
-                      <div className={styles.detailItem}>
-                        <Hash size={16} aria-hidden="true" />
-                        <span className={styles.detailLabel}>ISBN:</span>
-                        <span className={styles.detailValue}>{bookInfo.isbn}</span>
-                      </div>
-                    )}
-                    
-                    {bookInfo.year && (
-                      <div className={styles.detailItem}>
-                        <Calendar size={16} aria-hidden="true" />
-                        <span className={styles.detailLabel}>Year:</span>
-                        <span className={styles.detailValue}>{bookInfo.year}</span>
-                      </div>
-                    )}
-                    
-                    {bookInfo.edition && (
-                      <div className={styles.detailItem}>
-                        <Package size={16} aria-hidden="true" />
-                        <span className={styles.detailLabel}>Edition:</span>
-                        <span className={styles.detailValue}>{bookInfo.edition}</span>
-                      </div>
-                    )}
-                    
-                    {bookInfo.hsn && (
-                      <div className={styles.detailItem}>
-                        <Hash size={16} aria-hidden="true" />
-                        <span className={styles.detailLabel}>HSN Code:</span>
-                        <span className={styles.detailValue}>{bookInfo.hsn}</span>
-                      </div>
-                    )}
-                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
