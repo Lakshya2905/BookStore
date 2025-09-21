@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, ShoppingCart, Zap, X } from 'lucide-react';
 import { addItemToCart } from '../../api/addItemToCart';
 import PlaceOrderModal from "../Order/PlaceOrderModal";
+import ImageViewModal from "./ImageViewModal"; // Import the new component
 import styles from './FeaturedBooksSection.module.css';
 
 const loadBootstrap = () => {
@@ -43,9 +44,10 @@ const FeaturedBooksSection = ({
   // State for image errors
   const [imageErrors, setImageErrors] = useState({});
 
-  // State for Image View Modal
+  // State for Image View Modal - Updated for new component
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [selectedImageData, setSelectedImageData] = useState(null);
+  const [selectedBookForImage, setSelectedBookForImage] = useState(null);
+  const [selectedImageList, setSelectedImageList] = useState([]);
 
   // State for image slideshow in cards
   const [currentImageIndex, setCurrentImageIndex] = useState({});
@@ -161,7 +163,7 @@ const FeaturedBooksSection = ({
     setImageErrors(prev => ({ ...prev, [imageKey]: true }));
   };
 
-  // Function to open image modal when image is clicked
+  // Updated function to open image modal with new component structure
   const openImageModal = (book, event) => {
     event?.preventDefault();
     event?.stopPropagation();
@@ -169,63 +171,20 @@ const FeaturedBooksSection = ({
     const allImages = getBookImages(book);
     if (allImages.length === 0) return;
     
-    const bookId = book.bookId || book.id;
-    const currentIndex = currentImageIndex[bookId] || 0;
+    // Extract just the URLs for the modal
+    const imageUrls = allImages.map(img => img.url);
     
-    setSelectedImageData({
-      book,
-      images: allImages,
-      currentIndex: Math.min(currentIndex, allImages.length - 1)
-    });
+    setSelectedBookForImage(book);
+    setSelectedImageList(imageUrls);
     setImageModalOpen(true);
   };
 
   // Function to close image modal
   const closeImageModal = () => {
     setImageModalOpen(false);
-    setSelectedImageData(null);
+    setSelectedBookForImage(null);
+    setSelectedImageList([]);
   };
-
-  // Function to navigate images in modal
-  const navigateModalImage = (direction) => {
-    if (!selectedImageData || selectedImageData.images.length <= 1) return;
-    
-    let newIndex;
-    if (direction === 'next') {
-      newIndex = (selectedImageData.currentIndex + 1) % selectedImageData.images.length;
-    } else {
-      newIndex = (selectedImageData.currentIndex - 1 + selectedImageData.images.length) % selectedImageData.images.length;
-    }
-    
-    setSelectedImageData(prev => ({
-      ...prev,
-      currentIndex: newIndex
-    }));
-  };
-
-  // Handle keyboard navigation in modal
-  useEffect(() => {
-    if (!imageModalOpen) return;
-    
-    const handleKeyDown = (event) => {
-      switch (event.key) {
-        case 'Escape':
-          closeImageModal();
-          break;
-        case 'ArrowLeft':
-          navigateModalImage('prev');
-          break;
-        case 'ArrowRight':
-          navigateModalImage('next');
-          break;
-        default:
-          break;
-      }
-    };
-    
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [imageModalOpen, selectedImageData]);
 
   // Function to sort books by priority
   const sortBooksByPriority = (books) => {
@@ -638,76 +597,13 @@ const FeaturedBooksSection = ({
         </>
       )}
       
-      {/* Enhanced Image Modal */}
-      {imageModalOpen && selectedImageData && (
-        <div className={styles.modal} onClick={closeImageModal}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button
-              className={styles.modalClose}
-              onClick={closeImageModal}
-              aria-label="Close modal"
-            >
-              <X size={24} />
-            </button>
-            
-            <div className={styles.modalBody}>
-              <div className={styles.modalImageContainer}>
-                <img
-                  src={selectedImageData.images[selectedImageData.currentIndex]?.url}
-                  alt={`${selectedImageData.book.bookName} - Image ${selectedImageData.currentIndex + 1}`}
-                  className={styles.modalImage}
-                />
-                
-                {selectedImageData.images.length > 1 && (
-                  <>
-                    <button
-                      className={`${styles.modalNavButton} ${styles.modalNavPrev}`}
-                      onClick={() => navigateModalImage('prev')}
-                      aria-label="Previous image"
-                    >
-                      <ChevronLeft size={24} />
-                    </button>
-                    <button
-                      className={`${styles.modalNavButton} ${styles.modalNavNext}`}
-                      onClick={() => navigateModalImage('next')}
-                      aria-label="Next image"
-                    >
-                      <ChevronRight size={24} />
-                    </button>
-                  </>
-                )}
-              </div>
-              
-              <div className={styles.modalInfo}>
-                <h3>{selectedImageData.book.bookName}</h3>
-                <p>by {selectedImageData.book.authorName}</p>
-                {selectedImageData.images.length > 1 && (
-                  <div className={styles.modalImageCounter}>
-                    Image {selectedImageData.currentIndex + 1} of {selectedImageData.images.length}
-                  </div>
-                )}
-                {selectedImageData.images.length > 1 && (
-                  <div className={styles.modalIndicators}>
-                    {selectedImageData.images.map((_, index) => (
-                      <button
-                        key={index}
-                        className={`${styles.modalIndicator} ${
-                          selectedImageData.currentIndex === index ? styles.active : ''
-                        }`}
-                        onClick={() => setSelectedImageData(prev => ({
-                          ...prev,
-                          currentIndex: index
-                        }))}
-                        aria-label={`Go to image ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Replace old modal with new ImageViewModal component */}
+      <ImageViewModal
+        isOpen={imageModalOpen}
+        onClose={closeImageModal}
+        bookInfo={selectedBookForImage}
+        imageUrlList={selectedImageList}
+      />
       
       {/* Place Order Modal */}
       <PlaceOrderModal

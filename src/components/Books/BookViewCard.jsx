@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { addItemToCart } from "../../api/addItemToCart";
 import PlaceOrderModal from "../Order/PlaceOrderModal";
+import ImageViewModal from "./ImageViewModal"; // Import the new component
 import styles from "./BookViewCard.module.css";
 
 const BookViewCard = ({ books = [], loading, error, showPagination = true }) => {
@@ -24,11 +25,10 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState(null);
 
-  // State for Image Popup
-  const [imagePopupOpen, setImagePopupOpen] = useState(false);
-  const [popupImages, setPopupImages] = useState([]);
-  const [popupCurrentIndex, setPopupCurrentIndex] = useState(0);
-  const [popupBookName, setPopupBookName] = useState("");
+  // State for Image View Modal - Updated for new component
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedBookForImage, setSelectedBookForImage] = useState(null);
+  const [selectedImageList, setSelectedImageList] = useState([]);
 
   // Extract search parameters - this will trigger re-renders when URL changes
   const searchQuery = searchParams.get("search");
@@ -121,24 +121,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     };
   }, [slideshowIntervals]);
 
-  // Handle escape key for image popup
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (!imagePopupOpen) return;
-      
-      if (event.key === 'Escape') {
-        closeImagePopup();
-      } else if (event.key === 'ArrowLeft') {
-        navigatePopupImage(-1);
-      } else if (event.key === 'ArrowRight') {
-        navigatePopupImage(1);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [imagePopupOpen, popupCurrentIndex, popupImages.length]);
-
   // Apply search + filters + sorting - Now properly reactive to URL changes
   const filteredBooks = useMemo(() => {
     console.log('Filtering books with:', { searchQuery, categoryFilter, tagFilter });
@@ -206,44 +188,40 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     return allImages[currentIndex]?.imageUrl || book.coverImageUrl || null;
   };
 
-  // Function to handle image click - open popup
+  // Updated function to handle image click - open new modal
   const handleImageClick = (book) => {
     const allImages = book.allImages || [];
-    const bookId = book.bookId || book.id;
     
-    // If no additional images, use cover image
-    const imagesToShow = allImages.length > 0 
-      ? allImages.map(img => img.imageUrl) 
-      : book.coverImageUrl 
-        ? [book.coverImageUrl] 
-        : [];
+    // Build image URL list from all available sources
+    const imageUrls = [];
     
-    if (imagesToShow.length === 0) return;
+    // Add images from allImages array
+    if (allImages.length > 0) {
+      allImages.forEach(img => {
+        if (img.imageUrl) {
+          imageUrls.push(img.imageUrl);
+        }
+      });
+    }
     
-    setPopupImages(imagesToShow);
-    setPopupCurrentIndex(currentImageIndex[bookId] || 0);
-    setPopupBookName(book.bookName);
-    setImagePopupOpen(true);
+    // Add cover image if not already included and exists
+    if (book.coverImageUrl && !imageUrls.includes(book.coverImageUrl)) {
+      imageUrls.push(book.coverImageUrl);
+    }
+    
+    // If no images available, don't open modal
+    if (imageUrls.length === 0) return;
+    
+    setSelectedBookForImage(book);
+    setSelectedImageList(imageUrls);
+    setImageModalOpen(true);
   };
 
-  // Function to close image popup
-  const closeImagePopup = () => {
-    setImagePopupOpen(false);
-    setPopupImages([]);
-    setPopupCurrentIndex(0);
-    setPopupBookName("");
-  };
-
-  // Function to navigate in popup
-  const navigatePopupImage = (direction) => {
-    if (popupImages.length <= 1) return;
-    
-    setPopupCurrentIndex(prev => {
-      const newIndex = prev + direction;
-      if (newIndex < 0) return popupImages.length - 1;
-      if (newIndex >= popupImages.length) return 0;
-      return newIndex;
-    });
+  // Function to close image modal
+  const closeImageModal = () => {
+    setImageModalOpen(false);
+    setSelectedBookForImage(null);
+    setSelectedImageList([]);
   };
 
   // Function to handle image load error
@@ -667,82 +645,13 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
         </>
       )}
 
-      {/* Image Popup Modal */}
-      {imagePopupOpen && (
-        <div className={styles.imagePopupOverlay} onClick={closeImagePopup}>
-          <div className={styles.imagePopupBlur}></div>
-          <div className={styles.imagePopupContent} onClick={(e) => e.stopPropagation()}>
-            <button 
-              className={styles.popupCloseButton}
-              onClick={closeImagePopup}
-              type="button"
-              aria-label="Close image popup"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-            
-            <div className={styles.popupImageContainer}>
-              {popupImages.length > 1 && (
-                <button
-                  className={`${styles.popupNavButton} ${styles.popupNavLeft}`}
-                  onClick={() => navigatePopupImage(-1)}
-                  type="button"
-                  aria-label="Previous image"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="15,18 9,12 15,6"></polyline>
-                  </svg>
-                </button>
-              )}
-              
-              <img
-                src={popupImages[popupCurrentIndex]}
-                alt={`${popupBookName} - Image ${popupCurrentIndex + 1}`}
-                className={styles.popupImage}
-              />
-              
-              {popupImages.length > 1 && (
-                <button
-                  className={`${styles.popupNavButton} ${styles.popupNavRight}`}
-                  onClick={() => navigatePopupImage(1)}
-                  type="button"
-                  aria-label="Next image"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="9,18 15,12 9,6"></polyline>
-                  </svg>
-                </button>
-              )}
-            </div>
-            
-            <div className={styles.popupImageInfo}>
-              <h3>{popupBookName}</h3>
-              {popupImages.length > 1 && (
-                <p>Image {popupCurrentIndex + 1} of {popupImages.length}</p>
-              )}
-            </div>
-            
-            {popupImages.length > 1 && (
-              <div className={styles.popupImageIndicators}>
-                {popupImages.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`${styles.popupIndicator} ${
-                      index === popupCurrentIndex ? styles.active : ''
-                    }`}
-                    onClick={() => setPopupCurrentIndex(index)}
-                    type="button"
-                    aria-label={`Go to image ${index + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Replace old Image Popup Modal with new ImageViewModal component */}
+      <ImageViewModal
+        isOpen={imageModalOpen}
+        onClose={closeImageModal}
+        bookInfo={selectedBookForImage}
+        imageUrlList={selectedImageList}
+      />
 
       {/* Place Order Modal */}
       <PlaceOrderModal
