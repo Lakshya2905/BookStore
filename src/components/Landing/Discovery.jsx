@@ -8,11 +8,13 @@ const Discovery = () => {
   const [images, setImages] = useState([]);
   const [imageNames, setImageNames] = useState([]);
   const [imageDimensions, setImageDimensions] = useState([]);
+  const [productLinks, setProductLinks] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const intervalRef = useRef(null);
+  const hasInitialized = useRef(false);
 
   // Load Bootstrap CSS via CDN
   const loadBootstrap = () => {
@@ -117,23 +119,38 @@ const Discovery = () => {
     }
   }, [detectImageFormatFromName]);
 
+  // Handle image click to open product link
+  const handleImageClick = useCallback((index) => {
+    const productLink = productLinks[index];
+    if (productLink && productLink.trim()) {
+      // Ensure URL has protocol
+      const url = productLink.startsWith('http') 
+        ? productLink 
+        : `https://${productLink}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }, [productLinks]);
+
   const processImageList = useCallback(async (imageList) => {
     console.log(`Processing ${imageList.length} images from list`);
     
-    // Revoke old blob URLs
-    images.forEach((imageUrl) => {
-      if (imageUrl && imageUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(imageUrl);
-      }
-    });
+    // Don't revoke URLs if we're using cached data
+    if (images.length > 0) {
+      images.forEach((imageUrl) => {
+        if (imageUrl && imageUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(imageUrl);
+        }
+      });
+    }
 
     const imageUrls = [];
     const names = [];
     const dimensions = [];
+    const links = [];
     const cacheData = {};
 
     for (const imageItem of imageList) {
-      const { discoveryId, fileName } = imageItem;
+      const { discoveryId, fileName, linkOfProduct } = imageItem;
       
       try {
         console.log(`Processing image: ${fileName} (ID: ${discoveryId})`);
@@ -145,10 +162,12 @@ const Discovery = () => {
           imageUrls.push(imageUrl);
           names.push(fileName);
           dimensions.push(dims);
+          links.push(linkOfProduct || '');
           
           cacheData[fileName] = {
             discoveryId: discoveryId,
-            fileName: fileName
+            fileName: fileName,
+            linkOfProduct: linkOfProduct || ''
           };
           
           console.log(`Successfully processed: ${fileName}, dimensions:`, dims);
@@ -164,20 +183,23 @@ const Discovery = () => {
       setImages(imageUrls);
       setImageNames(names);
       setImageDimensions(dimensions);
+      setProductLinks(links);
       setCurrentImageIndex(0);
       
       setCachedImages({
-        imageList: cacheData,
-        timestamp: Date.now(),
-        version: '1.0'
+        imageList: cacheData
       });
       
       return true;
     }
     return false;
-  }, [fetchImageById, getImageDimensions, images, setCachedImages]);
+  }, [fetchImageById, getImageDimensions, setCachedImages]);
 
+  // Fixed fetchImages to prevent infinite calls
   const fetchImages = useCallback(async () => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     setLoading(true);
     setError(null);
 
@@ -284,9 +306,11 @@ const Discovery = () => {
 
   // Effects
   useEffect(() => {
-    console.log('Discovery component mounted, fetching images...');
-    fetchImages();
-  }, [fetchImages]);
+    if (!hasInitialized.current) {
+      console.log('Discovery component mounted, fetching images...');
+      fetchImages();
+    }
+  }, []); // Empty dependency array
 
   useEffect(() => {
     startAutoSlide();
@@ -307,8 +331,13 @@ const Discovery = () => {
   }, [images]);
 
   const handleRetry = () => {
+    hasInitialized.current = false;
     sessionStorage.removeItem(getCacheKey());
     setError(null);
+    setImages([]);
+    setImageNames([]);
+    setImageDimensions([]);
+    setProductLinks([]);
     fetchImages();
   };
 
@@ -402,6 +431,7 @@ const Discovery = () => {
                   {images.map((image, index) => {
                     const dimensions = imageDimensions[index] || { width: 1200, height: 300 };
                     const aspectRatioClass = getAspectRatioClass(dimensions.width, dimensions.height);
+                    const hasProductLink = productLinks[index] && productLinks[index].trim();
                     
                     return (
                       <div
@@ -414,10 +444,15 @@ const Discovery = () => {
                         <div className={`${styles.imageContainer} ${styles[aspectRatioClass]}`}>
                           <img
                             src={image}
-                            className={styles.carouselImage}
+                            className={`${styles.carouselImage} ${hasProductLink ? styles.clickableImage : ''}`}
                             alt={`Banner ${index + 1}: ${imageNames[index] || `Slide ${index + 1}`}`}
                             onError={handleImageError}
                             loading={index === 0 ? "eager" : "lazy"}
+                            onClick={() => handleImageClick(index)}
+                            style={{
+                              cursor: hasProductLink ? 'pointer' : 'default'
+                            }}
+                            title={hasProductLink ? 'Click to view product' : ''}
                           />
                         </div>
                       </div>
@@ -454,7 +489,7 @@ const Discovery = () => {
                       </div>
                     </button>
 
-                    {/* Play/Pause Button */}
+                    {/* Play/Pause Button
                     <button
                       className={styles.playPauseButton}
                       type="button"
@@ -470,7 +505,7 @@ const Discovery = () => {
                           <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16zM6.271 5.055a.5.5 0 0 1 .52.036L11.5 7.556a.5.5 0 0 1 0 .888L6.791 10.91a.5.5 0 0 1-.791-.39V5.604a.5.5 0 0 1 .271-.549z"/>
                         </svg>
                       )}
-                    </button>
+                    </button> */}
                   </>
                 )}
 
