@@ -303,3 +303,10 @@
     font-size: 14px;
   }
 }
+
+.helpText {
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}

@@ -223,7 +223,9 @@ const ImageViewModal = ({
           width: '100%',
           height: 'auto',
           minHeight: '60vh',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
           {/* Close Button */}
           <button
@@ -235,7 +237,7 @@ const ImageViewModal = ({
             autoFocus
           ></button>
           
-          <div className="modal-body p-0 d-flex flex-column flex-lg-row h-100" style={{ minHeight: '60vh' }}>
+          <div className="modal-body p-0 d-flex flex-column flex-lg-row flex-grow-1" style={{ minHeight: '60vh' }}>
             {/* Left Side - Image Gallery */}
             <div className="flex-fill d-flex flex-column order-0 order-lg-0 mb-3 mb-lg-0" style={{ minHeight: '300px', backgroundColor: '#f8f9fa' }}>
               {/* Thumbnail Gallery - Responsive positioning */}
@@ -389,7 +391,7 @@ const ImageViewModal = ({
               )}
               
               {/* Scrollable Content */}
-              <div className="flex-grow-1 overflow-auto p-4 pt-3" style={{ minHeight: 0 }}>
+              <div className="flex-grow-1 overflow-auto p-4 pt-3" style={{ minHeight: 0, paddingBottom: '100px' }}>
               {bookInfo && (
                 <div>
                   {/* Tags */}
@@ -500,64 +502,22 @@ const ImageViewModal = ({
                       )}
                     </div>
                   </div>
-
-                  {/* Desktop Action Buttons - Inside scrollable content */}
-                  {(onAddToCart || onBuyNow) && (
-                    <div className="d-none d-lg-block mb-4">
-                      <div className="d-flex gap-3">
-                        {onAddToCart && (
-                          <button 
-                            type="button"
-                            className={`btn btn-outline-primary flex-fill py-3 px-4 fw-semibold ${cartLoading ? 'disabled' : ''}`}
-                            onClick={handleAddToCart}
-                            disabled={cartLoading}
-                            aria-label="Add to shopping cart"
-                            style={{ minHeight: '50px' }}
-                          >
-                            {cartLoading ? (
-                              <>
-                                <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-                                Adding to Cart...
-                              </>
-                            ) : (
-                              <>
-                                <ShoppingCart size={18} className="me-2" />
-                                Add to Cart
-                              </>
-                            )}
-                          </button>
-                        )}
-                        
-                        {onBuyNow && (
-                          <button 
-                            type="button"
-                            className="btn btn-warning flex-fill text-white fw-bold py-3 px-4"
-                            onClick={handleBuyNow}
-                            aria-label="Buy now"
-                            style={{ minHeight: '50px' }}
-                          >
-                            <Zap size={18} className="me-2" />
-                            Buy Now
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
               </div>
               
-              {/* Fixed Action Buttons Footer - Mobile only */}
+              {/* Fixed Action Buttons Footer - Always visible for both mobile and desktop */}
               {(onAddToCart || onBuyNow) && (
-                <div className="d-lg-none border-top bg-white p-3 mt-auto flex-shrink-0" 
+                <div className="border-top bg-white p-3 mt-auto flex-shrink-0" 
                      style={{ 
-                       position: 'sticky',
+                       position: 'absolute',
                        bottom: 0,
                        left: 0,
                        right: 0,
-                       zIndex: 10
+                       zIndex: 10,
+                       boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)'
                      }}>
-                  <div className="d-flex gap-2">
+                  <div className="d-flex gap-3">
                     {onAddToCart && (
                       <button 
                         type="button"
@@ -570,12 +530,14 @@ const ImageViewModal = ({
                         {cartLoading ? (
                           <>
                             <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-                            Adding...
+                            <span className="d-none d-md-inline">Adding to Cart...</span>
+                            <span className="d-md-none">Adding...</span>
                           </>
                         ) : (
                           <>
                             <ShoppingCart size={18} className="me-2" />
-                            Add to Cart
+                            <span className="d-none d-md-inline">Add to Cart</span>
+                            <span className="d-md-none">Add to Cart</span>
                           </>
                         )}
                       </button>
@@ -590,7 +552,8 @@ const ImageViewModal = ({
                         style={{ minHeight: '50px' }}
                       >
                         <Zap size={18} className="me-2" />
-                        Buy Now
+                        <span className="d-none d-md-inline">Buy Now</span>
+                        <span className="d-md-none">Buy Now</span>
                       </button>
                     )}
                   </div>
