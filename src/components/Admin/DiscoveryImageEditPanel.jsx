@@ -1,29 +1,134 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './DiscoveryImageEditPanel.module.css';
-import { VIEW_IMAGE, VIEW_DISCOVERY_IMAGE_LIST, DELETE_DISCOVERY_IMAGE_LIST } from '../../constants/apiConstants';
+import { VIEW_IMAGE, VIEW_DISCOVERY_IMAGE_LIST, DELETE_DISCOVERY_IMAGE_LIST , EDIT_PRODUCT_LINK_URL} from '../../constants/apiConstants';
 
+const getUserData = () => {
+  try {
+    const user = JSON.parse(sessionStorage.getItem("user"));
+    const token = sessionStorage.getItem("token");
+    return { user, token };
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    return { user: null, token: null };
+  }
+};
 
-  const getUserData = () => {
-    try {
-      const user = JSON.parse(sessionStorage.getItem("user"));
-      const token = sessionStorage.getItem("token");
-      return { user, token };
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      return { user: null, token: null };
+const Toast = ({ message, type, onClose }) => (
+  <div className={`${styles.toast} ${styles[`toast${type.charAt(0).toUpperCase() + type.slice(1)}`]}`}>
+    <div className={styles.toastContent}>
+      <span className={styles.toastIcon}>
+        {type === 'success' ? '✓' : type === 'error' ? '✕' : 'ⓘ'}
+      </span>
+      <span className={styles.toastMessage}>{message}</span>
+      <button className={styles.toastClose} onClick={onClose}>×</button>
+    </div>
+  </div>
+);
+
+const EditLinkModal = ({ isOpen, onClose, currentLink, onSave, isLoading }) => {
+  const [linkValue, setLinkValue] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setLinkValue(currentLink || '');
+    }
+  }, [isOpen, currentLink]);
+
+  const handleSave = () => {
+    onSave(linkValue);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !isLoading) {
+      handleSave();
     }
   };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3>Edit Product Link</h3>
+          <button className={styles.modalCloseButton} onClick={onClose}>×</button>
+        </div>
+        
+        <div className={styles.modalBody}>
+          <label className={styles.inputLabel}>Product Link URL:</label>
+          <input
+            type="text"
+            value={linkValue}
+            onChange={(e) => setLinkValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Enter product link URL"
+            className={styles.modalInput}
+            disabled={isLoading}
+            autoFocus
+          />
+          <p className={styles.inputHint}>
+            Enter the full URL (e.g., https://example.com) or domain (e.g., example.com)
+          </p>
+        </div>
+
+        <div className={styles.modalFooter}>
+          <button
+            className={styles.modalCancelButton}
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            Cancel
+          </button>
+          <button
+            className={styles.modalSaveButton}
+            onClick={handleSave}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const DiscoveryImageEditPanel = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deletingIds, setDeletingIds] = useState(new Set());
+  const [toasts, setToasts] = useState([]);
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    imageId: null,
+    currentLink: '',
+    isLoading: false
+  });
 
   useEffect(() => {
     fetchImages();
   }, []);
+
+  // Toast management functions
+  const addToast = (message, type = 'info') => {
+    const id = Date.now();
+    const newToast = { id, message, type };
+    setToasts(prev => [...prev, newToast]);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      removeToast(id);
+    }, 5000);
+  };
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const showSuccess = (message) => addToast(message, 'success');
+  const showError = (message) => addToast(message, 'error');
+  const showInfo = (message) => addToast(message, 'info');
 
   const fetchImages = async () => {
     try {
@@ -50,7 +155,7 @@ const DiscoveryImageEditPanel = () => {
     const { user, token } = getUserData();
 
     if (!user || !token) {
-      alert('User authentication data not found. Please login again.');
+      showError('User authentication data not found. Please login again.');
       return;
     }
 
@@ -69,18 +174,17 @@ const DiscoveryImageEditPanel = () => {
       });
 
       if (response.data && response.data.status === 'SUCCESS') {
-        alert(response.data.message);
-        // Refetch the entire image list after deletion
+        showSuccess(response.data.message);
         fetchImages();
       } else {
-        alert(response.data?.message || 'Failed to delete image');
+        showError(response.data?.message || 'Failed to delete image');
       }
     } catch (err) {
       console.error('Error deleting image:', err);
       if (err.response?.status === 401) {
-        alert('Unauthorized access. Please check your credentials.');
+        showError('Unauthorized access. Please check your credentials.');
       } else {
-        alert('Failed to delete image');
+        showError('Failed to delete image');
       }
     } finally {
       setDeletingIds(prev => {
@@ -88,6 +192,79 @@ const DiscoveryImageEditPanel = () => {
         newSet.delete(imageId);
         return newSet;
       });
+    }
+  };
+
+  const openEditModal = (imageId, currentLink) => {
+    setModalState({
+      isOpen: true,
+      imageId,
+      currentLink: currentLink || '',
+      isLoading: false
+    });
+  };
+
+  const closeEditModal = () => {
+    setModalState({
+      isOpen: false,
+      imageId: null,
+      currentLink: '',
+      isLoading: false
+    });
+  };
+
+  const handleSaveProductLink = async (newLink) => {
+    const { user, token } = getUserData();
+
+    if (!user || !token) {
+      showError('User authentication data not found. Please login again.');
+      return;
+    }
+
+    if (!newLink.trim()) {
+      showError('Please enter a product link');
+      return;
+    }
+
+    try {
+      setModalState(prev => ({ ...prev, isLoading: true }));
+
+      const requestBody = {
+        imageId: modalState.imageId,
+        linkOfProduct: newLink.trim(),
+        user: user,
+        token: token
+      };
+
+      const response = await axios.post(`${EDIT_PRODUCT_LINK_URL}`, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.data && response.data.status === 'SUCCESS') {
+        showSuccess(response.data.message || 'Product link updated successfully');
+        
+        // Update the local state immediately
+        setImages(prev => prev.map(img => 
+          img.discoveryId === modalState.imageId 
+            ? { ...img, linkOfProduct: newLink.trim() }
+            : img
+        ));
+        
+        closeEditModal();
+      } else {
+        showError(response.data?.message || 'Failed to update product link');
+      }
+    } catch (err) {
+      console.error('Error updating product link:', err);
+      if (err.response?.status === 401) {
+        showError('Unauthorized access. Please check your credentials.');
+      } else {
+        showError(err.response?.data?.message || 'Failed to update product link');
+      }
+    } finally {
+      setModalState(prev => ({ ...prev, isLoading: false }));
     }
   };
 
@@ -126,6 +303,27 @@ const DiscoveryImageEditPanel = () => {
 
   return (
     <div className={styles.container}>
+      {/* Toast Container */}
+      <div className={styles.toastContainer}>
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
+      </div>
+
+      {/* Edit Link Modal */}
+      <EditLinkModal
+        isOpen={modalState.isOpen}
+        onClose={closeEditModal}
+        currentLink={modalState.currentLink}
+        onSave={handleSaveProductLink}
+        isLoading={modalState.isLoading}
+      />
+
       <div className={styles.header}>
         <h2>Header Images</h2>
         <button className={styles.refreshButton} onClick={fetchImages}>
@@ -156,7 +354,7 @@ const DiscoveryImageEditPanel = () => {
                 {image.fileName}
               </div>
 
-              <div className={styles.imageInfo}>
+              <div className={styles.productLinkSection}>
                 {image.linkOfProduct ? (
                   <a 
                     href={formatUrl(image.linkOfProduct)}
@@ -165,14 +363,22 @@ const DiscoveryImageEditPanel = () => {
                     className={styles.productLink}
                     title={image.linkOfProduct}
                   >
-                    {image.linkOfProduct}
+                    {image.linkOfProduct.length > 40 
+                      ? `${image.linkOfProduct.substring(0, 40)}...` 
+                      : image.linkOfProduct}
                   </a>
                 ) : (
-                  <span>No product link</span>
+                  <span className={styles.noLink}>No product link</span>
                 )}
               </div>
 
               <div className={styles.actions}>
+                <button
+                  className={styles.editButton}
+                  onClick={() => openEditModal(image.discoveryId, image.linkOfProduct)}
+                >
+                  Edit Link
+                </button>
                 <button
                   className={styles.deleteButton}
                   onClick={() => handleDeleteImage(image.discoveryId)}

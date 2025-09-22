@@ -162,7 +162,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
             ...prev,
             [bookId]: ((prev[bookId] || 0) + 1) % allImages.length
           }));
-        }, 5000); // 5 seconds
+        }, 500000000); // 5 seconds
       }
     });
     
@@ -491,7 +491,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                         <div className={styles.tooltipContent}>
                           <div>
                             <h4>{book.bookName}</h4>
-                            <p className={styles.tooltipAuthor}>by {book.authorName}</p>
+                            <p className={styles.tooltipAuthor} >by {book.authorName}</p>
                             <div className={styles.tooltipDescription}>
                               {book.description || book.bookDescription || "No description available for this book."}
                             </div>
@@ -559,7 +559,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
 
                     <div className={styles.bookDetails}>
                       <h3 className={styles.bookTitle}>{book.bookName}</h3>
-                      <p className={styles.bookAuthor}>by {book.authorName}</p>
+                      <p className={styles.bookAuthor} onClick={() => handleImageClick(book)}>by {book.authorName}</p>
                       {/* <p className={styles.bookDescription}>
                         {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
                       </p> */}

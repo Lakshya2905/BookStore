@@ -45,6 +45,8 @@ export const VIEW_IMAGE = `${API_BASE_URL}/book/discovery/view/image`;
 export const VIEW_DISCOVERY_IMAGE_LIST = `${API_BASE_URL}/book/discovery/viewAll`;
 export const DELETE_DISCOVERY_IMAGE_LIST = `${API_BASE_URL}/book/discovery/deleteImage`;
 
+export const EDIT_PRODUCT_LINK_URL = `${API_BASE_URL}/admin/edit/productLink`;
+
 
 
 export const BOOK_ADD_URL = `${API_BASE_URL}/book/addBook`;

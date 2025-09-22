@@ -276,7 +276,6 @@ const handleNavigation = useCallback(
         { label: "New Releases", path: "/books?tag=NEW_RELEASE" },
         { label: "Best Sellers", path: "/books?tag=BESTSELLER" },
         { label: "Top Rated", path: "/books?tag=TOP_RATED" },
-        { label: "Sale", path: "/books?tag=SALE" },
         { label: "My Orders", path: "/order/customer/view" },
          { label: "Blogs", path: "/blogs" }
       ];
@@ -285,7 +284,11 @@ const handleNavigation = useCallback(
 
   return (
     <>
-      {/* Top Contact Bar - Only show for non-owner users */}
+     
+
+      <header className={styles.header}>
+
+ {/* Top Contact Bar - Only show for non-owner users */}
       {!isOwner && (
         <div className={styles.topBar}>
           <div className="container-fluid">
@@ -306,7 +309,6 @@ const handleNavigation = useCallback(
         </div>
       )}
 
-      <header className={styles.header}>
         {/* Main Header */}
         <div className={styles.mainHeader}>
           <div className="container-fluid">

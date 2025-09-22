@@ -9,15 +9,15 @@
 
 /* Category Section */
 .categorySection {
-  padding: 2rem 1rem;
-  margin-bottom: 2rem;
+  padding: 1rem 1rem;
+
 }
 
 .categoryHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.1rem !important;
 }
 
 .categoryTitle {
@@ -258,6 +258,7 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  cursor: pointer !important;
 }
 
 .bookAuthor {
@@ -265,6 +266,7 @@
   color: #6c757d;
   margin: 0 0 0.75rem 0;
   font-style: italic;
+  cursor: pointer !important;
 }
 
 .bookDescription {
@@ -757,7 +759,7 @@
 
 @media (max-width: 768px) {
   .categorySection {
-    padding: 1.5rem 1rem;
+    padding: 1rem 1rem;
   }
 
   .categoryHeader {
@@ -826,7 +828,7 @@
 
 @media (max-width: 576px) {
   .categorySection {
-    padding: 1.5rem 0.5rem;
+    padding: 1rem 0.5rem;
   }
 
   .booksGrid {
