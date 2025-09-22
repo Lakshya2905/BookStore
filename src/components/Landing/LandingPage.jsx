@@ -758,7 +758,7 @@ const LandingPage = () => {
       {/* Why Choose Us Section */}
       <div className={styles.whyChooseSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Why Choose ShaaKkart?</h2>
+          <h2 className={styles.sectionTitle}>Why Choose Shaahkart?</h2>
           <p className={styles.sectionSubtitle}>More than just a bookstore</p>
         </div>
         <div className={styles.featuresGrid}>

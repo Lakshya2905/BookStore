@@ -224,11 +224,8 @@ const {user,token}=getUserData();
                           <div className={styles.bookTitle}>{bookInfo.bookName}</div>
                           <div className={styles.bookMeta}>
                             <span className={styles.author}>by {bookInfo.authorName}</span>
-                            <span className={styles.category}>{bookInfo.category}</span>
                           </div>
-                          {bookInfo.description && (
-                            <div className={styles.description}>{bookInfo.description}</div>
-                          )}
+             
                         </td>
                         <td className={styles.price}>₹{bookInfo.price}</td>
                         <td className={styles.quantityCell}>

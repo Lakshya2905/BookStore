@@ -339,15 +339,7 @@ const ImageViewModal = ({
                             </>
                           )}
                         </div>
-                        <div className={styles.taxInfo}>
-                          <span>Inclusive of all taxes</span>
-                          {bookInfo.gst && (
-                            <div className="d-flex align-items-center">
-                              <Percent size={14} className="me-1" />
-                              {formatGST(bookInfo.gst)}
-                            </div>
-                          )}
-                        </div>
+            
                       </div>
                     )}
                     
@@ -405,13 +397,7 @@ const ImageViewModal = ({
                           </div>
                         )}
                         
-                        {bookInfo.hsn && (
-                          <div className={styles.detailItem}>
-                            <Hash size={16} className="me-2 text-primary" />
-                            <span className={styles.detailLabel}>HSN Code:</span>
-                            <span className={styles.detailValue}>{bookInfo.hsn}</span>
-                          </div>
-                        )}
+                  
                       </div>
                     </div>
                   </div>

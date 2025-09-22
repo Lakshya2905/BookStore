@@ -276,7 +276,6 @@ const handleNavigation = useCallback(
         { label: "New Releases", path: "/books?tag=NEW_RELEASE" },
         { label: "Best Sellers", path: "/books?tag=BESTSELLER" },
         { label: "Top Rated", path: "/books?tag=TOP_RATED" },
-        { label: "Sale", path: "/books?tag=SALE" },
         { label: "My Orders", path: "/order/customer/view" },
          { label: "Blogs", path: "/blogs" }
       ];
