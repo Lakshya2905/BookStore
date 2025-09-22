@@ -8,7 +8,7 @@ import {
 } from '../../constants/apiConstants';
 import styles from './AdminBlogManagement.module.css';
 
-/* ---------------- ICONS ---------------- */
+// Icons as components
 const CheckIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
@@ -57,10 +57,13 @@ const CalendarIcon = () => (
   </svg>
 );
 
-/* ---------------- TOAST ---------------- */
+// Enhanced Toast notification component
 const Toast = ({ toast, onClose }) => {
   useEffect(() => {
-    const timer = setTimeout(() => onClose(toast.id), toast.duration || 5000);
+    const timer = setTimeout(() => {
+      onClose(toast.id);
+    }, toast.duration || 5000);
+
     return () => clearTimeout(timer);
   }, [toast.id, toast.duration, onClose]);
 
@@ -76,12 +79,17 @@ const Toast = ({ toast, onClose }) => {
 
   return (
     <div className={`${styles.toast} ${styles[`toast${toast.type.charAt(0).toUpperCase() + toast.type.slice(1)}`]}`}>
-      <div className={styles.toastIcon}>{getToastIcon(toast.type)}</div>
+      <div className={styles.toastIcon}>
+        {getToastIcon(toast.type)}
+      </div>
       <div className={styles.toastContent}>
         <p className={styles.toastTitle}>{toast.title}</p>
         {toast.message && <p className={styles.toastMessage}>{toast.message}</p>}
       </div>
-      <button onClick={() => onClose(toast.id)} className={styles.toastClose}>
+      <button
+        onClick={() => onClose(toast.id)}
+        className={styles.toastClose}
+      >
         <XIcon />
       </button>
       <div className={styles.toastProgress}></div>
@@ -89,19 +97,31 @@ const Toast = ({ toast, onClose }) => {
   );
 };
 
-/* ---------------- CONFIRM DIALOG ---------------- */
+// Enhanced Confirmation dialog component
 const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel }) => {
   if (!isOpen) return null;
+
   return (
     <div className={styles.confirmDialog}>
       <div className={styles.confirmDialogContent}>
-        <div className={styles.confirmDialogIcon}><DeleteIcon /></div>
+        <div className={styles.confirmDialogIcon}>
+          <DeleteIcon />
+        </div>
         <h3 className={styles.confirmDialogTitle}>{title}</h3>
         <p className={styles.confirmDialogMessage}>{message}</p>
         <div className={styles.confirmDialogActions}>
-          <button onClick={onCancel} className={`${styles.confirmDialogButton} ${styles.confirmDialogCancel}`}>Cancel</button>
-          <button onClick={onConfirm} className={`${styles.confirmDialogButton} ${styles.confirmDialogConfirm}`}>
-            <DeleteIcon /> Delete
+          <button
+            onClick={onCancel}
+            className={`${styles.confirmDialogButton} ${styles.confirmDialogCancel}`}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`${styles.confirmDialogButton} ${styles.confirmDialogConfirm}`}
+          >
+            <DeleteIcon />
+            Delete
           </button>
         </div>
       </div>
@@ -109,7 +129,7 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel }) => {
   );
 };
 
-/* ---------------- LOADING SPINNER ---------------- */
+// Loading component
 const LoadingSpinner = ({ size = 'default', text = 'Loading...' }) => (
   <div className={`${styles.loadingWrapper} ${styles[`loading${size.charAt(0).toUpperCase() + size.slice(1)}`]}`}>
     <div className={styles.spinner}></div>
@@ -117,10 +137,12 @@ const LoadingSpinner = ({ size = 'default', text = 'Loading...' }) => (
   </div>
 );
 
-/* ---------------- STATS CARD ---------------- */
+// Stats card component
 const StatsCard = ({ title, value, icon, color = 'blue' }) => (
   <div className={`${styles.statsCard} ${styles[`statsCard${color.charAt(0).toUpperCase() + color.slice(1)}`]}`}>
-    <div className={styles.statsIcon}>{icon}</div>
+    <div className={styles.statsIcon}>
+      {icon}
+    </div>
     <div className={styles.statsContent}>
       <p className={styles.statsValue}>{value}</p>
       <p className={styles.statsTitle}>{title}</p>
@@ -128,13 +150,12 @@ const StatsCard = ({ title, value, icon, color = 'blue' }) => (
   </div>
 );
 
-/* ---------------- MAIN COMPONENT ---------------- */
 const AdminBlogManagement = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState('add');
+  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [formData, setFormData] = useState({
     heading: '',
@@ -143,231 +164,611 @@ const AdminBlogManagement = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [toasts, setToasts] = useState([]);
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, blog: null });
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    blog: null 
+  });
 
-  /* ---------------- UTILS ---------------- */
+  // Toast management functions
   const addToast = (type, title, message = '', duration = 5000) => {
     const id = Date.now() + Math.random();
-    setToasts((prev) => [...prev, { id, type, title, message, duration }]);
+    const newToast = { id, type, title, message, duration };
+    setToasts(prev => [...prev, newToast]);
   };
-  const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
-  const formatDateForInput = (date) => (date ? new Date(date).toISOString().split('T')[0] : '');
-  const formatDateForDisplay = (date) =>
-    date ? new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'No date';
-  const truncateText = (text, maxLength = 100) => (text?.length > maxLength ? text.substring(0, maxLength) + '...' : text);
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
 
-  /* ---------------- FETCH BLOGS ---------------- */
-  const fetchBlogs = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(BLOG_VIEW_URL);
-      if (response.data.status === 'SUCCESS') {
-        setBlogs(response.data.payload || []);
-      } else {
-        setError(response.data.message || 'Failed to fetch blogs');
+  // Configure axios defaults
+  useEffect(() => {
+    // Set default headers if needed
+    axios.defaults.headers.common['Content-Type'] = 'application/json';
+    
+    // Add request interceptor for token
+    const requestInterceptor = axios.interceptors.request.use(
+      (config) => {
+        const token = sessionStorage.getItem('token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
       }
-    } catch (err) {
-      setError('Error fetching blogs. Please try again.');
-    } finally {
-      setLoading(false);
+    );
+
+    // Add response interceptor for error handling
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          // Handle unauthorized access
+          sessionStorage.removeItem('user');
+          sessionStorage.removeItem('token');
+          // You might want to redirect to login page here
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Cleanup interceptors on component unmount
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+      axios.interceptors.response.eject(responseInterceptor);
+    };
+  }, []);
+
+  const getUserData = () => {
+    try {
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      const token = sessionStorage.getItem("token");
+      return { user, token };
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      return { user: null, token: null };
     }
+  };
+
+  // Helper function to format date for input field (YYYY-MM-DD)
+  const formatDateForInput = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toISOString().split('T')[0];
+  };
+
+  // Helper function to format date for display
+  const formatDateForDisplay = (date) => {
+    if (!date) return 'No date';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
   };
 
   useEffect(() => {
     fetchBlogs();
   }, []);
 
-  /* ---------------- MODALS ---------------- */
+  const fetchBlogs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axios.get(BLOG_VIEW_URL);
+      const data = response.data;
+      
+      if (data.status === 'SUCCESS') {
+        setBlogs(data.payload || []);
+      } else {
+        setError(data.message || 'Failed to fetch blogs');
+      }
+    } catch (err) {
+      console.error('Error fetching blogs:', err);
+      if (err.response) {
+        // Server responded with error status
+        setError(err.response.data?.message || `Server error: ${err.response.status}`);
+      } else if (err.request) {
+        // Network error
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        // Other error
+        setError('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const openAddModal = () => {
     setModalMode('add');
-    setFormData({ heading: '', description: '', date: formatDateForInput(new Date()) });
+    setFormData({ 
+      heading: '',
+      description: '',
+      date: formatDateForInput(new Date()) // Default to today's date
+    });
+    setSelectedBlog(null);
     setShowModal(true);
+    setError(null);
   };
 
   const openEditModal = (blog) => {
     setModalMode('edit');
-    setFormData({ heading: blog.heading || '', description: blog.description || '', date: formatDateForInput(blog.date) });
+    setFormData({ 
+      heading: blog.heading || '',
+      description: blog.description || '',
+      date: formatDateForInput(blog.date)
+    });
     setSelectedBlog(blog);
     setShowModal(true);
+    setError(null);
   };
 
   const closeModal = () => {
     setShowModal(false);
-    setFormData({ heading: '', description: '', date: '' });
+    setFormData({ 
+      heading: '',
+      description: '',
+      date: ''
+    });
     setSelectedBlog(null);
+    setError(null);
   };
 
-  /* ---------------- SUBMIT ---------------- */
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const validateForm = () => {
+    if (!formData.heading.trim()) {
+      setError('Blog heading is required');
+      return false;
+    }
+    if (!formData.description.trim()) {
+      setError('Description is required');
+      return false;
+    }
+    if (!formData.date) {
+      setError('Date is required');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.heading.trim() || !formData.description.trim() || !formData.date) {
-      setError('All fields are required');
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    const { user, token } = getUserData();
+    if (!user || !token) {
+      setError('Authentication required. Please login again.');
       return;
     }
 
     setSubmitting(true);
+    setError(null);
+
     try {
       const requestData = {
-        heading: formData.heading.trim(),
+        user: user,
+        token: token,
+        blogHeading: formData.heading.trim(),
         description: formData.description.trim(),
         date: new Date(formData.date)
       };
-      if (modalMode === 'edit') requestData.id = selectedBlog.id;
 
       const url = modalMode === 'add' ? CREATE_BLOG_URL : EDIT_BLOG_URL;
-      const response = await axios.post(url, requestData);
-
-      if (response.data.status === 'SUCCESS') {
-        closeModal();
-        fetchBlogs();
-        addToast('success', modalMode === 'add' ? 'Blog created!' : 'Blog updated!');
-      } else {
-        setError(response.data.message || 'Operation failed');
+      
+      
+      if (modalMode === 'edit') {
+        requestData.blogId = selectedBlog.id;
       }
-    } catch {
-      setError('Server error occurred');
+
+      const response = await axios.post(url, requestData);
+      const data = response.data;
+
+      if (data.status === 'SUCCESS') {
+        closeModal();
+        await fetchBlogs(); // Refresh the list
+        
+        // Success notification
+        const message = modalMode === 'add' ? 'Blog created successfully!' : 'Blog updated successfully!';
+        addToast('success', message);
+      } else {
+        setError(data.message || `Failed to ${modalMode} blog`);
+      }
+    } catch (err) {
+      console.error(`Error ${modalMode}ing blog:`, err);
+      
+      if (err.response) {
+        // Server responded with error
+        const status = err.response.status;
+        const message = err.response.data?.message;
+        
+        if (status === 401) {
+          setError('Unauthorized access. Please check your permissions.');
+        } else if (status === 403) {
+          setError('Access forbidden. You do not have permission to perform this action.');
+        } else if (status === 422) {
+          setError(message || 'Invalid data provided. Please check your input.');
+        } else {
+          setError(message || `Server error occurred. Please try again.`);
+        }
+      } else if (err.request) {
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
-  /* ---------------- DELETE ---------------- */
-  const handleDelete = (blog) => setConfirmDialog({ isOpen: true, blog });
+  const handleDelete = async (blog) => {
+    setConfirmDialog({ 
+      isOpen: true, 
+      blog: blog 
+    });
+  };
+
   const confirmDelete = async () => {
     const blog = confirmDialog.blog;
     setConfirmDialog({ isOpen: false, blog: null });
+
+    const { user, token } = getUserData();
+    if (!user || !token) {
+      addToast('error', 'Authentication Error', 'Please login again to continue.');
+      return;
+    }
+
     try {
-      const response = await axios.post(DELETE_BLOG_URL, { id: blog.id });
-      if (response.data.status === 'SUCCESS') {
-        fetchBlogs();
-        addToast('success', 'Blog deleted', `Blog #${blog.id} removed.`);
+      const requestData = {
+        user: user,
+        token: token,
+        blogId: blog.id
+      };
+
+      const response = await axios.post(DELETE_BLOG_URL, requestData);
+      const data = response.data;
+
+      if (data.status === 'SUCCESS') {
+        await fetchBlogs(); // Refresh the list
+        addToast('success', 'Blog Deleted', `Blog #${blog.id} has been successfully deleted.`);
       } else {
-        addToast('error', 'Delete failed', response.data.message || 'Failed to delete blog');
+        addToast('error', 'Delete Failed', data.message || 'Failed to delete blog');
       }
-    } catch {
-      addToast('error', 'Error', 'Failed to delete blog');
+    } catch (err) {
+      console.error('Error deleting blog:', err);
+      
+      if (err.response) {
+        const status = err.response.status;
+        const message = err.response.data?.message;
+        
+        if (status === 401) {
+          addToast('error', 'Unauthorized', 'Please login again to continue.');
+        } else if (status === 403) {
+          addToast('error', 'Access Denied', 'You do not have permission to delete this blog.');
+        } else if (status === 404) {
+          addToast('warning', 'Blog Not Found', 'This blog may have already been deleted.');
+          fetchBlogs(); // Refresh to sync with server
+        } else {
+          addToast('error', 'Delete Failed', message || 'Failed to delete blog. Please try again.');
+        }
+      } else if (err.request) {
+        addToast('error', 'Network Error', 'Please check your connection and try again.');
+      } else {
+        addToast('error', 'Error', 'An unexpected error occurred. Please try again.');
+      }
     }
   };
 
-  /* ---------------- RENDER ---------------- */
+  const cancelDelete = () => {
+    setConfirmDialog({ isOpen: false, blog: null });
+  };
+
+  const truncateText = (text, maxLength = 100) => {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   if (loading) {
-    return <LoadingSpinner text="Loading blog management..." />;
+    return (
+      <div className={styles.container}>
+        <LoadingSpinner text="Loading blog management..." />
+      </div>
+    );
   }
 
   const totalBlogs = blogs.length;
-  const recentBlogs = blogs.filter((b) => new Date(b.date) >= new Date(new Date().setDate(new Date().getDate() - 7))).length;
+  const recentBlogs = blogs.filter(blog => {
+    const blogDate = new Date(blog.date);
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    return blogDate >= lastWeek;
+  }).length;
 
   return (
     <div className={styles.container}>
-      {/* HEADER */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>📝 Blog Management</h1>
-          <div className={styles.headerStats}>
-            <StatsCard title="Total Blogs" value={totalBlogs} icon={<InfoIcon />} color="blue" />
-            <StatsCard title="Recent Posts" value={recentBlogs} icon={<CalendarIcon />} color="green" />
+          <div className={styles.headerInfo}>
+            <div className={styles.titleSection}>
+              <h1 className={styles.title}>
+                <span className={styles.titleIcon}>📝</span>
+                Blog Management
+              </h1>
+              <p className={styles.subtitle}>Create, manage and publish your stories</p>
+            </div>
+            <div className={styles.headerStats}>
+              <StatsCard 
+                title="Total Blogs" 
+                value={totalBlogs} 
+                icon={<InfoIcon />}
+                color="blue" 
+              />
+              <StatsCard 
+                title="Recent Posts" 
+                value={recentBlogs} 
+                icon={<CalendarIcon />}
+                color="green" 
+              />
+            </div>
           </div>
-          <button onClick={openAddModal} className={styles.addButton}>
-            <AddIcon /> Create New Blog
+          <button 
+            onClick={openAddModal}
+            className={styles.addButton}
+          >
+            <AddIcon />
+            Create New Blog
           </button>
         </div>
       </header>
 
-      {/* MAIN */}
       <main className={styles.main}>
         {error && !showModal && (
           <div className={styles.errorBanner}>
-            <WarningIcon /> <p>{error}</p>
-            <button onClick={() => setError(null)} className={styles.closeError}><XIcon /></button>
+            <div className={styles.errorContent}>
+              <WarningIcon />
+              <p>{error}</p>
+            </div>
+            <button onClick={() => setError(null)} className={styles.closeError}>
+              <XIcon />
+            </button>
           </div>
         )}
 
         {blogs.length === 0 ? (
           <div className={styles.emptyState}>
+            <div className={styles.emptyStateIcon}>📝</div>
             <h3>No Blogs Found</h3>
-            <button onClick={openAddModal} className={styles.emptyStateButton}><AddIcon /> Create Your First Blog</button>
+            <p>Start creating engaging content for your audience</p>
+            <button onClick={openAddModal} className={styles.emptyStateButton}>
+              <AddIcon />
+              Create Your First Blog
+            </button>
           </div>
         ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Content Preview</th>
-                <th>Publication Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {blogs.map((blog) => (
-                <tr key={blog.id}>
-                  <td>#{blog.id}</td>
-                  <td><h4>{blog.heading}</h4></td>
-                  <td>{truncateText(blog.description)}</td>
-                  <td>{formatDateForDisplay(blog.date)}</td>
-                  <td>
-                    <button onClick={() => openEditModal(blog)} className={styles.editButton}><EditIcon /> Edit</button>
-                    <button onClick={() => handleDelete(blog)} className={styles.deleteButton}><DeleteIcon /> Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className={styles.tableSection}>
+            <div className={styles.tableSectionHeader}>
+              <h2 className={styles.sectionTitle}>All Blog Posts</h2>
+              <p className={styles.sectionSubtitle}>Manage and organize your published content</p>
+            </div>
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead className={styles.tableHead}>
+                  <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Content Preview</th>
+                    <th>Publication Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className={styles.tableBody}>
+                  {blogs.map((blog) => (
+                    <tr key={blog.id} className={styles.tableRow}>
+                      <td className={styles.idCell}>
+                        <span className={styles.blogId}>#{blog.id}</span>
+                      </td>
+                      <td className={styles.headingCell}>
+                        <div className={styles.headingPreview}>
+                        {blog.heading}
+                        </div>
+                      </td>
+                      <td className={styles.descriptionCell}>
+                        <div className={styles.descriptionPreview}>
+                          {blog.description}
+                        </div>
+                      </td>
+                      <td className={styles.dateCell}>
+                        <div className={styles.dateInfo}>
+                          <CalendarIcon />
+                          <span>{formatDateForDisplay(blog.date)}</span>
+                        </div>
+                      </td>
+                      <td className={styles.actionsCell}>
+                        <div className={styles.actionButtons}>
+                          <button 
+                            onClick={() => openEditModal(blog)}
+                            className={`${styles.actionButton} ${styles.editButton}`}
+                            title="Edit blog"
+                          >
+                            <EditIcon />
+                            Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(blog)}
+                            className={`${styles.actionButton} ${styles.deleteButton}`}
+                            title="Delete blog"
+                          >
+                            <DeleteIcon />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </main>
 
-      {/* TOASTS */}
-      <div className={styles.toastContainer}>
-        {toasts.map((t) => <Toast key={t.id} toast={t} onClose={removeToast} />)}
-      </div>
+      {/* Toast Notifications */}
+      {toasts.length > 0 && (
+        <div className={styles.toastContainer}>
+          {toasts.map((toast) => (
+            <Toast
+              key={toast.id}
+              toast={toast}
+              onClose={removeToast}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* CONFIRM DELETE */}
+      {/* Confirmation Dialog */}
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
         title="Delete Blog Post"
-        message={`Are you sure you want to delete "${confirmDialog.blog?.heading}"?`}
+        message={`Are you sure you want to delete "${confirmDialog.blog?.heading}"? This action cannot be undone.`}
         onConfirm={confirmDelete}
-        onCancel={() => setConfirmDialog({ isOpen: false, blog: null })}
+        onCancel={cancelDelete}
       />
 
-      {/* MODAL */}
+      {/* Enhanced Modal */}
       {showModal && (
         <div className={styles.modalOverlay} onClick={closeModal}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={handleSubmit}>
-              <label>
-                Blog Title *
-                <input
-                  type="text"
-                  value={formData.heading}
-                  onChange={(e) => setFormData({ ...formData, heading: e.target.value })}
-                  required
-                />
-              </label>
-              <label>
-                Date *
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  required
-                />
-              </label>
-              <label>
-                Content *
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={10}
-                  required
-                />
-              </label>
-              <button type="submit" disabled={submitting}>
-                {modalMode === 'add' ? 'Create Blog' : 'Update Blog'}
+            <div className={styles.modalHeader}>
+              <div className={styles.modalHeaderContent}>
+                <h2 className={styles.modalTitle}>
+                  {modalMode === 'add' ? '✏️ Create New Blog' : '📝 Edit Blog Post'}
+                </h2>
+                <p className={styles.modalSubtitle}>
+                  {modalMode === 'add' 
+                    ? 'Share your thoughts and stories with the world' 
+                    : 'Update your blog content and information'
+                  }
+                </p>
+              </div>
+              <button 
+                onClick={closeModal}
+                className={styles.closeButton}
+                disabled={submitting}
+                title="Close modal"
+              >
+                <XIcon />
               </button>
-              <button type="button" onClick={closeModal}>Cancel</button>
-            </form>
+            </div>
+            
+            <div className={styles.modalBody}>
+              <form onSubmit={handleSubmit} className={styles.modalForm}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="heading" className={styles.label}>
+                    <span className={styles.labelText}>Blog Title</span>
+                    <span className={styles.required}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="heading"
+                    value={formData.heading}
+                    onChange={(e) => handleInputChange('heading', e.target.value)}
+                    className={styles.input}
+                    placeholder="Enter an engaging blog title..."
+                    required
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="date" className={styles.label}>
+                    <span className={styles.labelText}>Publication Date</span>
+                    <span className={styles.required}>*</span>
+                  </label>
+                  <div className={styles.inputWrapper}>
+                    <CalendarIcon />
+                    <input
+                      type="date"
+                      id="date"
+                      value={formData.date}
+                      onChange={(e) => handleInputChange('date', e.target.value)}
+                      className={styles.input}
+                      required
+                      disabled={submitting}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="description" className={styles.label}>
+                    <span className={styles.labelText}>Blog Content</span>
+                    <span className={styles.required}>*</span>
+                  </label>
+                  <div className={styles.textareaWrapper}>
+                    <textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      className={styles.textarea}
+                      rows={12}
+                      placeholder="Write your blog content here... Share your insights, experiences, and stories."
+                      required
+                      disabled={submitting}
+                    />
+                    <div className={styles.characterCount}>
+                      {formData.description.length} characters
+                    </div>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className={styles.errorMessage}>
+                    <WarningIcon />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <div className={styles.modalActions}>
+                  <button 
+                    type="button" 
+                    onClick={closeModal}
+                    className={styles.cancelButton}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    className={styles.submitButton}
+                    disabled={submitting || !formData.heading.trim() || !formData.description.trim() || !formData.date}
+                  >
+                    {submitting ? (
+                      <span className={styles.submittingText}>
+                        <span className={styles.submittingSpinner}></span>
+                        {modalMode === 'add' ? 'Creating Blog...' : 'Updating Blog...'}
+                      </span>
+                    ) : (
+                      <>
+                        {modalMode === 'add' ? <AddIcon /> : <EditIcon />}
+                        {modalMode === 'add' ? 'Create Blog Post' : 'Update Blog Post'}
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
