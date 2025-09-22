@@ -1,4 +1,4 @@
-/* BookViewCard CSS - Enhanced with Bootstrap approach and proper image fitting */
+/* BookViewCard CSS - Fixed layout with proper card visibility and scroll arrows */
 
 /* Container */
 .container {
@@ -9,15 +9,16 @@
   position: relative;
 }
 
-/* Scroll Container */
+/* Scroll Container - Fixed to show exactly 4 cards in desktop, 3 in mobile */
 .scrollContainer {
   position: relative;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 60px;
+  padding: 0 20px; /* Reduced padding to accommodate arrows */
+  overflow: hidden; /* Hide overflow to control visibility */
 }
 
-/* Scroll Buttons */
+/* Scroll Buttons - Positioned at container edges */
 .scrollButton {
   position: absolute;
   top: 50%;
@@ -33,7 +34,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  z-index: 10;
+  z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -49,30 +50,32 @@
 }
 
 .scrollLeft {
-  left: 0;
+  left: -10px; /* Position at the very left edge */
 }
 
 .scrollRight {
-  right: 0;
+  right: -10px; /* Position at the very right edge */
 }
 
-/* Grid System - Horizontal Scrolling */
+/* Grid System - Fixed to show exact number of cards */
 .booksGrid {
   display: flex;
-  gap: 24px;
+  gap: 20px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
   padding: 20px 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* Calculate width to show exactly 4 cards in desktop */
+  width: calc(4 * 280px + 3 * 20px); /* 4 cards + 3 gaps */
 }
 
 .booksGrid::-webkit-scrollbar {
   display: none;
 }
 
-/* Book Card - Enhanced with proper structure */
+/* Book Card - Fixed width for consistent layout */
 .bookCard {
   background: white;
   border-radius: 12px;
@@ -82,7 +85,8 @@
   display: flex;
   flex-direction: column;
   height: fit-content;
-  flex: 0 0 280px;
+  flex: 0 0 280px; /* Fixed width, no growing or shrinking */
+  min-width: 280px; /* Ensure minimum width */
   max-width: 280px;
   position: relative;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
@@ -95,7 +99,7 @@
   transform: translateY(-2px);
 }
 
-/* Image Container - FIXED: Proper image fitting like FeaturedBooksSection */
+/* Image Container */
 .imageContainer {
   position: relative;
   background: #f8f9fa;
@@ -116,13 +120,13 @@
   padding: 1rem;
 }
 
-/* Book Image - KEY FIX: Proper fitting like FeaturedBooksSection */
+/* Book Image */
 .bookImage {
   max-width: 100%;
   max-height: 100%;
   width: auto;
   height: auto;
-  object-fit: contain; /* This ensures the entire image is visible */
+  object-fit: contain;
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -803,24 +807,59 @@
   }
 }
 
-/* Responsive Design */
+/* Responsive Design - FIXED for exact card visibility */
 @media (max-width: 1200px) {
-  .scrollContainer { padding: 0 50px; }
-  .bookCard { flex: 0 0 260px; max-width: 260px; }
+  .scrollContainer { 
+    padding: 0 15px; 
+    max-width: 1000px; 
+  }
+  .booksGrid { 
+    width: calc(4 * 260px + 3 * 18px); /* Adjust for smaller screens but still 4 cards */
+  }
+  .bookCard { 
+    flex: 0 0 260px; 
+    max-width: 260px; 
+    min-width: 260px; 
+  }
 }
 
-@media (max-width: 900px) {
-  .scrollContainer { padding: 0 40px; }
-  .bookCard { flex: 0 0 240px; max-width: 240px; }
+@media (max-width: 1000px) {
+  .scrollContainer { 
+    padding: 0 15px; 
+    max-width: 850px; 
+  }
+  .booksGrid { 
+    width: calc(3 * 260px + 2 * 18px); /* 3 cards for medium screens */
+  }
+  .bookCard { 
+    flex: 0 0 260px; 
+    max-width: 260px; 
+    min-width: 260px; 
+  }
   .imageContainer { height: 220px; }
-  .container { padding: 30px 15px; }
-  .scrollButton { width: 40px; height: 40px; }
 }
 
 @media (max-width: 768px) {
+  .container { padding: 20px 10px; }
+  .scrollContainer { 
+    padding: 0 15px; 
+    max-width: calc(100vw - 30px); 
+  }
+  .booksGrid { 
+    width: calc(3 * 240px + 2 * 15px); /* 3 cards for mobile */
+    gap: 15px;
+  }
+  .bookCard { 
+    flex: 0 0 240px; 
+    max-width: 240px; 
+    min-width: 240px; 
+  }
+  .imageContainer { height: 200px; }
+  .bookDetails { padding: 16px; }
+  
   .message {
-    left: 20px;
-    right: 20px;
+    left: 10px;
+    right: 10px;
     max-width: none;
     top: 10px;
   }
@@ -837,29 +876,58 @@
     align-self: stretch;
     justify-content: space-between;
   }
+  
+  .scrollLeft { left: -5px; }
+  .scrollRight { right: -5px; }
+  .scrollButton { width: 40px; height: 40px; }
 }
 
 @media (max-width: 600px) {
-  .scrollContainer { padding: 0 30px; }
-  .bookCard { flex: 0 0 220px; max-width: 220px; }
-  .imageContainer { height: 200px; }
-  .bookDetails { padding: 16px; }
+  .scrollContainer { 
+    padding: 0 10px; 
+    max-width: calc(100vw - 20px); 
+  }
+  .booksGrid { 
+    width: calc(3 * 220px + 2 * 12px); /* Maintain 3 cards */
+    gap: 12px;
+  }
+  .bookCard { 
+    flex: 0 0 220px; 
+    max-width: 220px; 
+    min-width: 220px; 
+  }
+  .imageContainer { height: 180px; }
   .actions { flex-direction: column; gap: 0.5rem; }
   .pagination { flex-wrap: wrap; gap: 6px; }
   .pageButton { padding: 6px 10px; font-size: 0.8rem; }
   .pageNumber { width: 36px; height: 36px; }
   .scrollButton { width: 36px; height: 36px; }
+  .scrollLeft { left: -8px; }
+  .scrollRight { right: -8px; }
 }
 
 @media (max-width: 480px) {
-  .container { padding: 20px 10px; }
-  .scrollContainer { padding: 0 25px; }
-  .bookCard { flex: 0 0 200px; max-width: 200px; }
+  .container { padding: 15px 5px; }
+  .scrollContainer { 
+    padding: 0 8px; 
+    max-width: calc(100vw - 16px); 
+  }
+  .booksGrid { 
+    width: calc(3 * 200px + 2 * 10px); /* Still 3 cards but smaller */
+    gap: 10px;
+  }
+  .bookCard { 
+    flex: 0 0 200px; 
+    max-width: 200px; 
+    min-width: 200px; 
+  }
   .imageContainer { height: 160px; }
   .bookTitle { font-size: 1rem; }
   .bookDescription { font-size: 0.75rem; }
   .scrollButton { width: 32px; height: 32px; }
-  .message { top: 10px; left: 10px; right: 10px; }
+  .scrollLeft { left: -6px; }
+  .scrollRight { right: -6px; }
+  .message { top: 10px; left: 5px; right: 5px; }
   
   .priceWithDiscount { gap: 1px; }
   .currentPrice { font-size: 1.1rem; }

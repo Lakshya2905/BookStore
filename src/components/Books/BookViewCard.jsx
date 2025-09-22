@@ -266,11 +266,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     setSelectedImageList([]);
   };
 
-  // Function to calculate discount percentage
-  const calculateDiscountPercentage = (book) => {
-    if (!book.mrp || !book.discount || book.discount <= 0) return 0;
-    return Math.round((book.discount / book.mrp) * 100);
-  };
 
   // Function to get display price
   const getDisplayPrice = (book) => {
