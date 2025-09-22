@@ -285,7 +285,11 @@ const handleNavigation = useCallback(
 
   return (
     <>
-      {/* Top Contact Bar - Only show for non-owner users */}
+     
+
+      <header className={styles.header}>
+
+ {/* Top Contact Bar - Only show for non-owner users */}
       {!isOwner && (
         <div className={styles.topBar}>
           <div className="container-fluid">
@@ -306,7 +310,6 @@ const handleNavigation = useCallback(
         </div>
       )}
 
-      <header className={styles.header}>
         {/* Main Header */}
         <div className={styles.mainHeader}>
           <div className="container-fluid">
