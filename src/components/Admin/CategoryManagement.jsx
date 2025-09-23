@@ -173,73 +173,83 @@ const CategoryManagement = () => {
     }
   };
 
-  const handleUpdateImage = async () => {
-    if (!selectedFile) {
-      showMessage('error', 'Please select an image file');
-      return;
-    }
+const handleUpdateImage = async () => {
+  if (!selectedFile) {
+    showMessage('error', 'Please select an image file');
+    return;
+  }
 
-    const { user, token } = getUserData();
-    if (!user || !token) {
-      showMessage('error', 'Authentication required. Please login again.');
-      return;
-    }
+  const { user, token } = getUserData();
+  if (!user || !token) {
+    showMessage('error', 'Authentication required. Please login again.');
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append('requestBody', JSON.stringify({
-      user,
-      token,
-      categoryId: editingImage
-    }));
-    formData.append('file', selectedFile);
-
-    setLoading(true);
-    try {
-      const response = await axios.post(`${CATRGORY_IMAGE_UPDATE_URL}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      if (response.data.status === 'SUCCESS') {
-        showMessage('success', response.data.message);
-        setEditingImage(null);
-        setSelectedFile(null);
-        
-        // Refresh the specific image after successful update
-        try {
-          const imageUrl = await getCategoryImageUrl(editingImage);
-          setImageUrls(prev => ({
-            ...prev,
-            [editingImage]: imageUrl
-          }));
-          setImageErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[editingImage];
-            return newErrors;
-          });
-        } catch (error) {
-          console.error('Error refreshing updated image:', error);
-        }
-        
-        // Also refresh categories data
-        setTimeout(() => {
-          fetchCategories();
-        }, 500);
-      } else {
-        showMessage('error', response.data.message || 'Failed to update category image');
-      }
-    } catch (error) {
-      console.error('Error updating category image:', error);
-      if (error.response && error.response.status === 401) {
-        showMessage('error', 'Unauthorized access. Please check your permissions.');
-      } else {
-        showMessage('error', 'Failed to update category image. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
+  const formData = new FormData();
+  
+  // Create the request body object - same format as AddCategory
+  const requestBody = {
+    user: user,
+    token: token,
+    categoryId: editingImage
   };
+  
+  // Add the request body as a Blob with correct content type - same as AddCategory
+  formData.append('requestBody', new Blob([JSON.stringify(requestBody)], {
+    type: 'application/json'
+  }));
+  
+  // Add file - same as AddCategory
+  formData.append('file', selectedFile);
+
+  setLoading(true);
+  try {
+    const response = await axios.post(`${CATRGORY_IMAGE_UPDATE_URL}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    if (response.data.status === 'SUCCESS') {
+      showMessage('success', response.data.message);
+      setEditingImage(null);
+      setSelectedFile(null);
+      
+      // Refresh the specific image after successful update
+      try {
+        const imageUrl = await getCategoryImageUrl(editingImage);
+        setImageUrls(prev => ({
+          ...prev,
+          [editingImage]: imageUrl
+        }));
+        setImageErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[editingImage];
+          return newErrors;
+        });
+      } catch (error) {
+        console.error('Error refreshing updated image:', error);
+      }
+      
+      // Also refresh categories data
+      setTimeout(() => {
+        fetchCategories();
+      }, 500);
+    } else {
+      showMessage('error', response.data.message || 'Failed to update category image');
+    }
+  } catch (error) {
+    console.error('Error updating category image:', error);
+    if (error.response && error.response.status === 401) {
+      showMessage('error', 'Unauthorized access. Please check your permissions.');
+    } else {
+      showMessage('error', 'Failed to update category image. Please try again.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleCancelImageEdit = () => {
     setEditingImage(null);
