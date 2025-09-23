@@ -402,16 +402,13 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
       {!loading && !error && filteredBooks.length > 0 && (
         <>
           <div className={styles.scrollContainer}>
-            <button 
-              className={`${styles.scrollButton} ${styles.scrollLeft}`}
-              onClick={scrollLeft}
-              type="button"
-              aria-label="Scroll left"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15,18 9,12 15,6"></polyline>
-              </svg>
-            </button>
+   <button 
+    className={`${styles.scrollButton} ${styles.scrollLeft}`}
+    onClick={scrollLeft}
+    type="button"
+    aria-label="Scroll left"
+  >
+  </button>
             
             <div className={styles.booksGrid} ref={scrollContainerRef}>
               {currentBooks.map((book) => {
@@ -628,16 +625,13 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
               })}
             </div>
 
-            <button 
-              className={`${styles.scrollButton} ${styles.scrollRight}`}
-              onClick={scrollRight}
-              type="button"
-              aria-label="Scroll right"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="9,18 15,12 9,6"></polyline>
-              </svg>
-            </button>
+         <button 
+    className={`${styles.scrollButton} ${styles.scrollRight}`}
+    onClick={scrollRight}
+    type="button"
+    aria-label="Scroll right"
+  >
+  </button>
           </div>
 
           {showPagination && totalPages > 1 && (

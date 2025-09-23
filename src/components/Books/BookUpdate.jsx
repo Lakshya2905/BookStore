@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './BookUpdate.module.css';
 import { FIND_ALL_BOOK_URL,BOOK_UPDATE,BOOK_CATEGORIES_FETCH_URL } from '../../constants/apiConstants';
+import BookImageEditModal from './BookImageEditModal';
 
 const BookUpdate = () => {
   const [books, setBooks] = useState([]);
@@ -11,6 +12,9 @@ const BookUpdate = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedBookForImages, setSelectedBookForImages] = useState(null);
+
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,7 +60,7 @@ const BookUpdate = () => {
     removeTags: false
   });
 
-  const BOOK_TAGS = ['NEW_RELEASE', 'BESTSELLER', 'TOP_RATED', 'SALE'];
+  const BOOK_TAGS = ['NEW_RELEASE', 'BESTSELLER', 'TOP_RATED'];
   const SHOW_STATUS_OPTIONS = ['HIDE', 'SHOW'];
 
   // Search function
@@ -99,6 +103,17 @@ const BookUpdate = () => {
 
     setFilteredBooks(filtered);
   };
+
+
+  const openImageModal = (book) => {
+  setSelectedBookForImages(book);
+  setImageModalOpen(true);
+};
+
+const closeImageModal = () => {
+  setImageModalOpen(false);
+  setSelectedBookForImages(null);
+};
 
   // Update filtered books when search query or field changes
   useEffect(() => {
@@ -469,12 +484,22 @@ const BookUpdate = () => {
                     </div>
                   </td>
                   <td>
+                    <div className={styles.imageActions}>
                     <button 
                       className={styles.editBtn}
                       onClick={() => openModal(book)}
                     >
-                      Edit
+                      Edit Information
                     </button>
+
+    <button 
+      className={styles.imageBtn}
+      onClick={() => openImageModal(book)}
+    >
+      Edit Images
+    </button>
+    </div>
+
                   </td>
                 </tr>
               ))
@@ -961,6 +986,14 @@ const BookUpdate = () => {
           </div>
         </div>
       )}
+
+      {imageModalOpen && selectedBookForImages && (
+  <BookImageEditModal
+    bookId={selectedBookForImages.bookId}
+    bookName={selectedBookForImages.bookName}
+    onClose={closeImageModal}
+  />
+)}
     </div>
   );
 };

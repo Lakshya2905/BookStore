@@ -120,6 +120,19 @@
   font-weight: 500;
 }
 
+
+.imageBtn {
+  background:red;
+  color: white;
+  border: none;
+
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 /* Edit button */
 .editBtn {
   background: linear-gradient(135deg, #00cec9, #00b894);
@@ -135,6 +148,12 @@
 .editBtn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 206, 201, 0.4);
+}
+
+.imageActions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 /* Modal styles */

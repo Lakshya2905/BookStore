@@ -20,6 +20,12 @@ export const EDIT_BLOG_URL = `${API_BASE_URL}/admin/edit/blog`;
 
 
 
+export const BOOK_IMAGE_LIST_FETCH_URL = `${API_BASE_URL}/book/images/findAll`;
+export const BOOK_COVER_IMAGE_ADD_URL = `${API_BASE_URL}/book/images/cover/add`;
+export const BOOK_SECONDARY_IMAGE_ADD_URL = `${API_BASE_URL}/book/images/secondary/add`;
+export const BOOK_IMAGE_DELETE_URL = `${API_BASE_URL}/book/images/delete`;
+
+
 
 
 export const CART_VIEW_URL = `${API_BASE_URL}/cart/view`;

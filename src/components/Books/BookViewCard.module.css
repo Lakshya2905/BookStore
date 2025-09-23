@@ -26,7 +26,6 @@
   width: 48px;
   height: 48px;
   background: #ffffff;
-  color: #475569;
   border: 2px solid #e2e8f0;
   border-radius: 50%;
   cursor: pointer;
@@ -38,6 +37,15 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Create triangular arrows using CSS borders */
+.scrollButton::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-style: solid;
+  transition: border-color 0.3s ease;
+}
+
 .scrollButton:hover {
   background: #f8fafc;
   border-color: #cbd5e1;
@@ -45,16 +53,36 @@
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
+.scrollButton:hover.scrollLeft::before {
+  border-color: transparent #334155 transparent transparent;
+}
+
+.scrollButton:hover.scrollRight::before {
+  border-color: transparent transparent transparent #334155;
+}
+
 .scrollButton:active {
   transform: translateY(-50%) scale(0.98);
 }
 
 .scrollLeft {
-  left: -10px; /* Position at the very left edge */
+  left: -2px;
+}
+
+.scrollLeft::before {
+  border-width: 10px 14px 10px 0;
+  border-color: transparent #475569 transparent transparent;
+  margin-left: -2px; /* Slight offset to center better */
 }
 
 .scrollRight {
-  right: -10px; /* Position at the very right edge */
+  right: -1px;
+}
+
+.scrollRight::before {
+  border-width: 10px 0 10px 14px;
+  border-color: transparent transparent transparent #475569;
+  margin-right: -2px; /* Slight offset to center better */
 }
 
 /* Grid System - Fixed to show exact number of cards */

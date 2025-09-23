@@ -180,6 +180,17 @@
   letter-spacing: 0.5px;
 }
 
+
+.positionHeader {
+   background:#7258b5 !important;
+}
+
+.actionsHeader {
+    background: #7258b5 !important;
+
+}
+
+
 .priorityHeader {
   width: 80px;
   text-align: center;

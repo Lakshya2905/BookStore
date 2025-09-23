@@ -487,6 +487,16 @@ const PriorityUpdate = () => {
         </div>
       )}
       
+           {hasChanges && (
+            <button 
+              onClick={handleReviewPriorities} 
+              className={styles.reviewBtn}
+              disabled={loading}
+            >
+              Review & Submit Priorities
+            </button>
+          )}
+
       <div className={styles.instructions}>
         <h3 className={styles.instructionsTitle}>💡 How to Use</h3>
         <ul className={styles.instructionsList}>

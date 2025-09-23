@@ -34,7 +34,6 @@ const AddBookPage = () => {
     { value: 'NEW_RELEASE', label: 'New Release' },
     { value: 'BESTSELLER', label: 'Bestseller' },
     { value: 'TOP_RATED', label: 'Top Rated' },
-    { value: 'SALE', label: 'Sale' }
   ];
 
   const getUserData = () => {
@@ -483,7 +482,7 @@ const AddBookPage = () => {
               <h3 className={styles.sectionTitle}>Tax Information</h3>
               <div className={styles.row}>
                 <div className={styles.field}>
-                  <label htmlFor="hsn" className={styles.label}>HSN Code *</label>
+                  <label htmlFor="hsn" className={styles.label}>HSN Code </label>
                   <input
                     type="text"
                     id="hsn"
@@ -492,7 +491,6 @@ const AddBookPage = () => {
                     onChange={handleInputChange}
                     className={styles.input}
                     placeholder="Enter HSN code"
-                    required
                   />
                 </div>
                 <div className={styles.field}>
