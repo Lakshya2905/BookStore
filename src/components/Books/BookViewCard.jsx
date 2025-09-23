@@ -550,7 +550,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                     </div>
 
                     <div className={styles.bookDetails}>
-                      <h3 className={styles.bookTitle}>{book.bookName}</h3>
+                      <h3 className={styles.bookTitle}>{book.bookName} onClick={() => handleImageClick(book)}</h3>
                       <p className={styles.bookAuthor} onClick={() => handleImageClick(book)}>by {book.authorName}</p>
                       {/* <p className={styles.bookDescription}>
                         {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
