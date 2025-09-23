@@ -262,6 +262,8 @@ const handleNavigation = useCallback(
       return [
         { label: "Add Book", path: "/admin/book/add", icon: <Plus size={16} /> },
         { label: "Add Category", path: "/admin/category/add", icon: <Plus size={16} /> },
+        { label: "Update Category", path: "/admin/category/update", icon: <Plus size={16} /> },
+        
         { label: "Update Book", path: "/admin/book/update", icon: <Edit size={16} /> },
         { label: "Priority Update", path: "/admin/book/priority/update", icon: <TrendingUp size={16} /> },
         { label: "Add Header Image", path: "/admin/add/discoveryImage", icon: <TrendingUp size={16} /> },

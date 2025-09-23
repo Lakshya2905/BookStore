@@ -21,6 +21,7 @@ import ReturnPolicy from "./components/General/ReturnPolicy";
 import CustomerOrderView from "./components/User/CustomerOrderView";
 import BlogPage from "./components/Landing/BlogPage";
 import AdminBlogManagement from "./components/Admin/AdminBlogManagement";
+import CategoryManagement from "./components/Admin/CategoryManagement";
 
 // ========================
 // Scroll to Top Component
@@ -447,6 +448,15 @@ const AppContent = React.memo(() => {
             } 
           />
           
+          <Route 
+            path="/admin/category/update" 
+            element={
+              <AdminProtectedRoute>
+                <CategoryManagement />
+              </AdminProtectedRoute>
+            } 
+          />
+
           {/* Add more routes as needed */}
         </Routes>
       </main>

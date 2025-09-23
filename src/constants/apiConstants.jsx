@@ -13,6 +13,14 @@ export const CATRGORY_FETCH_URL = `${API_BASE_URL}/landing/categories`;
 
 export const CATRGORY_VIEW_URL = `${API_BASE_URL}/landing/view/categories`;
 
+
+export const CATRGORY_UPDATE_URL = `${API_BASE_URL}/book/category/update`;
+export const CATRGORY_DELETE_URL = `${API_BASE_URL}/book/category/delete`;
+
+
+export const CATRGORY_IMAGE_UPDATE_URL = `${API_BASE_URL}/book/category/image/update`;
+
+
 export const BLOG_VIEW_URL = `${API_BASE_URL}/landing/view/blogs`;
 export const CREATE_BLOG_URL = `${API_BASE_URL}/admin/createBlog`;
 export const DELETE_BLOG_URL = `${API_BASE_URL}/admin/delete/blog`;
