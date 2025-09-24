@@ -42,10 +42,7 @@ const CategoryManagement = () => {
     try {
       const response = await axios.get(`${CATRGORY_VIEW_URL}`);
       if (response.data && response.data.status==='SUCCESS') {
-        setCategories(response.data.payload);
-        showMessage('success', 'Categories loaded successfully');
-        
-        // Prefetch images after categories are loaded
+        setCategories(response.data.payload);    
         await prefetchCategoryImages(response.data.payload);
       }
     } catch (error) {
@@ -234,7 +231,7 @@ const handleUpdateImage = async () => {
       // Also refresh categories data
       setTimeout(() => {
         fetchCategories();
-      }, 500);
+      }, 2000);
     } else {
       showMessage('error', response.data.message || 'Failed to update category image');
     }
