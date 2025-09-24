@@ -631,7 +631,7 @@ const getBookImages = (book) => {
 <ImageViewModal
   isOpen={imageModalOpen}
   onClose={closeImageModal}
-  bookInfo={selectedBookForImage}
+  book={selectedBookForImage}
   imageUrlList={selectedImageList}
   onAddToCart={handleAddToCart}
   onBuyNow={handleBuyNow}

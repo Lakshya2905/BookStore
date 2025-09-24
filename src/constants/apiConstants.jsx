@@ -7,6 +7,10 @@ export const REGISTER_URL = `${API_BASE_URL}/user/register`;
 
 //Landing
 export const BOOK_FETCH_URL = `${API_BASE_URL}/landing/bookList`;
+
+export const FIND_BOOK_URL = `${API_BASE_URL}/landing/find/book/bookId`;
+
+
 export const BOOK_IMAGE_FETCH_URL = `${API_BASE_URL}/landing/book/image`;
 
 export const CATRGORY_FETCH_URL = `${API_BASE_URL}/landing/categories`;

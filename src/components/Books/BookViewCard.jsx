@@ -693,7 +693,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
       <ImageViewModal
         isOpen={imageModalOpen}
         onClose={closeImageModal}
-        bookInfo={selectedBookForImage}
+        book={selectedBookForImage}
         imageUrlList={selectedImageList}
         onAddToCart={handleAddToCart}           
         onBuyNow={handleBuyNow}      
