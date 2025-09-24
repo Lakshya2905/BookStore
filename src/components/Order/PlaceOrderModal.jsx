@@ -3,7 +3,6 @@ import axios from 'axios';
 import styles from './PlaceOrderModal.module.css';
 import { BOOK_CHECKOUT_URL, BOOK_INFORMATION_URL } from '../../constants/apiConstants';
 
-
 const PlaceOrderModal = ({ isOpen, onClose, bookId}) => {
   const [bookInfo, setBookInfo] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -17,10 +16,11 @@ const PlaceOrderModal = ({ isOpen, onClose, bookId}) => {
   const [loading, setLoading] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [showOrderStatus, setShowOrderStatus] = useState(false);
+  const [orderStatus, setOrderStatus] = useState('');
+  const [orderMessage, setOrderMessage] = useState('');
 
-
-   const getUserData = () => {
+  const getUserData = () => {
     try {
       const user = JSON.parse(sessionStorage.getItem("user"));
       const token = sessionStorage.getItem("token");
@@ -31,33 +31,24 @@ const PlaceOrderModal = ({ isOpen, onClose, bookId}) => {
     }
   };
   
-  
-  
   useEffect(() => {
-   
     if (isOpen && bookId) {
-
-const {user,token}=getUserData();
-    if (!user || !token) {
-      window.dispatchEvent(new Event("openLoginModal"));
-      onClose();
-      return; // ✅ Fixed: Don't return anything, or return undefined
-    }
-
+      const {user,token} = getUserData();
+      if (!user || !token) {
+        window.dispatchEvent(new Event("openLoginModal"));
+        onClose();
+        return;
+      }
       fetchBookInfo();
     }
   }, [isOpen, bookId]);
 
-
-
-
   const fetchBookInfo = async () => {
-    
     setLoading(true);
     setError('');
     try {
       const response = await axios.get(`${BOOK_INFORMATION_URL}?bookId=${bookId}`);
-      if (response.data && response.data.status=='SUCCESS') {
+      if (response.data && response.data.status == 'SUCCESS') {
         setBookInfo(response.data.payload);
       } else {
         setError('Failed to fetch book information');
@@ -104,10 +95,8 @@ const {user,token}=getUserData();
     return true;
   };
 
-
   const handlePlaceOrder = async () => {
     setError('');
-    setSuccess('');
 
     // Get user data from sessionStorage
     const { user, token } = getUserData();
@@ -137,28 +126,46 @@ const {user,token}=getUserData();
       const response = await axios.post(`${BOOK_CHECKOUT_URL}`, orderData);
       
       if (response.data && response.data.status == 'SUCCESS') {
-        setSuccess('Order placed successfully!');
-        setTimeout(() => {
-          onClose();
-          // Reset form
-          setQuantity(1);
-          setCustomerInfo({
-            deliveryAddress: '',
-            city: '',
-            state: '',
-            pincode: '',
-            mobileNo: ''
-          });
-          setSuccess('');
-        }, 2000);
+        // Show success status modal instead of inline success message
+        setOrderStatus('SUCCESS');
+        setOrderMessage(response.data.message || 'Your order has been placed successfully!');
+        setShowOrderStatus(true);
       } else {
-        setError(response.data?.message || 'Failed to place order');
+        // Show failed status modal instead of inline error
+        setOrderStatus('FAILED');
+        setOrderMessage(response.data?.message || 'Failed to place order. Please try again.');
+        setShowOrderStatus(true);
       }
     } catch (err) {
-      setError('Error placing order: ' + (err.response?.data?.message || err.message));
+      // Show failed status modal for errors
+      setOrderStatus('FAILED');
+      setOrderMessage(err.response?.data?.message || 'Error placing order. Please try again.');
+      setShowOrderStatus(true);
     } finally {
       setOrderLoading(false);
     }
+  };
+
+  const handleOrderStatusClose = () => {
+    setShowOrderStatus(false);
+    
+    // If order was successful, close the main modal and reset form
+    if (orderStatus === 'SUCCESS') {
+      onClose();
+      // Reset form
+      setQuantity(1);
+      setCustomerInfo({
+        deliveryAddress: '',
+        city: '',
+        state: '',
+        pincode: '',
+        mobileNo: ''
+      });
+    }
+    
+    // Reset order status states
+    setOrderStatus('');
+    setOrderMessage('');
   };
 
   const calculateTotal = () => {
@@ -168,217 +175,259 @@ const {user,token}=getUserData();
   if (!isOpen) return null;
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>
-            <span className={styles.icon}>📦</span>
-            Place Order
-          </h2>
-          <button className={styles.closeButton} onClick={onClose}>×</button>
-        </div>
+    <>
+      <div className={styles.modalOverlay}>
+        <div className={styles.modalContent}>
+          <div className={styles.modalHeader}>
+            <h2 className={styles.modalTitle}>
+              <span className={styles.icon}>📦</span>
+              Place Order
+            </h2>
+            <button className={styles.closeButton} onClick={onClose}>×</button>
+          </div>
 
-        <div className={styles.modalBody}>
-          {loading && (
-            <div className={styles.loading}>
-              <div className={styles.spinner}></div>
-              Loading book information...
-            </div>
-          )}
-
-          {error && (
-            <div className={styles.error}>
-              <span className={styles.errorIcon}>⚠️</span>
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className={styles.success}>
-              <span className={styles.successIcon}>✅</span>
-              {success}
-            </div>
-          )}
-
-          {bookInfo && !loading && (
-            <>
-              {/* Order Summary Table */}
-              <div className={styles.orderSection}>
-                <h3 className={styles.sectionTitle}>
-                  <span className={styles.sectionIcon}>📚</span>
-                  Order Summary
-                </h3>
-                <div className={styles.orderTable}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>Item Details</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className={styles.itemDetails}>
-                          <div className={styles.bookTitle}>{bookInfo.bookName}</div>
-                          <div className={styles.bookMeta}>
-                            <span className={styles.author}>by {bookInfo.authorName}</span>
-                          </div>
-             
-                        </td>
-                        <td className={styles.price}>₹{bookInfo.price}</td>
-                        <td className={styles.quantityCell}>
-                          <div className={styles.quantityControl}>
-                            <button 
-                              type="button"
-                              className={styles.quantityBtn}
-                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            >
-                              −
-                            </button>
-                            <input
-                              type="number"
-                              min="1"
-                              value={quantity}
-                              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                              className={styles.quantityInput}
-                            />
-                            <button 
-                              type="button"
-                              className={styles.quantityBtn}
-                              onClick={() => setQuantity(quantity + 1)}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
-                        <td className={styles.total}>₹{calculateTotal()}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+          <div className={styles.modalBody}>
+            {loading && (
+              <div className={styles.loading}>
+                <div className={styles.spinner}></div>
+                Loading book information...
               </div>
+            )}
 
-              {/* Customer Information */}
-              <div className={styles.customerSection}>
-                <h3 className={styles.sectionTitle}>
-                  <span className={styles.sectionIcon}>🚚</span>
-                  Delivery Information
-                </h3>
-                <div className={styles.customerForm}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      <span className={styles.labelText}>Delivery Address</span>
-                      <span className={styles.required}>*</span>
-                    </label>
-                    <textarea
-                      value={customerInfo.deliveryAddress}
-                      onChange={(e) => handleCustomerInfoChange('deliveryAddress', e.target.value)}
-                      className={styles.textarea}
-                      rows="3"
-                      placeholder="Enter your complete delivery address"
-                    />
+            {error && (
+              <div className={styles.error}>
+                <span className={styles.errorIcon}>⚠️</span>
+                {error}
+              </div>
+            )}
+
+            {bookInfo && !loading && (
+              <>
+                {/* Order Summary Table */}
+                <div className={styles.orderSection}>
+                  <h3 className={styles.sectionTitle}>
+                    <span className={styles.sectionIcon}>📚</span>
+                    Order Summary
+                  </h3>
+                  <div className={styles.orderTable}>
+                    <table className={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>Item Details</th>
+                          <th>Price</th>
+                          <th>Quantity</th>
+                          <th>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className={styles.itemDetails}>
+                            <div className={styles.bookTitle}>{bookInfo.bookName}</div>
+                            <div className={styles.bookMeta}>
+                              <span className={styles.author}>by {bookInfo.authorName}</span>
+                            </div>
+                          </td>
+                          <td className={styles.price}>₹{bookInfo.price}</td>
+                          <td className={styles.quantityCell}>
+                            <div className={styles.quantityControl}>
+                              <button 
+                                type="button"
+                                className={styles.quantityBtn}
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                              >
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                min="1"
+                                value={quantity}
+                                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                                className={styles.quantityInput}
+                              />
+                              <button 
+                                type="button"
+                                className={styles.quantityBtn}
+                                onClick={() => setQuantity(quantity + 1)}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </td>
+                          <td className={styles.total}>₹{calculateTotal()}</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
+                </div>
 
-                  <div className={styles.formRow}>
+                {/* Customer Information */}
+                <div className={styles.customerSection}>
+                  <h3 className={styles.sectionTitle}>
+                    <span className={styles.sectionIcon}>🚚</span>
+                    Delivery Information
+                  </h3>
+                  <div className={styles.customerForm}>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>
-                        <span className={styles.labelText}>City</span>
+                        <span className={styles.labelText}>Delivery Address</span>
                         <span className={styles.required}>*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={customerInfo.city}
-                        onChange={(e) => handleCustomerInfoChange('city', e.target.value)}
-                        className={styles.input}
-                        placeholder="Enter city"
+                      <textarea
+                        value={customerInfo.deliveryAddress}
+                        onChange={(e) => handleCustomerInfoChange('deliveryAddress', e.target.value)}
+                        className={styles.textarea}
+                        rows="3"
+                        placeholder="Enter your complete delivery address"
                       />
                     </div>
 
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>
-                        <span className={styles.labelText}>State</span>
-                        <span className={styles.required}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={customerInfo.state}
-                        onChange={(e) => handleCustomerInfoChange('state', e.target.value)}
-                        className={styles.input}
-                        placeholder="Enter state"
-                      />
-                    </div>
-                  </div>
+                    <div className={styles.formRow}>
+                      <div className={styles.formGroup}>
+                        <label className={styles.label}>
+                          <span className={styles.labelText}>City</span>
+                          <span className={styles.required}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={customerInfo.city}
+                          onChange={(e) => handleCustomerInfoChange('city', e.target.value)}
+                          className={styles.input}
+                          placeholder="Enter city"
+                        />
+                      </div>
 
-                  <div className={styles.formRow}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>
-                        <span className={styles.labelText}>Pincode</span>
-                        <span className={styles.required}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        maxLength="6"
-                        value={customerInfo.pincode}
-                        onChange={(e) => handleCustomerInfoChange('pincode', e.target.value.replace(/\D/g, ''))}
-                        className={styles.input}
-                        placeholder="6 digit pincode"
-                      />
+                      <div className={styles.formGroup}>
+                        <label className={styles.label}>
+                          <span className={styles.labelText}>State</span>
+                          <span className={styles.required}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={customerInfo.state}
+                          onChange={(e) => handleCustomerInfoChange('state', e.target.value)}
+                          className={styles.input}
+                          placeholder="Enter state"
+                        />
+                      </div>
                     </div>
 
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>
-                        <span className={styles.labelText}>Mobile Number</span>
-                        <span className={styles.required}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        maxLength="10"
-                        value={customerInfo.mobileNo}
-                        onChange={(e) => handleCustomerInfoChange('mobileNo', e.target.value.replace(/\D/g, ''))}
-                        className={styles.input}
-                        placeholder="10 digit mobile number"
-                      />
+                    <div className={styles.formRow}>
+                      <div className={styles.formGroup}>
+                        <label className={styles.label}>
+                          <span className={styles.labelText}>Pincode</span>
+                          <span className={styles.required}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          maxLength="6"
+                          value={customerInfo.pincode}
+                          onChange={(e) => handleCustomerInfoChange('pincode', e.target.value.replace(/\D/g, ''))}
+                          className={styles.input}
+                          placeholder="6 digit pincode"
+                        />
+                      </div>
+
+                      <div className={styles.formGroup}>
+                        <label className={styles.label}>
+                          <span className={styles.labelText}>Mobile Number</span>
+                          <span className={styles.required}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          maxLength="10"
+                          value={customerInfo.mobileNo}
+                          onChange={(e) => handleCustomerInfoChange('mobileNo', e.target.value.replace(/\D/g, ''))}
+                          className={styles.input}
+                          placeholder="10 digit mobile number"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Final Total */}
-              <div className={styles.finalTotal}>
-                <div className={styles.totalAmount}>
-                  <span className={styles.totalLabel}>Total Amount:</span>
-                  <span className={styles.totalValue}>₹{calculateTotal()}</span>
+                {/* Final Total */}
+                <div className={styles.finalTotal}>
+                  <div className={styles.totalAmount}>
+                    <span className={styles.totalLabel}>Total Amount:</span>
+                    <span className={styles.totalValue}>₹{calculateTotal()}</span>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
-        </div>
+              </>
+            )}
+          </div>
 
-        <div className={styles.modalFooter}>
-          {!orderLoading && !success && !error && (
-            <>
-              <button
-                className={styles.cancelButton}
-                onClick={onClose}
-                disabled={orderLoading}
-              >
-                Cancel
-              </button>
-              <button
-                className={styles.placeOrderButton}
-                onClick={handlePlaceOrder}
-                disabled={orderLoading || loading || !bookInfo}
-              >
-                <span className={styles.buttonIcon}>🛒</span>
-                Place Order
-              </button>
-            </>
-          )}
+          <div className={styles.modalFooter}>
+            <button
+              className={styles.cancelButton}
+              onClick={onClose}
+              disabled={orderLoading}
+            >
+              Cancel
+            </button>
+            <button
+              className={styles.placeOrderButton}
+              onClick={handlePlaceOrder}
+              disabled={orderLoading || loading || !bookInfo}
+            >
+              {orderLoading ? (
+                <>
+                  <span className={styles.spinner}></span>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <span className={styles.buttonIcon}>🛒</span>
+                  Place Order
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Success/Error Status Modal */}
+      {showOrderStatus && (
+        <div className={styles.statusModalOverlay}>
+          <div className={styles.statusModalContent}>
+            <div className={`${styles.statusModal} ${orderStatus === 'SUCCESS' ? styles.successModal : styles.errorModal}`}>
+              <div className={styles.statusIcon}>
+                {orderStatus === 'SUCCESS' ? (
+                  <div className={styles.successCheckmark}>
+                    <div className={styles.checkmarkCircle}>
+                      <div className={styles.checkmarkStem}></div>
+                      <div className={styles.checkmarkKick}></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.errorIcon}>❌</div>
+                )}
+              </div>
+              
+              <h3 className={styles.statusTitle}>
+                {orderStatus === 'SUCCESS' ? 'Order Placed Successfully!' : 'Order Failed'}
+              </h3>
+              
+              <p className={styles.statusMessage}>{orderMessage}</p>
+              
+              {orderStatus === 'SUCCESS' && (
+                <div className={styles.orderDetails}>
+                  <p className={styles.thankYouMessage}>
+                    Thank you for your order! We'll process it shortly and send you updates.
+                  </p>
+                </div>
+              )}
+              
+              <button
+                className={`${styles.statusCloseButton} ${orderStatus === 'SUCCESS' ? styles.successButton : styles.errorButton}`}
+                onClick={handleOrderStatusClose}
+              >
+                {orderStatus === 'SUCCESS' ? 'Continue Shopping' : 'Try Again'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
