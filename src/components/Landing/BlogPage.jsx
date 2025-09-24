@@ -31,6 +31,21 @@ const BlogPage = () => {
     }
   };
 
+  // Function to format date to dd-mm-yyyy
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    } catch (error) {
+      return dateString; // Return original if formatting fails
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -78,17 +93,14 @@ const BlogPage = () => {
             {blogs.map((blog, index) => (
               <article key={blog.id} className={styles.blogPost}>
                 <div className={styles.postHeader}>
-                  <div className={styles.postMeta}>
-                    <span className={styles.postDate}>
-                      {new Date().toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
-                    </span>
-                  </div>
-                  {blog.title && (
-                    <h2 className={styles.postTitle}>{blog.title}</h2>
+                
+                  {blog.heading && (
+                    <div className={styles.postTitleRow}>
+                      <h2 className={styles.postTitle}>{blog.heading}</h2>
+                      <span className={styles.postDate}>
+                        {formatDate(blog.date)}
+                      </span>
+                    </div>
                   )}
                 </div>
                 

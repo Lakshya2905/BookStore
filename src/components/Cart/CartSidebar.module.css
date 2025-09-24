@@ -922,3 +922,284 @@
     font-size: 13px;
   }
 }
+
+
+
+
+/* Status Modal Overlay */
+.statusModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10001; /* Higher than main modal */
+  animation: fadeIn 0.3s ease-out;
+}
+
+.statusModalContent {
+  position: relative;
+  max-width: 400px;
+  width: 90%;
+  animation: slideInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.statusModal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.successModal {
+  border-top: 4px solid #10b981;
+}
+
+.errorModal {
+  border-top: 4px solid #ef4444;
+}
+
+/* Success Checkmark Animation */
+.successCheckmark {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1rem;
+  position: relative;
+}
+
+.checkmarkCircle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid #10b981;
+  position: relative;
+  background: #f0fdf4;
+  animation: scaleIn 0.3s ease-out 0.2s both;
+}
+
+.checkmarkStem {
+  position: absolute;
+  width: 3px;
+  height: 15px;
+  background: #10b981;
+  left: 32px;
+  top: 35px;
+  transform: rotate(45deg);
+  animation: drawStem 0.3s ease-out 0.5s both;
+  transform-origin: bottom;
+}
+
+.checkmarkKick {
+  position: absolute;
+  width: 3px;
+  height: 8px;
+  background: #10b981;
+  left: 25px;
+  top: 42px;
+  transform: rotate(-45deg);
+  animation: drawKick 0.3s ease-out 0.7s both;
+  transform-origin: bottom;
+}
+
+/* Error Icon */
+.errorIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: shake 0.5s ease-out;
+}
+
+/* Status Content */
+.statusIcon {
+  margin-bottom: 1rem;
+}
+
+.statusTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+}
+
+.statusMessage {
+  color: #6b7280;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.orderDetails {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-left: 4px solid #10b981;
+}
+
+.thankYouMessage {
+  color: #374151;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.statusCloseButton {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+  min-width: 140px;
+}
+
+.successButton {
+  background: #10b981;
+}
+
+.successButton:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.errorButton {
+  background: #ef4444;
+}
+
+.errorButton:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.statusCloseButton:active {
+  transform: translateY(0);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInScale {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes drawStem {
+  from {
+    height: 0;
+  }
+  to {
+    height: 15px;
+  }
+}
+
+@keyframes drawKick {
+  from {
+    height: 0;
+  }
+  to {
+    height: 8px;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* Pulse effect for success modal */
+.successModal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+  animation: pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .statusModalContent {
+    max-width: 340px;
+  }
+  
+  .statusModal {
+    padding: 1.5rem;
+  }
+  
+  .statusTitle {
+    font-size: 1.3rem;
+  }
+  
+  .successCheckmark {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .checkmarkCircle {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .checkmarkStem {
+    left: 24px;
+    top: 26px;
+    height: 12px;
+  }
+  
+  .checkmarkKick {
+    left: 19px;
+    top: 32px;
+    height: 6px;
+  }
+}

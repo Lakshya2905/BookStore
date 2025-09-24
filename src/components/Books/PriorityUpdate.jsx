@@ -5,6 +5,7 @@ import { FIND_ALL_BOOK_URL, BOOK_UPDATE_PRIORITY } from '../../constants/apiCons
 
 const PriorityUpdate = () => {
   const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState(null);
@@ -12,6 +13,8 @@ const PriorityUpdate = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewedChanges, setReviewedChanges] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '', show: false });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [positionInputs, setPositionInputs] = useState({});
 
   const showMessage = (type, text) => {
     setMessage({ type, text, show: true });
@@ -42,6 +45,17 @@ const PriorityUpdate = () => {
     return booksWithPriorities.sort((a, b) => a.priority - b.priority);
   };
 
+  const filterBooks = (books, searchTerm) => {
+    if (!searchTerm) return books;
+    
+    return books.filter(book => 
+      book.bookName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      book.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      book.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (book.description && book.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  };
+
   const fetchBooks = async () => {
     setLoading(true);
     try {
@@ -61,8 +75,10 @@ const PriorityUpdate = () => {
         // Process books data and assign priorities if needed
         const processedBooks = processBooksData(response.data.payload);
         setBooks(processedBooks);
+        setFilteredBooks(filterBooks(processedBooks, searchTerm));
         setHasChanges(false);
         setReviewedChanges(false);
+        setPositionInputs({});
       }
     } catch (error) {
       console.error('Error fetching books:', error);
@@ -126,6 +142,59 @@ const PriorityUpdate = () => {
     setLoading(false);
   };
 
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setFilteredBooks(filterBooks(books, value));
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+    setFilteredBooks(books);
+  };
+
+  const handlePositionInputChange = (bookId, value) => {
+    setPositionInputs(prev => ({
+      ...prev,
+      [bookId]: value
+    }));
+  };
+
+  const moveToPosition = (bookIndex, targetPosition) => {
+    if (targetPosition < 1 || targetPosition > books.length) {
+      showMessage('error', `Position must be between 1 and ${books.length}`);
+      return;
+    }
+
+    const updatedBooks = [...books];
+    const bookToMove = updatedBooks[bookIndex];
+    
+    // Remove the book from current position
+    updatedBooks.splice(bookIndex, 1);
+    
+    // Insert at new position (targetPosition - 1 because array is 0-indexed)
+    updatedBooks.splice(targetPosition - 1, 0, bookToMove);
+    
+    // Update priorities based on new order
+    const booksWithNewPriorities = updatedBooks.map((book, index) => ({
+      ...book,
+      priority: index + 1
+    }));
+
+    setBooks(booksWithNewPriorities);
+    setFilteredBooks(filterBooks(booksWithNewPriorities, searchTerm));
+    setHasChanges(true);
+    setReviewedChanges(false);
+    
+    // Clear the position input for this book
+    setPositionInputs(prev => ({
+      ...prev,
+      [bookToMove.bookId]: ''
+    }));
+
+    showMessage('success', `"${bookToMove.bookName}" moved to position ${targetPosition}`);
+  };
+
   const handleDragStart = (e, index) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = 'move';
@@ -166,6 +235,7 @@ const PriorityUpdate = () => {
     }));
 
     setBooks(booksWithNewPriorities);
+    setFilteredBooks(filterBooks(booksWithNewPriorities, searchTerm));
     setDraggedIndex(null);
     setDraggedOverIndex(null);
     setHasChanges(true);
@@ -185,6 +255,7 @@ const PriorityUpdate = () => {
     }));
 
     setBooks(booksWithNewPriorities);
+    setFilteredBooks(filterBooks(booksWithNewPriorities, searchTerm));
     setHasChanges(true);
     setReviewedChanges(false); // Reset review status when changes are made
   };
@@ -202,6 +273,7 @@ const PriorityUpdate = () => {
     }));
 
     setBooks(booksWithNewPriorities);
+    setFilteredBooks(filterBooks(booksWithNewPriorities, searchTerm));
     setHasChanges(true);
     setReviewedChanges(false); // Reset review status when changes are made
   };
@@ -209,6 +281,10 @@ const PriorityUpdate = () => {
   useEffect(() => {
     fetchBooks();
   }, []);
+
+  useEffect(() => {
+    setFilteredBooks(filterBooks(books, searchTerm));
+  }, [books, searchTerm]);
 
   if (loading && books.length === 0) {
     return <div className={styles.loading}>Loading books...</div>;
@@ -232,6 +308,39 @@ const PriorityUpdate = () => {
           <button onClick={fetchBooks} className={styles.refreshBtn} disabled={loading}>
             Refresh
           </button>
+        </div>
+      </div>
+
+      {/* Search Section */}
+      <div className={styles.searchSection}>
+        <div className={styles.searchContainer}>
+          <div className={styles.searchInputWrapper}>
+            <input
+              type="text"
+              placeholder="Search by book name, author, category, or description..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className={styles.searchInput}
+            />
+            {searchTerm && (
+              <button
+                onClick={clearSearch}
+                className={styles.clearSearchBtn}
+                title="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <div className={styles.searchInfo}>
+            {searchTerm ? (
+              <span>
+                Showing {filteredBooks.length} of {books.length} books
+              </span>
+            ) : (
+              <span>Total: {books.length} books</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -262,10 +371,15 @@ const PriorityUpdate = () => {
         </div>
       )}
 
-      {books.length === 0 ? (
+      {filteredBooks.length === 0 ? (
         <div className={styles.noBooks}>
           <div className={styles.noBooksIcon}>📚</div>
-          <p>No books found</p>
+          <p>{searchTerm ? 'No books found matching your search' : 'No books found'}</p>
+          {searchTerm && (
+            <button onClick={clearSearch} className={styles.clearSearchBtn}>
+              Clear Search
+            </button>
+          )}
         </div>
       ) : (
         <div className={styles.tableContainer}>
@@ -279,75 +393,118 @@ const PriorityUpdate = () => {
                   <th className={styles.categoryHeader}>Category</th>
                   <th className={styles.priceHeader}>Price</th>
                   <th className={styles.descriptionHeader}>Description</th>
+                  <th className={styles.positionHeader}>Move to Position</th>
                   <th className={styles.actionsHeader}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {books.map((book, index) => (
-                  <tr
-                    key={book.bookId}
-                    className={`${styles.row} ${
-                      draggedIndex === index ? styles.dragging : ''
-                    } ${draggedOverIndex === index ? styles.dragOver : ''}`}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, index)}
-                  >
-                    <td className={styles.priorityCell}>
-                      <div className={styles.priorityBadge}>{book.priority}</div>
-                    </td>
-                    <td className={styles.bookCell}>
-                      <div className={styles.bookName}>{book.bookName}</div>
-                    </td>
-                    <td className={styles.authorCell}>{book.authorName}</td>
-                    <td className={styles.categoryCell}>
-                      <span className={styles.categoryTag}>{book.category}</span>
-                    </td>
-                    <td className={styles.priceCell}>
-                      {book.price ? `${book.price.toFixed(2)} Rs` : 'N/A'}
-                    </td>
-                    <td className={styles.descriptionCell}>
-                      <div className={styles.description}>
-                        {book.description || 'No description available'}
-                      </div>
-                    </td>
-                    <td className={styles.actionsCell}>
-                      <div className={styles.actionButtons}>
-                        <button
-                          onClick={() => moveUp(index)}
-                          disabled={index === 0}
-                          className={`${styles.actionBtn} ${styles.upBtn}`}
-                          title="Move Up"
-                        >
-                          ↑
-                        </button>
-                        <button
-                          onClick={() => moveDown(index)}
-                          disabled={index === books.length - 1}
-                          className={`${styles.actionBtn} ${styles.downBtn}`}
-                          title="Move Down"
-                        >
-                          ↓
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {filteredBooks.map((book, displayIndex) => {
+                  // Find the actual index in the main books array
+                  const actualIndex = books.findIndex(b => b.bookId === book.bookId);
+                  
+                  return (
+                    <tr
+                      key={book.bookId}
+                      className={`${styles.row} ${
+                        draggedIndex === actualIndex ? styles.dragging : ''
+                      } ${draggedOverIndex === actualIndex ? styles.dragOver : ''}`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, actualIndex)}
+                      onDragOver={(e) => handleDragOver(e, actualIndex)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, actualIndex)}
+                    >
+                      <td className={styles.priorityCell}>
+                        <div className={styles.priorityBadge}>{book.priority}</div>
+                      </td>
+                      <td className={styles.bookCell}>
+                        <div className={styles.bookName}>{book.bookName}</div>
+                      </td>
+                      <td className={styles.authorCell}>{book.authorName}</td>
+                      <td className={styles.categoryCell}>
+                        <span className={styles.categoryTag}>{book.category}</span>
+                      </td>
+                      <td className={styles.priceCell}>
+                        {book.price ? `${book.price.toFixed(2)} Rs` : 'N/A'}
+                      </td>
+                      <td className={styles.descriptionCell}>
+                        <div className={styles.description}>
+                          {book.description || 'No description available'}
+                        </div>
+                      </td>
+                      <td className={styles.positionCell}>
+                        <div className={styles.positionControls}>
+                          <input
+                            type="number"
+                            min="1"
+                            max={books.length}
+                            value={positionInputs[book.bookId] || ''}
+                            onChange={(e) => handlePositionInputChange(book.bookId, e.target.value)}
+                            className={styles.positionInput}
+                            placeholder={`1-${books.length}`}
+                          />
+                          <button
+                            onClick={() => {
+                              const position = parseInt(positionInputs[book.bookId]);
+                              if (position) {
+                                moveToPosition(actualIndex, position);
+                              }
+                            }}
+                            disabled={!positionInputs[book.bookId]}
+                            className={styles.positionBtn}
+                            title="Move to position"
+                          >
+                            ✓
+                          </button>
+                        </div>
+                      </td>
+                      <td className={styles.actionsCell}>
+                        <div className={styles.actionButtons}>
+                          <button
+                            onClick={() => moveUp(actualIndex)}
+                            disabled={actualIndex === 0}
+                            className={`${styles.actionBtn} ${styles.upBtn}`}
+                            title="Move Up"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            onClick={() => moveDown(actualIndex)}
+                            disabled={actualIndex === books.length - 1}
+                            className={`${styles.actionBtn} ${styles.downBtn}`}
+                            title="Move Down"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
       )}
       
+           {hasChanges && (
+            <button 
+              onClick={handleReviewPriorities} 
+              className={styles.reviewBtn}
+              disabled={loading}
+            >
+              Review & Submit Priorities
+            </button>
+          )}
+
       <div className={styles.instructions}>
         <h3 className={styles.instructionsTitle}>💡 How to Use</h3>
         <ul className={styles.instructionsList}>
-          <li>Drag and drop rows to reorder book priorities</li>
-          <li>Use the arrow buttons (↑ ↓) to move books up or down</li>
-          <li>Click "Review & Submit Priorities" to review and submit your changes</li>
-          <li>Review modal will show final order before submitting to server</li>
+          <li><strong>Search:</strong> Use the search bar to filter books by name, author, category, or description</li>
+          <li><strong>Drag & Drop:</strong> Drag and drop rows to reorder book priorities</li>
+          <li><strong>Arrow Buttons:</strong> Use the arrow buttons (↑ ↓) to move books up or down one position</li>
+          <li><strong>Position Input:</strong> Enter a specific position number (1-{books.length}) and click ✓ to move a book to that exact position</li>
+          <li><strong>Submit Changes:</strong> Click "Review & Submit Priorities" to review and save your changes</li>
         </ul>
       </div>
 

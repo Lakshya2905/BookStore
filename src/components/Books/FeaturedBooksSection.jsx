@@ -169,7 +169,7 @@ const getBookImages = (book) => {
             ...prev,
             [bookId]: ((prev[bookId] || 0) + 1) % allImages.length
           }));
-        }, 5000); // 5 seconds
+        }, 500000000); // 5 seconds
       }
     });
     
@@ -429,11 +429,9 @@ const getBookImages = (book) => {
         </div>
 
         <div className={styles.bookDetails}>
-          <h3 className={styles.bookTitle}>{book.bookName}</h3>
-          <p className={styles.bookAuthor}>by {book.authorName}</p>
-          <p className={styles.bookDescription}>
-            {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
-          </p>
+          <h3 className={styles.bookTitle }  onClick={(e) => openImageModal(book, e)}>{book.bookName}</h3>
+          <p className={styles.bookAuthor}  onClick={(e) => openImageModal(book, e)}>by {book.authorName}</p>
+   
           
           <div className={styles.bookMeta}>
             <div className={styles.priceInfo}>
@@ -633,7 +631,7 @@ const getBookImages = (book) => {
 <ImageViewModal
   isOpen={imageModalOpen}
   onClose={closeImageModal}
-  bookInfo={selectedBookForImage}
+  book={selectedBookForImage}
   imageUrlList={selectedImageList}
   onAddToCart={handleAddToCart}
   onBuyNow={handleBuyNow}

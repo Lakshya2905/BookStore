@@ -4,6 +4,53 @@ import axios from 'axios';
 import styles from './CartSidebar.module.css';
 import { CART_VIEW_URL, CART_ITEM_QUANTITY_URL, CART_ITEM_DELETE_URL, CHECKOUT_CART_URL } from '../../constants/apiConstants';
 
+// Order Status Modal Component
+const OrderStatusModal = ({ isOpen, status, message, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.statusModalOverlay}>
+      <div className={styles.statusModalContent}>
+        <div className={`${styles.statusModal} ${status === 'SUCCESS' ? styles.successModal : styles.errorModal}`}>
+          <div className={styles.statusIcon}>
+            {status === 'SUCCESS' ? (
+              <div className={styles.successCheckmark}>
+                <div className={styles.checkmarkCircle}>
+                  <div className={styles.checkmarkStem}></div>
+                  <div className={styles.checkmarkKick}></div>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.errorIcon}>❌</div>
+            )}
+          </div>
+          
+          <h3 className={styles.statusTitle}>
+            {status === 'SUCCESS' ? 'Order Placed Successfully!' : 'Order Failed'}
+          </h3>
+          
+          <p className={styles.statusMessage}>{message}</p>
+          
+          {status === 'SUCCESS' && (
+            <div className={styles.orderDetails}>
+              <p className={styles.thankYouMessage}>
+                Thank you for your order! We'll process it shortly and send you updates.
+              </p>
+            </div>
+          )}
+          
+          <button
+            className={`${styles.statusCloseButton} ${status === 'SUCCESS' ? styles.successButton : styles.errorButton}`}
+            onClick={onClose}
+          >
+            {status === 'SUCCESS' ? 'Continue Shopping' : 'Try Again'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Notification Component
 const Notification = ({ type, message, isVisible, onClose }) => {
   useEffect(() => {
@@ -160,7 +207,8 @@ const CheckoutModal = ({ isOpen, onClose, cartData, onPlaceOrder }) => {
     }).format(amount);
   };
 
-  if (!isOpen) return null;
+  // Return null if modal is not open or cartData is not available
+  if (!isOpen || !cartData || !cartData.items) return null;
 
   return (
     <div className={styles.checkoutModalOverlay}>
@@ -334,12 +382,17 @@ const CheckoutModal = ({ isOpen, onClose, cartData, onPlaceOrder }) => {
   );
 };
 
-const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
+const CartSidebar = ({ isOpen, onClose }) => {
   const [cartData, setCartData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [updatingItems, setUpdatingItems] = useState(new Set());
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  
+  // Order status modal states
+  const [showOrderStatus, setShowOrderStatus] = useState(false);
+  const [orderStatus, setOrderStatus] = useState('');
+  const [orderMessage, setOrderMessage] = useState('');
   
   // Notification state
   const [notification, setNotification] = useState({
@@ -483,7 +536,7 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
 
   // Handle checkout button click
   const handleCheckout = () => {
-    if (cartData && cartData.items.length > 0) {
+    if (cartData && cartData.items && cartData.items.length > 0) {
       setShowCheckoutModal(true);
     }
   };
@@ -503,25 +556,28 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
       });
 
       if (response.data.status === 'SUCCESS') {
+        // Close checkout modal first
         setShowCheckoutModal(false);
-        onClose();
         
         // Refresh cart data to show empty cart
         await fetchCartData();
         
-        // Call parent component's onCheckout if needed
-        if (onCheckout) {
-          onCheckout(response.data);
-        }
-        
-        // Show success notification
-        showNotification('success', response.data.message || 'Order placed successfully! Thank you for your purchase.');
+        setOrderStatus('SUCCESS');
+        setOrderMessage(response.data.message || 'Your order has been placed successfully!');
+        setShowOrderStatus(true);
+
       } else {
-        throw new Error(response.data.message || 'Failed to place order');
+        // Show failed status modal
+        setOrderStatus('FAILED');
+        setOrderMessage(response.data?.message || 'Failed to place order. Please try again.');
+        setShowOrderStatus(true);
       }
     } catch (error) {
       console.error('Error placing order:', error);
-      showNotification('error', error.message || 'Failed to place order. Please try again.');
+      // Show failed status modal for errors
+      setOrderStatus('FAILED');
+      setOrderMessage(error.response?.data?.message || 'Error placing order. Please try again.');
+      setShowOrderStatus(true);
       throw error;
     }
   };
@@ -588,7 +644,7 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
                 Retry
               </button>
             </div>
-          ) : !cartData || cartData.items.length === 0 ? (
+          ) : !cartData || !cartData.items || cartData.items.length === 0 ? (
             <div className={styles.emptyCart}>
               <ShoppingBag size={48} />
               <h3>Your cart is empty</h3>
@@ -737,7 +793,7 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
               <button
                 className={styles.checkoutButton}
                 onClick={handleCheckout}
-                disabled={cartData.items.length === 0}
+                disabled={!cartData || !cartData.items || cartData.items.length === 0}
               >
                 Proceed to Checkout
               </button>
@@ -752,6 +808,17 @@ const CartSidebar = ({ isOpen, onClose, onCheckout }) => {
         onClose={() => setShowCheckoutModal(false)}
         cartData={cartData}
         onPlaceOrder={handlePlaceOrder}
+      />
+
+      {/* Order Status Modal */}
+      <OrderStatusModal
+        isOpen={showOrderStatus}
+        status={orderStatus}
+        message={orderMessage}
+        onClose={() => {
+          setShowOrderStatus(false);
+          setShowCheckoutModal(false);
+        }}
       />
     </>
   );

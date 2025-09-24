@@ -7,17 +7,35 @@ export const REGISTER_URL = `${API_BASE_URL}/user/register`;
 
 //Landing
 export const BOOK_FETCH_URL = `${API_BASE_URL}/landing/bookList`;
+
+export const FIND_BOOK_URL = `${API_BASE_URL}/landing/find/book/bookId`;
+
+
 export const BOOK_IMAGE_FETCH_URL = `${API_BASE_URL}/landing/book/image`;
 
 export const CATRGORY_FETCH_URL = `${API_BASE_URL}/landing/categories`;
 
 export const CATRGORY_VIEW_URL = `${API_BASE_URL}/landing/view/categories`;
 
+
+export const CATRGORY_UPDATE_URL = `${API_BASE_URL}/book/category/update`;
+export const CATRGORY_DELETE_URL = `${API_BASE_URL}/book/category/delete`;
+
+
+export const CATRGORY_IMAGE_UPDATE_URL = `${API_BASE_URL}/book/category/image/update`;
+
+
 export const BLOG_VIEW_URL = `${API_BASE_URL}/landing/view/blogs`;
 export const CREATE_BLOG_URL = `${API_BASE_URL}/admin/createBlog`;
 export const DELETE_BLOG_URL = `${API_BASE_URL}/admin/delete/blog`;
 export const EDIT_BLOG_URL = `${API_BASE_URL}/admin/edit/blog`;
 
+
+
+export const BOOK_IMAGE_LIST_FETCH_URL = `${API_BASE_URL}/book/images/findAll`;
+export const BOOK_COVER_IMAGE_ADD_URL = `${API_BASE_URL}/book/images/cover/add`;
+export const BOOK_SECONDARY_IMAGE_ADD_URL = `${API_BASE_URL}/book/images/secondary/add`;
+export const BOOK_IMAGE_DELETE_URL = `${API_BASE_URL}/book/images/delete`;
 
 
 

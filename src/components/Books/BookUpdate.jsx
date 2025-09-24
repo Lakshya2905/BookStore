@@ -2,14 +2,23 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './BookUpdate.module.css';
 import { FIND_ALL_BOOK_URL,BOOK_UPDATE,BOOK_CATEGORIES_FETCH_URL } from '../../constants/apiConstants';
+import BookImageEditModal from './BookImageEditModal';
 
 const BookUpdate = () => {
   const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedBook, setSelectedBook] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedBookForImages, setSelectedBookForImages] = useState(null);
+
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchField, setSearchField] = useState('all');
   
   // Form data
   const [formData, setFormData] = useState({
@@ -51,8 +60,65 @@ const BookUpdate = () => {
     removeTags: false
   });
 
-  const BOOK_TAGS = ['NEW_RELEASE', 'BESTSELLER', 'TOP_RATED', 'SALE'];
+  const BOOK_TAGS = ['NEW_RELEASE', 'BESTSELLER', 'TOP_RATED'];
   const SHOW_STATUS_OPTIONS = ['HIDE', 'SHOW'];
+
+  // Search function
+  const handleSearch = (query, field) => {
+    if (!query.trim()) {
+      setFilteredBooks(books);
+      return;
+    }
+
+    const searchTerm = query.toLowerCase();
+    const filtered = books.filter(book => {
+      switch (field) {
+        case 'bookName':
+          return book.bookName?.toLowerCase().includes(searchTerm);
+        case 'authorName':
+          return book.authorName?.toLowerCase().includes(searchTerm);
+        case 'category':
+          return book.category?.toLowerCase().includes(searchTerm);
+        case 'publisher':
+          return book.publisher?.toLowerCase().includes(searchTerm);
+        case 'isbn':
+          return book.isbn?.toLowerCase().includes(searchTerm);
+        case 'hsn':
+          return book.hsn?.toLowerCase().includes(searchTerm);
+        case 'tags':
+          return book.bookTags?.some(tag => tag.toLowerCase().includes(searchTerm));
+        case 'all':
+        default:
+          return (
+            book.bookName?.toLowerCase().includes(searchTerm) ||
+            book.authorName?.toLowerCase().includes(searchTerm) ||
+            book.category?.toLowerCase().includes(searchTerm) ||
+            book.publisher?.toLowerCase().includes(searchTerm) ||
+            book.isbn?.toLowerCase().includes(searchTerm) ||
+            book.hsn?.toLowerCase().includes(searchTerm) ||
+            book.bookTags?.some(tag => tag.toLowerCase().includes(searchTerm))
+          );
+      }
+    });
+
+    setFilteredBooks(filtered);
+  };
+
+
+  const openImageModal = (book) => {
+  setSelectedBookForImages(book);
+  setImageModalOpen(true);
+};
+
+const closeImageModal = () => {
+  setImageModalOpen(false);
+  setSelectedBookForImages(null);
+};
+
+  // Update filtered books when search query or field changes
+  useEffect(() => {
+    handleSearch(searchQuery, searchField);
+  }, [searchQuery, searchField, books]);
 
   // Function to disable arrow keys on number inputs
   const handleKeyDown = (e) => {
@@ -134,7 +200,9 @@ const BookUpdate = () => {
       const response = await axios.post(`${FIND_ALL_BOOK_URL}`, { user, token });
       
       if (response.data && response.data.status === 'SUCCESS') {
-        setBooks(response.data.payload || []);
+        const booksData = response.data.payload || [];
+        setBooks(booksData);
+        setFilteredBooks(booksData);
       } else {
         setMessage({ text: 'Failed to load books', type: 'error' });
       }
@@ -301,6 +369,11 @@ const BookUpdate = () => {
     }
   };
 
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchField('all');
+  };
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Book Management</h1>
@@ -310,6 +383,51 @@ const BookUpdate = () => {
           {message.text}
         </div>
       )}
+
+      {/* Search Section */}
+      <div className={styles.searchContainer}>
+        <div className={styles.searchControls}>
+          <div className={styles.searchInputGroup}>
+            <input
+              type="text"
+              placeholder="Search books..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+            <select
+              value={searchField}
+              onChange={(e) => setSearchField(e.target.value)}
+              className={styles.searchSelect}
+            >
+              <option value="all">All Fields</option>
+              <option value="bookName">Book Name</option>
+              <option value="authorName">Author</option>
+              <option value="category">Category</option>
+              <option value="publisher">Publisher</option>
+              <option value="isbn">ISBN</option>
+              <option value="hsn">HSN</option>
+              <option value="tags">Tags</option>
+            </select>
+            {searchQuery && (
+              <button 
+                onClick={clearSearch}
+                className={styles.clearSearchBtn}
+                type="button"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {searchQuery && (
+          <div className={styles.searchResults}>
+            Found {filteredBooks.length} book(s) matching "{searchQuery}"
+            {searchField !== 'all' && ` in ${searchField.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
+          </div>
+        )}
+      </div>
 
       {loading && <div className={styles.loading}>Loading...</div>}
 
@@ -328,44 +446,64 @@ const BookUpdate = () => {
               <th>Price</th>
               <th>GST%</th>
               <th>HSN</th>
+              <th>ISBN</th>
               <th>Tags</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {books.map((book) => (
-              <tr key={book.bookId}>
-                <td>{book.bookId}</td>
-                <td>{book.bookName}</td>
-                <td>{book.authorName}</td>
-                <td>{book.category}</td>
-                <td>
-                  <span className={`${styles.status} ${styles[book.showStatus?.toLowerCase()]}`}>
-                    {book.showStatus}
-                  </span>
-                </td>
-                <td>₹{book.mrp || 0}</td>
-                <td>{book.discount || 0}%</td>
-                <td>₹{book.price}</td>
-                <td>{book.gst || 0}%</td>
-                <td>{book.hsn || '-'}</td>
-                <td>
-                  <div className={styles.tags}>
-                    {book.bookTags?.map((tag, index) => (
-                      <span key={index} className={styles.tag}>{tag}</span>
-                    ))}
-                  </div>
-                </td>
-                <td>
-                  <button 
-                    className={styles.editBtn}
-                    onClick={() => openModal(book)}
-                  >
-                    Edit
-                  </button>
+            {filteredBooks.length === 0 ? (
+              <tr>
+                <td colSpan="13" className={styles.noResults}>
+                  {searchQuery ? 'No books found matching your search criteria' : 'No books available'}
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredBooks.map((book) => (
+                <tr key={book.bookId}>
+                  <td>{book.bookId}</td>
+                  <td>{book.bookName}</td>
+                  <td>{book.authorName}</td>
+                  <td>{book.category}</td>
+                  <td>
+                    <span className={`${styles.status} ${styles[book.showStatus?.toLowerCase()]}`}>
+                      {book.showStatus}
+                    </span>
+                  </td>
+                  <td>₹{book.mrp || 0}</td>
+                  <td>{book.discount || 0}%</td>
+                  <td>₹{book.price}</td>
+                  <td>{book.gst || 0}%</td>
+                  <td>{book.hsn || '-'}</td>
+                  <td>{book.isbn || '-'}</td>
+                  <td>
+                    <div className={styles.tags}>
+                      {book.bookTags?.map((tag, index) => (
+                        <span key={index} className={styles.tag}>{tag}</span>
+                      ))}
+                    </div>
+                  </td>
+                  <td>
+                    <div className={styles.imageActions}>
+                    <button 
+                      className={styles.editBtn}
+                      onClick={() => openModal(book)}
+                    >
+                      Edit Information
+                    </button>
+
+    <button 
+      className={styles.imageBtn}
+      onClick={() => openImageModal(book)}
+    >
+      Edit Images
+    </button>
+    </div>
+
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -848,6 +986,14 @@ const BookUpdate = () => {
           </div>
         </div>
       )}
+
+      {imageModalOpen && selectedBookForImages && (
+  <BookImageEditModal
+    bookId={selectedBookForImages.bookId}
+    bookName={selectedBookForImages.bookName}
+    onClose={closeImageModal}
+  />
+)}
     </div>
   );
 };

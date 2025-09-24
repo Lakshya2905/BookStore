@@ -394,10 +394,7 @@
 }
 
 /* ===== BOOKS PREVIEW SECTION ===== */
-.booksPreviewSection {
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-}
+
 
 .booksPreviewContainer {
   max-width: 1200px;

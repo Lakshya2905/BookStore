@@ -162,7 +162,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
             ...prev,
             [bookId]: ((prev[bookId] || 0) + 1) % allImages.length
           }));
-        }, 5000); // 5 seconds
+        }, 500000000); // 5 seconds
       }
     });
     
@@ -266,11 +266,6 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
     setSelectedImageList([]);
   };
 
-  // Function to calculate discount percentage
-  const calculateDiscountPercentage = (book) => {
-    if (!book.mrp || !book.discount || book.discount <= 0) return 0;
-    return Math.round((book.discount / book.mrp) * 100);
-  };
 
   // Function to get display price
   const getDisplayPrice = (book) => {
@@ -407,16 +402,13 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
       {!loading && !error && filteredBooks.length > 0 && (
         <>
           <div className={styles.scrollContainer}>
-            <button 
-              className={`${styles.scrollButton} ${styles.scrollLeft}`}
-              onClick={scrollLeft}
-              type="button"
-              aria-label="Scroll left"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15,18 9,12 15,6"></polyline>
-              </svg>
-            </button>
+   <button 
+    className={`${styles.scrollButton} ${styles.scrollLeft}`}
+    onClick={scrollLeft}
+    type="button"
+    aria-label="Scroll left"
+  >
+  </button>
             
             <div className={styles.booksGrid} ref={scrollContainerRef}>
               {currentBooks.map((book) => {
@@ -491,7 +483,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                         <div className={styles.tooltipContent}>
                           <div>
                             <h4>{book.bookName}</h4>
-                            <p className={styles.tooltipAuthor}>by {book.authorName}</p>
+                            <p className={styles.tooltipAuthor} >by {book.authorName}</p>
                             <div className={styles.tooltipDescription}>
                               {book.description || book.bookDescription || "No description available for this book."}
                             </div>
@@ -558,8 +550,8 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
                     </div>
 
                     <div className={styles.bookDetails}>
-                      <h3 className={styles.bookTitle}>{book.bookName}</h3>
-                      <p className={styles.bookAuthor}>by {book.authorName}</p>
+                      <h3 className={styles.bookTitle} onClick={() => handleImageClick(book)}>{book.bookName} </h3>
+                      <p className={styles.bookAuthor} onClick={() => handleImageClick(book)}>by {book.authorName}</p>
                       {/* <p className={styles.bookDescription}>
                         {book.description || book.bookDescription || "A fascinating read that will captivate your imagination."}
                       </p> */}
@@ -633,16 +625,13 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
               })}
             </div>
 
-            <button 
-              className={`${styles.scrollButton} ${styles.scrollRight}`}
-              onClick={scrollRight}
-              type="button"
-              aria-label="Scroll right"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="9,18 15,12 9,6"></polyline>
-              </svg>
-            </button>
+         <button 
+    className={`${styles.scrollButton} ${styles.scrollRight}`}
+    onClick={scrollRight}
+    type="button"
+    aria-label="Scroll right"
+  >
+  </button>
           </div>
 
           {showPagination && totalPages > 1 && (
@@ -704,7 +693,7 @@ const BookViewCard = ({ books = [], loading, error, showPagination = true }) => 
       <ImageViewModal
         isOpen={imageModalOpen}
         onClose={closeImageModal}
-        bookInfo={selectedBookForImage}
+        book={selectedBookForImage}
         imageUrlList={selectedImageList}
         onAddToCart={handleAddToCart}           
         onBuyNow={handleBuyNow}      

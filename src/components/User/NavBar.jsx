@@ -180,13 +180,7 @@ const handleNavigation = useCallback(
     fetchCartItemCount();
   }, [fetchCartItemCount]);
 
-  const handleCheckout = useCallback(
-    (cartData) => {
-      console.log("Proceeding to checkout with:", cartData);
-      navigate("/checkout", { state: { cartData } });
-    },
-    [navigate]
-  );
+
 
   const closeMobileMenuAndNavigate = useCallback(
     (path) => {
@@ -262,6 +256,8 @@ const handleNavigation = useCallback(
       return [
         { label: "Add Book", path: "/admin/book/add", icon: <Plus size={16} /> },
         { label: "Add Category", path: "/admin/category/add", icon: <Plus size={16} /> },
+        { label: "Update Category", path: "/admin/category/update", icon: <Plus size={16} /> },
+        
         { label: "Update Book", path: "/admin/book/update", icon: <Edit size={16} /> },
         { label: "Priority Update", path: "/admin/book/priority/update", icon: <TrendingUp size={16} /> },
         { label: "Add Header Image", path: "/admin/add/discoveryImage", icon: <TrendingUp size={16} /> },
@@ -276,7 +272,6 @@ const handleNavigation = useCallback(
         { label: "New Releases", path: "/books?tag=NEW_RELEASE" },
         { label: "Best Sellers", path: "/books?tag=BESTSELLER" },
         { label: "Top Rated", path: "/books?tag=TOP_RATED" },
-        { label: "Sale", path: "/books?tag=SALE" },
         { label: "My Orders", path: "/order/customer/view" },
          { label: "Blogs", path: "/blogs" }
       ];
@@ -534,7 +529,6 @@ const handleNavigation = useCallback(
         <CartSidebar
           isOpen={cartOpen}
           onClose={handleCartClose}
-          onCheckout={handleCheckout}
         />
       )}
     </>
