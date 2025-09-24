@@ -180,13 +180,7 @@ const handleNavigation = useCallback(
     fetchCartItemCount();
   }, [fetchCartItemCount]);
 
-  const handleCheckout = useCallback(
-    (cartData) => {
-      console.log("Proceeding to checkout with:", cartData);
-      navigate("/checkout", { state: { cartData } });
-    },
-    [navigate]
-  );
+
 
   const closeMobileMenuAndNavigate = useCallback(
     (path) => {
@@ -535,7 +529,6 @@ const handleNavigation = useCallback(
         <CartSidebar
           isOpen={cartOpen}
           onClose={handleCartClose}
-          onCheckout={handleCheckout}
         />
       )}
     </>
