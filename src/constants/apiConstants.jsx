@@ -90,3 +90,5 @@ export const INVOICE_ADMIN_FETCH_URL = `${API_BASE_URL}/invoice/findAllInvoice`;
 
 export const UPDATE_PAYMENT_URL = `${API_BASE_URL}/invoice/payment/paid/updateStatus`;
 export const UPDATE_ORDER_STATUS_URL = `${API_BASE_URL}/invoice/order/updateStatus`;
+
+export const INVOICE_EXPORT_URL = `${API_BASE_URL}/invoice/export`;

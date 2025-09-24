@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Download, Loader, AlertCircle, CheckCircle, FileSpreadsheet, Filter, CreditCard, Truck, Package, X, Eye, Calendar } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import axios from 'axios';
 import styles from './InvoiceExportPage.module.css';
-import { INVOICE_ADMIN_FETCH_URL, UPDATE_PAYMENT_URL, UPDATE_ORDER_STATUS_URL } from '../../constants/apiConstants';
+import { INVOICE_ADMIN_FETCH_URL, UPDATE_PAYMENT_URL, UPDATE_ORDER_STATUS_URL,INVOICE_EXPORT_URL } from '../../constants/apiConstants';
+
 
 // Invoice Detail Modal Component
 const InvoiceDetailModal = ({ isOpen, onClose, invoice, onMarkPaid, onDispatch, onDelivered, onCancel, actionLoading }) => {
@@ -741,61 +741,8 @@ const InvoiceExportPage = () => {
     return { totalRevenue, totalGST, nonCancelledInvoices };
   };
 
-  // Prepare data for Excel export - ONLY SUMMARY
-  const prepareSummaryExcelData = () => {
-    const excelData = [];
-    const { nonCancelledInvoices } = getRevenueStats();
-    
-    filteredInvoices.forEach(invoice => {
-      const row = {
-        'Invoice ID': invoice.invoiceId,
-        'Customer Name': invoice.customerName,
-        'Mobile No': invoice.mobileNo,
-        'Delivery Address': invoice.deliveryAddress || 'N/A',
-        'City': invoice.city,
-        'State': invoice.state,
-        'Pincode': invoice.pincode,
-        'Creation Date': new Date(invoice.creationDate).toLocaleDateString('en-IN'),
-        'Base Amount': `₹${(invoice.baseAmount || 0).toFixed(2)}`,
-        'Total GST': `₹${(invoice.totalGstPaid || 0).toFixed(2)}`,
-        'Total Amount': `₹${(invoice.totalAmount || 0).toFixed(2)}`,
-        'Payment Status': invoice.paymentStatus,
-        'Order Status': invoice.orderStatus,
-        'Total Items': invoice.orderList?.length || 0,
-        'Total Quantity': invoice.orderList?.reduce((sum, order) => sum + (order.quantity || 0), 0) || 0,
-        'Remark': invoice.remark || 'N/A'
-      };
-      
-      excelData.push(row);
-    });
-    
-    // Add Revenue and GST Collection summary
-    const { totalRevenue, totalGST } = getRevenueStats();
-    excelData.push({});
-    excelData.push({
-      'Invoice ID': 'SUMMARY',
-      'Customer Name': 'Revenue & GST Collection',
-      'Mobile No': '(Excluding Cancelled Orders)',
-      'Delivery Address': '',
-      'City': '',
-      'State': '',
-      'Pincode': '',
-      'Creation Date': '',
-      'Base Amount': '',
-      'Total GST': `₹${totalGST.toFixed(2)}`,
-      'Total Amount': `₹${totalRevenue.toFixed(2)}`,
-      'Payment Status': '',
-      'Order Status': '',
-      'Total Items': '',
-      'Total Quantity': '',
-      'Remark': `Active Orders: ${nonCancelledInvoices.length}`
-    });
-    
-    return excelData;
-  };
-
-  // Export to Excel - ONLY SUMMARY
-  const exportToExcel = () => {
+  // NEW: Export to Excel via backend
+  const exportToExcel = async () => {
     if (filteredInvoices.length === 0) {
       setError('No invoices to export based on current filters');
       clearMessages();
@@ -806,42 +753,69 @@ const InvoiceExportPage = () => {
     setError('');
 
     try {
-      const summaryData = prepareSummaryExcelData();
+      const userData = getUserData();
       
-      const workbook = XLSX.utils.book_new();
-      
-      const summarySheet = XLSX.utils.json_to_sheet(summaryData);
-      
-      summarySheet['!cols'] = [
-        { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 25 }, 
-        { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, 
-        { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, 
-        { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 25 }
-      ];
-      
-      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Invoice Summary');
-      
-      const currentDate = new Date().toISOString().split('T')[0];
-      let filterSuffix = '';
-      if (filters.paymentStatus !== 'All' || filters.orderStatus !== 'All' || filters.startDate || filters.endDate) {
-        const filterParts = [];
-        if (filters.paymentStatus !== 'All') filterParts.push(`payment_${filters.paymentStatus.toLowerCase()}`);
-        if (filters.orderStatus !== 'All') filterParts.push(`order_${filters.orderStatus.toLowerCase()}`);
-        if (filters.startDate || filters.endDate) {
-          filterParts.push(`date_${filters.startDate || 'start'}_to_${filters.endDate || 'end'}`);
-        }
-        filterSuffix = `_${filterParts.join('_')}`;
+      if (!userData.user || !userData.token) {
+        setError('User authentication data not found. Please login again.');
+        setExporting(false);
+        clearMessages();
+        return;
       }
+
+      // Extract invoice IDs from filtered invoices
+      const invoiceIdList = filteredInvoices.map(invoice => invoice.invoiceId);
+
+      const response = await axios.post(INVOICE_EXPORT_URL, {
+        user: userData.user,
+        token: userData.token,
+        invoiceList: invoiceIdList
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        responseType: 'blob' // Important for file download
+      });
+
+      // Create blob and download file
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
       
-      const filename = `invoice_summary_${currentDate}${filterSuffix}.xlsx`;
+      // Extract filename from response headers or create default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'invoice_export.xlsx';
       
-      XLSX.writeFile(workbook, filename);
-      
+      if (contentDisposition) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+
+      // Create download link and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
       const { totalRevenue, totalGST } = getRevenueStats();
-      setSuccess(`Excel file "${filename}" downloaded! Revenue: ${formatCurrency(totalRevenue)}, GST: ${formatCurrency(totalGST)} (${filteredInvoices.length} invoices)`);
+      setSuccess(`Excel file "${filename}" downloaded successfully! Revenue: ${formatCurrency(totalRevenue)}, GST: ${formatCurrency(totalGST)} (${filteredInvoices.length} invoices)`);
       clearMessages();
+      
     } catch (err) {
-      setError('Failed to export Excel file. Please try again.');
+      if (err.response?.status === 401) {
+        setError('Unauthorized access. Please login again.');
+      } else if (err.response?.status >= 500) {
+        setError('Server error. Please try again later.');
+      } else if (err.response?.status === 400) {
+        setError('Invalid request. Please check your selection and try again.');
+      } else {
+        setError('Failed to export Excel file. Please check your connection and try again.');
+      }
       console.error('Export error:', err);
       clearMessages();
     } finally {
@@ -896,7 +870,7 @@ const InvoiceExportPage = () => {
                 <FileSpreadsheet className={styles.titleIcon} />
                 Invoice Export Manager
               </h1>
-              <p className={styles.subtitle}>Export invoice summary and manage orders with detailed modal view</p>
+              <p className={styles.subtitle}>Export invoice data via backend and manage orders with detailed modal view</p>
             </div>
             
             <div className={styles.headerActions}>
@@ -915,7 +889,7 @@ const InvoiceExportPage = () => {
                 className={`${styles.button} ${styles.buttonPrimary}`}
               >
                 {exporting ? <Loader className={styles.spinner} /> : <Download className={styles.buttonIcon} />}
-                {exporting ? 'Exporting...' : 'Export Summary'}
+                {exporting ? 'Exporting...' : 'Export to Excel'}
               </button>
             </div>
           </div>
@@ -1149,8 +1123,6 @@ const InvoiceExportPage = () => {
             </div>
           )}
         </div>
-
-
       </div>
 
       {/* Invoice Detail Modal */}
