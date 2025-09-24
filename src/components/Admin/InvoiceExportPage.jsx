@@ -98,7 +98,7 @@ const InvoiceDetailModal = ({ isOpen, onClose, invoice, onMarkPaid, onDispatch, 
         {/* Header */}
         <div className={styles.detailModalHeader}>
           <div>
-            <h2 className={styles.detailModalTitle}>Invoice Details #{invoice.invoiceId}</h2>
+            <h2 className={styles.detailModalTitle}>Order Details #{invoice.invoiceId}</h2>
             <p className={styles.detailModalSubtitle}>
               Created on {new Date(invoice.creationDate).toLocaleDateString('en-IN')}
             </p>
@@ -313,7 +313,7 @@ const RemarkModal = ({ isOpen, onClose, onSubmit, title, actionType, invoiceId, 
           <div className={styles.modalBody}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>
-                Invoice ID: <span className={styles.invoiceIdLabel}>#{invoiceId}</span>
+                Order ID: <span className={styles.invoiceIdLabel}>#{invoiceId}</span>
               </label>
             </div>
             
@@ -1058,7 +1058,7 @@ const InvoiceExportPage = () => {
               <table className={styles.table}>
                 <thead className={styles.tableHead}>
                   <tr>
-                    <th className={styles.th}>Invoice ID</th>
+                    <th className={styles.th}>Order ID</th>
                     <th className={styles.th}>Customer</th>
                     <th className={styles.th}>Total Amount</th>
                     <th className={styles.th}>Payment Status</th>
